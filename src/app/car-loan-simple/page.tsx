@@ -43,7 +43,9 @@ interface FormData {
 }
 
 export default function CarLoanSimple(): JSX.Element {
-  const [loanDetails, setLoanDetails] = useState<SimpleLoanDetails | null>(null);
+  const [loanDetails, setLoanDetails] = useState<SimpleLoanDetails | null>(
+    null
+  );
   const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
   const [showResults, setShowResults] = useState<boolean>(false);
 
@@ -55,11 +57,12 @@ export default function CarLoanSimple(): JSX.Element {
       formData.loanTerm,
       formData.interestRate
     );
-    
+
     setLoanDetails({
       carPrice: formData.carPrice,
       downPaymentPercent: formData.downPaymentPercent,
-      downPaymentAmount: formData.carPrice * (formData.downPaymentPercent / 100),
+      downPaymentAmount:
+        formData.carPrice * (formData.downPaymentPercent / 100),
       loanTerm: formData.loanTerm,
       interestRate: formData.interestRate,
       monthlyInterestRate: formData.interestRate / 12,
@@ -69,9 +72,9 @@ export default function CarLoanSimple(): JSX.Element {
       monthlyInterest: calculationResult.monthlyInterest,
       totalPayment: calculationResult.totalPayment,
       totalInterest: calculationResult.totalInterest,
-      firstPayment: calculationResult.firstPayment
+      firstPayment: calculationResult.firstPayment,
     });
-    
+
     setSchedule(calculationResult.amortizationSchedule);
     setShowResults(true);
   };
@@ -79,34 +82,33 @@ export default function CarLoanSimple(): JSX.Element {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-      
+
       <div className="container mx-auto py-8 px-4 flex-grow">
         <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
-          Simulasi Kredit Mobil
+          Simulasi Kredit Mobil Sederhana
         </h1>
-        
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Simulasi Kredit - berdasar harga mobil
-            </h2>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
             <CarLoanSimpleForm onCalculate={handleCalculate} />
           </div>
-          
-          {showResults && loanDetails && (
-            <div className="space-y-6">
-              <CarLoanSimpleResult loanDetails={loanDetails} />
-              <CarLoanSimpleSchedule 
-                schedule={schedule} 
-                totalInterest={loanDetails.totalInterest}
-                totalPrincipal={loanDetails.loanAmount}
-                totalPayment={loanDetails.totalPayment}
-              />
-            </div>
-          )}
+
+          <div className="lg:col-span-2">
+            {showResults && loanDetails && (
+              <div className="space-y-6">
+                <CarLoanSimpleResult loanDetails={loanDetails} />
+                <CarLoanSimpleSchedule
+                  schedule={schedule}
+                  totalInterest={loanDetails.totalInterest}
+                  totalPrincipal={loanDetails.loanAmount}
+                  totalPayment={loanDetails.totalPayment}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );
