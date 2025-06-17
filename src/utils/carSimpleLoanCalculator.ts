@@ -14,7 +14,7 @@ export interface AmortizationScheduleItem {
   balance: number;
 }
 
-export interface CarSimpleLoanResult {
+export interface CarSimpleLoanResultType {
   carPrice: number;
   downPaymentPercent: number;
   downPaymentAmount: number;
@@ -36,7 +36,7 @@ export function calculateCarSimpleLoan(
   downPaymentPercent: number,
   loanTermYears: number,
   annualInterestRate: number
-): CarSimpleLoanResult {
+): CarSimpleLoanResultType {
   // Validasi input untuk mencegah NaN
   const validCarPrice = isNaN(carPrice) || carPrice <= 0 ? 0 : carPrice;
   const validDownPaymentPercent = isNaN(downPaymentPercent) || downPaymentPercent < 0 ? 0 : downPaymentPercent;

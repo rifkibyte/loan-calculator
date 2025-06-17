@@ -5,10 +5,10 @@ import CarSimpleLoanForm from "@/components/CarSimpleLoanForm";
 import CarSimpleLoanResult from "@/components/CarSimpleLoanResult";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { calculateCarSimpleLoan, CarSimpleLoanResult, CarSimpleLoanFormData } from "@/utils/carSimpleLoanCalculator";
+import { calculateCarSimpleLoan, CarSimpleLoanResultType, CarSimpleLoanFormData } from "@/utils/carSimpleLoanCalculator";
 
 export default function CarLoanSimple() {
-  const [loanDetails, setLoanDetails] = useState<CarSimpleLoanResult | null>(null);
+  const [loanDetails, setLoanDetails] = useState<CarSimpleLoanResultType | null>(null);
   const [showResults, setShowResults] = useState(false);
 
   const handleCalculate = (formData: CarSimpleLoanFormData) => {
