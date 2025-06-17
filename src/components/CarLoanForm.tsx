@@ -33,56 +33,79 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!carPrice || isNaN(Number(carPrice)) || Number(carPrice) <= 0) {
       newErrors.carPrice = "Harga mobil harus berupa angka positif";
     }
-    
-    if (!downPaymentPercent || isNaN(Number(downPaymentPercent)) || Number(downPaymentPercent) <= 0 || Number(downPaymentPercent) >= 100) {
-      newErrors.downPaymentPercent = "Persentase uang muka harus antara 0 dan 100";
+
+    if (
+      !downPaymentPercent ||
+      isNaN(Number(downPaymentPercent)) ||
+      Number(downPaymentPercent) <= 0 ||
+      Number(downPaymentPercent) >= 100
+    ) {
+      newErrors.downPaymentPercent =
+        "Persentase uang muka harus antara 0 dan 100";
     }
-    
-    if (!loanTerm || isNaN(Number(loanTerm)) || Number(loanTerm) <= 0 || !Number.isInteger(Number(loanTerm))) {
+
+    if (
+      !loanTerm ||
+      isNaN(Number(loanTerm)) ||
+      Number(loanTerm) <= 0 ||
+      !Number.isInteger(Number(loanTerm))
+    ) {
       newErrors.loanTerm = "Tenor harus berupa bilangan bulat positif";
     }
-    
-    if (!interestRate || isNaN(Number(interestRate)) || Number(interestRate) < 0) {
+
+    if (
+      !interestRate ||
+      isNaN(Number(interestRate)) ||
+      Number(interestRate) < 0
+    ) {
       newErrors.interestRate = "Suku bunga harus berupa angka positif atau nol";
     }
-    
-    if (!insurancePercent || isNaN(Number(insurancePercent)) || Number(insurancePercent) < 0) {
-      newErrors.insurancePercent = "Persentase asuransi harus berupa angka positif atau nol";
+
+    if (
+      !insurancePercent ||
+      isNaN(Number(insurancePercent)) ||
+      Number(insurancePercent) < 0
+    ) {
+      newErrors.insurancePercent =
+        "Persentase asuransi harus berupa angka positif atau nol";
     }
-    
-    if (!provisionPercent || isNaN(Number(provisionPercent)) || Number(provisionPercent) < 0) {
-      newErrors.provisionPercent = "Persentase provisi harus berupa angka positif atau nol";
+
+    if (
+      !provisionPercent ||
+      isNaN(Number(provisionPercent)) ||
+      Number(provisionPercent) < 0
+    ) {
+      newErrors.provisionPercent =
+        "Persentase provisi harus berupa angka positif atau nol";
     }
-    
+
     if (!policyFee || isNaN(Number(policyFee)) || Number(policyFee) < 0) {
-      newErrors.policyFee = "Biaya polis asuransi harus berupa angka positif atau nol";
+      newErrors.policyFee =
+        "Biaya polis asuransi harus berupa angka positif atau nol";
     }
-    
+
     if (!adminFee || isNaN(Number(adminFee)) || Number(adminFee) < 0) {
-      newErrors.adminFee = "Biaya administrasi harus berupa angka positif atau nol";
+      newErrors.adminFee =
+        "Biaya administrasi harus berupa angka positif atau nol";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Di CarSimpleLoanForm, pastikan handleSubmit mengirim data dengan struktur yang benar:
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
     if (validateForm()) {
       onCalculate({
-        carPrice: Number(carPrice),
-        downPaymentPercent: Number(downPaymentPercent),
-        loanTerm: Number(loanTerm),
-        interestRate: Number(interestRate),
-        insurancePercent: Number(insurancePercent),
-        provisionPercent: Number(provisionPercent),
-        policyFee: Number(policyFee),
-        adminFee: Number(adminFee)
+        carPrice: FormData.carPrice,
+        downPaymentPercent: FormData.downPaymentPercent,
+        loanTermYears: FormData.loanTermYears, // Pastikan nama field konsisten
+        annualInterestRate: FormData.annualInterestRate, // Pastikan nama field konsisten
       });
     }
   };
@@ -136,7 +159,9 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
         </div>
         <p className="mt-1 text-xs text-gray-900">(persen dari harga OTR)</p>
         {errors.downPaymentPercent && (
-          <p className="mt-1 text-sm text-red-600">{errors.downPaymentPercent}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.downPaymentPercent}
+          </p>
         )}
       </div>
 
@@ -178,7 +203,9 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
             <span className="text-gray-500 sm:text-sm">% / tahun</span>
           </div>
         </div>
-        <p className="mt-1 text-xs text-gray-900">= {monthlyInterestRate.toFixed(2)}% / bulan</p>
+        <p className="mt-1 text-xs text-gray-900">
+          = {monthlyInterestRate.toFixed(2)}% / bulan
+        </p>
         {errors.interestRate && (
           <p className="mt-1 text-sm text-red-600">{errors.interestRate}</p>
         )}
@@ -186,7 +213,7 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
 
       <div className="border-t border-gray-200 pt-4">
         <h3 className="font-medium text-gray-900 mb-3">Biaya Lain</h3>
-        
+
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-900 mb-1">
@@ -204,9 +231,13 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
                 <span className="text-gray-500 sm:text-sm">%</span>
               </div>
             </div>
-            <p className="mt-1 text-xs text-gray-900">(persen dari harga OTR)</p>
+            <p className="mt-1 text-xs text-gray-900">
+              (persen dari harga OTR)
+            </p>
             {errors.insurancePercent && (
-              <p className="mt-1 text-sm text-red-600">{errors.insurancePercent}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.insurancePercent}
+              </p>
             )}
           </div>
 
@@ -228,7 +259,9 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
             </div>
             <p className="mt-1 text-xs text-gray-900">(persen dari plafon)</p>
             {errors.provisionPercent && (
-              <p className="mt-1 text-sm text-red-600">{errors.provisionPercent}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.provisionPercent}
+              </p>
             )}
           </div>
 
@@ -243,7 +276,9 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
               <input
                 type="text"
                 value={policyFee}
-                onChange={(e) => setPolicyFee(formatInputCurrency(e.target.value))}
+                onChange={(e) =>
+                  setPolicyFee(formatInputCurrency(e.target.value))
+                }
                 className="w-full pl-12 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="40000"
               />
@@ -267,7 +302,9 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
               <input
                 type="text"
                 value={adminFee}
-                onChange={(e) => setAdminFee(formatInputCurrency(e.target.value))}
+                onChange={(e) =>
+                  setAdminFee(formatInputCurrency(e.target.value))
+                }
                 className="w-full pl-12 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="700000"
               />
