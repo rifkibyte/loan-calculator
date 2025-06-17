@@ -8,12 +8,57 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { calculateLoan } from "@/utils/loanCarCalculator";
 
-export default function Home() {
-  const [loanDetails, setLoanDetails] = useState(null);
-  const [schedule, setSchedule] = useState([]);
-  const [showResults, setShowResults] = useState(false);
+// Interface for loan details state
+interface LoanDetails {
+  carPrice: number;
+  downPaymentPercent: number;
+  downPaymentAmount: number;
+  loanTerm: number;
+  interestRate: number;
+  monthlyInterestRate: number;
+  loanAmount: number;
+  monthlyPayment: number;
+  monthlyPrincipal: number;
+  monthlyInterest: number;
+  totalPayment: number;
+  totalInterest: number;
+  insurancePercent: number;
+  insuranceAmount: number;
+  provisionPercent: number;
+  provisionAmount: number;
+  policyFee: number;
+  adminFee: number;
+  firstPayment: number;
+}
 
-  const handleCalculate = (formData) => {
+// Interface for amortization schedule item
+interface AmortizationItem {
+  period: number;
+  payment: number;
+  principal: number;
+  interest: number;
+  remainingBalance: number;
+}
+
+// Interface for form data
+interface FormData {
+  carPrice: number;
+  downPaymentPercent: number;
+  loanTerm: number;
+  interestRate: number;
+  insurancePercent: number;
+  provisionPercent: number;
+  policyFee: number;
+  adminFee: number;
+}
+
+export default function Home(): JSX.Element {
+  const [loanDetails, setLoanDetails] = useState<LoanDetails | null>(null);
+  const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
+  const [showResults, setShowResults] = useState<boolean>(false);
+
+  // Handle form calculation
+  const handleCalculate = (formData: FormData): void => {
     const calculationResult = calculateLoan(
       formData.carPrice,
       formData.downPaymentPercent,

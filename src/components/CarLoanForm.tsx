@@ -1,22 +1,31 @@
 "use client";
 
 import { useState } from "react";
-// import { formatCurrency } from "@/utils/formatters";
 
-interface LoanFormProps {
-  onCalculate: (formData: {
-    carPrice: number;
-    downPaymentPercent: number;
-    loanTerm: number;
-    interestRate: number;
-    insurancePercent: number;
-    provisionPercent: number;
-    policyFee: number;
-    adminFee: number;
-  }) => void;
+// Interface for form data
+interface FormData {
+  carPrice: number;
+  downPaymentPercent: number;
+  loanTerm: number;
+  interestRate: number;
+  insurancePercent: number;
+  provisionPercent: number;
+  policyFee: number;
+  adminFee: number;
 }
 
-export default function LoanForm({ onCalculate }: LoanFormProps) {
+// Interface for form validation errors
+interface FormErrors {
+  [key: string]: string;
+}
+
+// Interface for component props
+interface LoanFormProps {
+  onCalculate: (formData: FormData) => void;
+}
+
+export default function LoanForm({ onCalculate }: LoanFormProps): JSX.Element {
+  // Form state variables
   const [carPrice, setCarPrice] = useState<string>("250000000");
   const [downPaymentPercent, setDownPaymentPercent] = useState<string>("30");
   const [loanTerm, setLoanTerm] = useState<string>("5");
@@ -25,14 +34,18 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
   const [provisionPercent, setProvisionPercent] = useState<string>("0.5");
   const [policyFee, setPolicyFee] = useState<string>("40000");
   const [adminFee, setAdminFee] = useState<string>("700000");
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   // Derived values for display
-  const loanTermMonths = Number(loanTerm) * 12;
-  const monthlyInterestRate = Number(interestRate) / 12;
+  const loanTermMonths: number = Number(loanTerm) * 12;
+  const monthlyInterestRate: number = Number(interestRate) / 12;
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+  /**
+   * Validate form inputs
+   * @returns boolean indicating if form is valid
+   */
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
 
     if (!carPrice || isNaN(Number(carPrice)) || Number(carPrice) <= 0) {
       newErrors.carPrice = "Harga mobil harus berupa angka positif";
@@ -97,26 +110,39 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Di CarSimpleLoanForm, pastikan handleSubmit mengirim data dengan struktur yang benar:
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  /**
+   * Handle form submission
+   * @param e - Form event
+   */
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (validateForm()) {
       onCalculate({
-        carPrice: FormData.carPrice,
-        downPaymentPercent: FormData.downPaymentPercent,
-        loanTermYears: FormData.loanTermYears, // Pastikan nama field konsisten
-        annualInterestRate: FormData.annualInterestRate, // Pastikan nama field konsisten
+        carPrice: Number(carPrice),
+        downPaymentPercent: Number(downPaymentPercent),
+        loanTerm: Number(loanTerm),
+        interestRate: Number(interestRate),
+        insurancePercent: Number(insurancePercent),
+        provisionPercent: Number(provisionPercent),
+        policyFee: Number(policyFee),
+        adminFee: Number(adminFee)
       });
     }
   };
 
-  const formatInputCurrency = (value: string) => {
+  /**
+   * Format input to remove non-numeric characters
+   * @param value - Input value
+   * @returns Formatted numeric string
+   */
+  const formatInputCurrency = (value: string): string => {
     // Remove non-numeric characters
     return value.replace(/[^\d]/g, "");
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Car Price Input */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">
           Harga Mobil OTR:
@@ -128,7 +154,9 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
           <input
             type="text"
             value={carPrice}
-            onChange={(e) => setCarPrice(formatInputCurrency(e.target.value))}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+              setCarPrice(formatInputCurrency(e.target.value))
+            }
             className="w-full pl-12 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="250000000"
           />
@@ -141,6 +169,7 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
         )}
       </div>
 
+      {/* Down Payment Percentage Input */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">
           Uang Muka (DP):
@@ -149,7 +178,9 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
           <input
             type="text"
             value={downPaymentPercent}
-            onChange={(e) => setDownPaymentPercent(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+              setDownPaymentPercent(e.target.value)
+            }
             className="w-full pr-8 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="30"
           />
@@ -165,6 +196,7 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
         )}
       </div>
 
+      {/* Loan Term Input */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">
           Tenor (jangka waktu):
@@ -173,7 +205,9 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
           <input
             type="text"
             value={loanTerm}
-            onChange={(e) => setLoanTerm(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+              setLoanTerm(e.target.value)
+            }
             className="w-full pr-14 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="5"
           />
@@ -187,6 +221,7 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
         )}
       </div>
 
+      {/* Interest Rate Input */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">
           Bunga Pinjaman (Flat):
@@ -195,7 +230,9 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
           <input
             type="text"
             value={interestRate}
-            onChange={(e) => setInterestRate(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+              setInterestRate(e.target.value)
+            }
             className="w-full pr-14 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="4.8"
           />
@@ -211,10 +248,12 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
         )}
       </div>
 
+      {/* Additional Fees Section */}
       <div className="border-t border-gray-200 pt-4">
         <h3 className="font-medium text-gray-900 mb-3">Biaya Lain</h3>
 
         <div className="space-y-4">
+          {/* Insurance Percentage Input */}
           <div>
             <label className="block text-sm font-medium text-gray-900 mb-1">
               Asuransi:
@@ -223,7 +262,9 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
               <input
                 type="text"
                 value={insurancePercent}
-                onChange={(e) => setInsurancePercent(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                  setInsurancePercent(e.target.value)
+                }
                 className="w-full pr-8 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="5"
               />
@@ -241,6 +282,7 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
             )}
           </div>
 
+          {/* Provision Percentage Input */}
           <div>
             <label className="block text-sm font-medium text-gray-900 mb-1">
               Provisi:
@@ -249,7 +291,9 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
               <input
                 type="text"
                 value={provisionPercent}
-                onChange={(e) => setProvisionPercent(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                  setProvisionPercent(e.target.value)
+                }
                 className="w-full pr-8 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0.5"
               />
@@ -265,6 +309,7 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
             )}
           </div>
 
+          {/* Policy Fee Input */}
           <div>
             <label className="block text-sm font-medium text-gray-900 mb-1">
               Biaya Polis Asuransi:
@@ -276,7 +321,7 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
               <input
                 type="text"
                 value={policyFee}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPolicyFee(formatInputCurrency(e.target.value))
                 }
                 className="w-full pl-12 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -291,6 +336,7 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
             )}
           </div>
 
+          {/* Admin Fee Input */}
           <div>
             <label className="block text-sm font-medium text-gray-900 mb-1">
               Biaya Administrasi:
@@ -302,7 +348,7 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
               <input
                 type="text"
                 value={adminFee}
-                onChange={(e) =>
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setAdminFee(formatInputCurrency(e.target.value))
                 }
                 className="w-full pl-12 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -319,6 +365,7 @@ export default function LoanForm({ onCalculate }: LoanFormProps) {
         </div>
       </div>
 
+      {/* Submit Button */}
       <button
         type="submit"
         className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium"
