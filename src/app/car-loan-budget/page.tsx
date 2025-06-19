@@ -3,7 +3,7 @@
 import { useState } from "react";
 import CarLoanBudgetForm from "@/components/CarLoanBudgetForm";
 import CarLoanBudgetResult from "@/components/CarLoanBudgetResult";
-import CarLoanSchedule from "@/components/CarLoanSchedule"; // Import schedule component
+import CarLoanBudgetSchedule from "@/components/CarLoanBudgetSchedule"; // Import schedule component
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { calculateLoanFromBudget } from "@/utils/loanCarBudgetCalculator";
@@ -85,24 +85,18 @@ export default function CarLoanBudgetPage(): JSX.Element {
           Simulasi KKB Berdasarkan Budget
         </h1>
         
-        <div className="max-w-4xl mx-auto"> {/* Increased max width */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
             <CarLoanBudgetForm onCalculate={handleCalculate} />
           </div>
           
           <div className="mt-6 space-y-6">
             {showResults && loanDetails && (
-              <>
+              <div className="space-y-6">
                 <CarLoanBudgetResult loanDetails={loanDetails} />
-                
-                {/* Add loan schedule table */}
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                    Tabel Angsuran
-                  </h2>
-                  <CarLoanSchedule schedule={schedule} />
-                </div>
-              </>
+
+                <CarLoanBudgetSchedule schedule={schedule} />
+              </div>
             )}
           </div>
         </div>
