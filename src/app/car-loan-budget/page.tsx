@@ -7,7 +7,6 @@ import CarLoanBudgetSchedule from "@/components/CarLoanBudgetSchedule"; // Impor
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { calculateLoanFromBudget } from "@/utils/loanCarBudgetCalculator";
-import { generateAmortizationSchedule } from "@/utils/amortizationCalculator"; // Import schedule generator
 
 interface LoanDetails {
   carPrice: number;
@@ -49,14 +48,6 @@ export default function CarLoanBudgetPage(): JSX.Element {
       formData.loanTerm,
       formData.interestRate
     );
-    
-    // Generate amortization schedule
-    const amortizationSchedule = generateAmortizationSchedule(
-      calculationResult.loanAmount,
-      formData.interestRate,
-      formData.loanTerm,
-      formData.budget
-    );
 
     setLoanDetails({
       carPrice: calculationResult.carPrice,
@@ -69,28 +60,29 @@ export default function CarLoanBudgetPage(): JSX.Element {
       monthlyPayment: formData.budget,
       monthlyPrincipal: calculationResult.monthlyPrincipal,
       monthlyInterest: calculationResult.monthlyInterest,
-      firstPayment: calculationResult.firstPayment
+      firstPayment: calculationResult.firstPayment,
     });
-    
-    setSchedule(amortizationSchedule);
+
+    // Ambil jadwal langsung dari calculationResult
+    setSchedule(calculationResult.amortizationSchedule);
     setShowResults(true);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-      
+
       <div className="container mx-auto py-8 px-4 flex-grow">
         <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
           Simulasi KKB Berdasarkan Budget
         </h1>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
             <CarLoanBudgetForm onCalculate={handleCalculate} />
           </div>
-          
-          <div className="mt-6 space-y-6">
+
+          <div className="lg:col-span-2">
             {showResults && loanDetails && (
               <div className="space-y-6">
                 <CarLoanBudgetResult loanDetails={loanDetails} />
@@ -101,7 +93,7 @@ export default function CarLoanBudgetPage(): JSX.Element {
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );
