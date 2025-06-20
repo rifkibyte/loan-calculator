@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-// import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -20,11 +19,9 @@ export default function Header() {
       label: "Kredit Kendaraan",
       type: "dropdown",
       items: [
-        { href: "/car-loan-complete", label: "🚗 Kredit Mobil Lengkap" },
-        { href: "/car-loan-simple", label: "🚙 Kredit Mobil Sederhana" },
-        { href: "/car-loan-budget", label: "💰 Berdasarkan Budget Mobil" },
-        { href: "/motorcycle-loan", label: "🏍️ Kredit Motor" },
-        { href: "/motorcycle-budget", label: "💸 Berdasarkan Budget Motor" },
+        { href: "/car-loan/complete", label: "🚗 Kredit Kendaraan Lengkap" },
+        { href: "/car-loan/simple", label: "🚙 Kredit Kendaraan Sederhana" },
+        { href: "/car-loan/budget", label: "💰 Berdasarkan Budget Kendaraan" },
       ],
     },
     {

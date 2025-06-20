@@ -1,38 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import CarLoanSimpleForm from "@/components/CarLoanSimpleForm";
-import CarLoanSimpleResult from "@/components/CarLoanSimpleResult";
-import CarLoanSimpleSchedule from "@/components/CarLoanSimpleSchedule";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import { calculateSimpleLoan } from "@/utils/loanCarSimpleCalculator";
-
-// Interface for loan details state
-interface SimpleLoanDetails {
-  carPrice: number;
-  downPaymentPercent: number;
-  downPaymentAmount: number;
-  loanTerm: number;
-  interestRate: number;
-  monthlyInterestRate: number;
-  loanAmount: number;
-  monthlyPayment: number;
-  monthlyPrincipal: number;
-  monthlyInterest: number;
-  totalPayment: number;
-  totalInterest: number;
-  firstPayment: number;
-}
-
-// Interface for amortization schedule item
-interface AmortizationItem {
-  period: number;
-  payment: number;
-  principal: number;
-  interest: number;
-  remainingBalance: number;
-}
+import { CarLoanForm, CarLoanResult, CarLoanSchedule } from "@/components/car-loan/complete";
+import { Header, Footer } from "@/components/common";
+import { calculateLoan } from "@/utils/calculators/car-loan/completeCalculator";
+import { AmortizationItem } from "@/types/common";
+import { CarLoanCompleteResult as LoanDetails } from "@/types/car-loan";
 
 // Interface for form data
 interface FormData {
@@ -40,29 +13,34 @@ interface FormData {
   downPaymentPercent: number;
   loanTerm: number;
   interestRate: number;
+  insurancePercent: number;
+  provisionPercent: number;
+  policyFee: number;
+  adminFee: number;
 }
 
-export default function CarLoanSimple(): JSX.Element {
-  const [loanDetails, setLoanDetails] = useState<SimpleLoanDetails | null>(
-    null
-  );
+export default function CarLoanCompletePage(): JSX.Element {
+  const [loanDetails, setLoanDetails] = useState<LoanDetails | null>(null);
   const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
   const [showResults, setShowResults] = useState<boolean>(false);
 
   // Handle form calculation
   const handleCalculate = (formData: FormData): void => {
-    const calculationResult = calculateSimpleLoan(
+    const calculationResult = calculateLoan(
       formData.carPrice,
       formData.downPaymentPercent,
       formData.loanTerm,
-      formData.interestRate
+      formData.interestRate,
+      formData.insurancePercent,
+      formData.provisionPercent,
+      formData.policyFee,
+      formData.adminFee
     );
-
+    
     setLoanDetails({
       carPrice: formData.carPrice,
       downPaymentPercent: formData.downPaymentPercent,
-      downPaymentAmount:
-        formData.carPrice * (formData.downPaymentPercent / 100),
+      downPaymentAmount: formData.carPrice * (formData.downPaymentPercent / 100),
       loanTerm: formData.loanTerm,
       interestRate: formData.interestRate,
       monthlyInterestRate: formData.interestRate / 12,
@@ -72,9 +50,16 @@ export default function CarLoanSimple(): JSX.Element {
       monthlyInterest: calculationResult.monthlyInterest,
       totalPayment: calculationResult.totalPayment,
       totalInterest: calculationResult.totalInterest,
+      insurancePercent: formData.insurancePercent,
+      insuranceAmount: calculationResult.insuranceAmount,
+      provisionPercent: formData.provisionPercent,
+      provisionAmount: calculationResult.provisionAmount,
+      policyFee: formData.policyFee,
+      adminFee: formData.adminFee,
       firstPayment: calculationResult.firstPayment,
+      amortizationSchedule: calculationResult.amortizationSchedule
     });
-
+    
     setSchedule(calculationResult.amortizationSchedule);
     setShowResults(true);
   };
@@ -82,33 +67,28 @@ export default function CarLoanSimple(): JSX.Element {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-
+      
       <div className="container mx-auto py-8 px-4 flex-grow">
         <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
-          Simulasi Kredit Mobil Sederhana
+          Simulasi Kredit Mobil Lengkap
         </h1>
-
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
-            <CarLoanSimpleForm onCalculate={handleCalculate} />
+            <CarLoanForm onCalculate={handleCalculate} />
           </div>
-
+          
           <div className="lg:col-span-2">
             {showResults && loanDetails && (
               <div className="space-y-6">
-                <CarLoanSimpleResult loanDetails={loanDetails} />
-                <CarLoanSimpleSchedule
-                  schedule={schedule}
-                  totalInterest={loanDetails.totalInterest}
-                  totalPrincipal={loanDetails.loanAmount}
-                  totalPayment={loanDetails.totalPayment}
-                />
+                <CarLoanResult loanDetails={loanDetails} />
+                <CarLoanSchedule schedule={schedule} />
               </div>
             )}
           </div>
         </div>
       </div>
-
+      
       <Footer />
     </div>
   );

@@ -1,39 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import CarLoanBudgetForm from "@/components/CarLoanBudgetForm";
-import CarLoanBudgetResult from "@/components/CarLoanBudgetResult";
-import CarLoanBudgetSchedule from "@/components/CarLoanBudgetSchedule"; // Import schedule component
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import { calculateLoanFromBudget } from "@/utils/loanCarBudgetCalculator";
-
-interface LoanDetails {
-  carPrice: number;
-  downPaymentPercent: number;
-  downPaymentAmount: number;
-  loanTerm: number;
-  interestRate: number;
-  monthlyInterestRate: number;
-  loanAmount: number;
-  monthlyPayment: number;
-  monthlyPrincipal: number;
-  monthlyInterest: number;
-  firstPayment: number;
-}
-
-// Add amortization interface
-interface AmortizationItem {
-  period: number;
-  payment: number;
-  principal: number;
-  interest: number;
-  remainingBalance: number;
-}
+import { CarLoanBudgetForm, CarLoanBudgetResult, CarLoanBudgetSchedule } from "@/components/car-loan/budget";
+import { Header, Footer } from "@/components/common";
+import { calculateLoanFromBudget } from "@/utils/calculators/car-loan/budgetCalculator";
+import { AmortizationItem } from "@/types/common";
+import { CarLoanBudgetResult as LoanDetails } from "@/types/car-loan";
 
 export default function CarLoanBudgetPage(): JSX.Element {
   const [loanDetails, setLoanDetails] = useState<LoanDetails | null>(null);
-  const [schedule, setSchedule] = useState<AmortizationItem[]>([]); // State for schedule
+  const [schedule, setSchedule] = useState<AmortizationItem[]>([]); 
   const [showResults, setShowResults] = useState<boolean>(false);
 
   const handleCalculate = (formData: {
@@ -61,9 +37,9 @@ export default function CarLoanBudgetPage(): JSX.Element {
       monthlyPrincipal: calculationResult.monthlyPrincipal,
       monthlyInterest: calculationResult.monthlyInterest,
       firstPayment: calculationResult.firstPayment,
+      amortizationSchedule: calculationResult.amortizationSchedule
     });
 
-    // Ambil jadwal langsung dari calculationResult
     setSchedule(calculationResult.amortizationSchedule);
     setShowResults(true);
   };
@@ -86,7 +62,6 @@ export default function CarLoanBudgetPage(): JSX.Element {
             {showResults && loanDetails && (
               <div className="space-y-6">
                 <CarLoanBudgetResult loanDetails={loanDetails} />
-
                 <CarLoanBudgetSchedule schedule={schedule} />
               </div>
             )}

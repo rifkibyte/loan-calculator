@@ -1,41 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import PersonalLoanForm from "@/components/PersonalLoanForm";
-import PersonalLoanResult from "@/components/PersonalLoanResult";
-import PersonalLoanSchedule from "@/components/PersonalLoanSchedule";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import { calculateKtaLoan } from "@/utils/personalLoanCalculator";
+import { PersonalLoanForm, PersonalLoanResult, PersonalLoanSchedule } from "@/components/personal-loan";
+import { Header, Footer } from "@/components/common";
+import { calculateKtaLoan } from "@/utils/calculators/personal-loan/personalLoanCalculator";
+import { AmortizationItem } from "@/types/common";
+import { PersonalLoanResult as LoanDetails } from "@/types/personal-loan";
 
-// Interface for loan details
-interface LoanDetails {
-  netIncome: number;
-  debtRatioPercent: number;
-  debtRatioAmount: number;
-  otherLoanPayment: number;
-  interestRate: number;
-  annualInterestRate: number;
-  maxKtaPayment: number;
-  loanAmount: number;
-  monthlyPayment: number;
-  monthlyPrincipal: number;
-  monthlyInterest: number;
-  totalPayment: number;
-  totalInterest: number;
-  calculationMethod: string;
-}
-
-// Interface for amortization schedule item
-interface AmortizationItem {
-  period: number;
-  payment: number;
-  principal: number;
-  interest: number;
-  remainingBalance: number;
-}
-
-// Interface for form data - sesuaikan dengan form yang ada
+// Interface for form data
 interface FormData {
   netIncome: number;
   creditRatio: number;
@@ -51,8 +23,6 @@ export default function PersonalLoanPage(): JSX.Element {
   // Handle form calculation
   const handleCalculate = (formData: FormData): void => {
     try {
-      console.log("Form data received:", formData);
-      
       // Map form data ke parameter yang diharapkan calculator
       const calculationResult = calculateKtaLoan(
         formData.netIncome,           // netIncome
@@ -61,8 +31,6 @@ export default function PersonalLoanPage(): JSX.Element {
         formData.monthlyInterestRate, // monthlyInterestRate
         "FLAT"                        // calculationMethod
       );
-      
-      console.log("Calculation result:", calculationResult);
       
       const loanDetailsData: LoanDetails = {
         netIncome: formData.netIncome,
@@ -78,10 +46,9 @@ export default function PersonalLoanPage(): JSX.Element {
         monthlyInterest: calculationResult.monthlyInterest,
         totalPayment: calculationResult.totalPayment,
         totalInterest: calculationResult.totalInterest,
-        calculationMethod: "FLAT"
+        calculationMethod: "FLAT",
+        amortizationSchedule: calculationResult.amortizationSchedule
       };
-      
-      console.log("Setting loan details:", loanDetailsData);
       
       setLoanDetails(loanDetailsData);
       setSchedule(calculationResult.amortizationSchedule);
