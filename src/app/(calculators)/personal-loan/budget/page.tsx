@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PersonalLoanForm, PersonalLoanResult, PersonalLoanSchedule } from "@/components/personal-loan";
+import { PersonalLoanForm, PersonalLoanResult, PersonalLoanSchedule } from "@/components/personal-loan/budget";
 import { Header, Footer } from "@/components/common";
 import { calculateKtaLoan } from "@/utils/calculators/personal-loan/personalLoanCalculator";
 import { AmortizationItem } from "@/types/common";
