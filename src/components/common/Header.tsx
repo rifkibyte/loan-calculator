@@ -28,7 +28,7 @@ export default function Header() {
       label: "Kredit Properti & Lainnya",
       type: "dropdown",
       items: [
-        { href: "/mortgage-calculator", label: "🏠 KPR (Kredit Rumah)" },
+        { href: "/mortgage/complete", label: "🏠 KPR (Kredit Rumah)" },
         { href: "/personal-loan/budget", label: "💳 KTA (Kredit Tanpa Agunan)" },
         { href: "/personal-loan/amount", label: "💳 KTA (Kredit Tanpa Agunan) Pinjaman" },
         { href: "/multipurpose-loan", label: "🎯 Kredit Multiguna" },
