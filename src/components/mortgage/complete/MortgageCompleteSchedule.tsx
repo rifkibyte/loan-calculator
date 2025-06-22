@@ -7,7 +7,9 @@ interface MortgageScheduleProps {
   schedule: AmortizationItem[];
 }
 
-export default function MortgageCompleteSchedule({ schedule }: MortgageScheduleProps): JSX.Element {
+export default function MortgageCompleteSchedule({
+  schedule,
+}: MortgageScheduleProps): JSX.Element {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -17,15 +19,18 @@ export default function MortgageCompleteSchedule({ schedule }: MortgageScheduleP
 
   // Calculate totals
   const { totalInterest, totalPrincipal, totalPayment } = useMemo(() => {
-    return schedule.reduce((acc, item) => ({
-      totalInterest: acc.totalInterest + item.interest,
-      totalPrincipal: acc.totalPrincipal + item.principal,
-      totalPayment: acc.totalPayment + item.payment,
-    }), {
-      totalInterest: 0,
-      totalPrincipal: 0,
-      totalPayment: 0
-    });
+    return schedule.reduce(
+      (acc, item) => ({
+        totalInterest: acc.totalInterest + item.interest,
+        totalPrincipal: acc.totalPrincipal + item.principal,
+        totalPayment: acc.totalPayment + item.payment,
+      }),
+      {
+        totalInterest: 0,
+        totalPrincipal: 0,
+        totalPayment: 0,
+      }
+    );
   }, [schedule]);
 
   const formatCurrency = (value: number): string => {
@@ -51,9 +56,12 @@ export default function MortgageCompleteSchedule({ schedule }: MortgageScheduleP
       payment: 0,
       principal: 0,
       interest: 0,
-      remainingBalance: schedule.length > 0 ? schedule[0].remainingBalance + schedule[0].principal : 0
+      remainingBalance:
+        schedule.length > 0
+          ? schedule[0].remainingBalance + schedule[0].principal
+          : 0,
     },
-    ...currentItems
+    ...currentItems,
   ];
 
   return (
@@ -102,7 +110,13 @@ export default function MortgageCompleteSchedule({ schedule }: MortgageScheduleP
             {displayItems.map((item, index) => (
               <tr
                 key={item.period}
-                className={item.period === 0 ? "bg-blue-50 font-medium" : item.period % 2 === 0 ? "bg-gray-50" : ""}
+                className={
+                  item.period === 0
+                    ? "bg-blue-50 font-medium"
+                    : item.period % 2 === 0
+                    ? "bg-gray-50"
+                    : ""
+                }
               >
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                   {item.period}
@@ -249,25 +263,49 @@ export default function MortgageCompleteSchedule({ schedule }: MortgageScheduleP
         </div>
       )}
 
-      {/* Summary Section */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-md">
-        <div>
-          <p className="text-sm text-gray-600">Total:</p>
-          <p className="text-lg font-semibold text-gray-900">
-            {formatCurrency(totalInterest)}
-          </p>
+      {/* Summary Section - Updated with proper labels and ratio info */}
+      <div className="mt-6 bg-gray-50 p-4 rounded-lg">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Ringkasan Total Pembayaran
+        </h3>
+
+        {/* Main Summary - Simple Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+          <div>
+            <p className="text-sm text-gray-600 mb-1">Total Bunga:</p>
+            <p className="text-xl font-bold text-gray-900">
+              {formatCurrency(totalInterest)}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600 mb-1">Total Pokok:</p>
+            <p className="text-xl font-bold text-gray-900">
+              {formatCurrency(totalPrincipal)}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600 mb-1">Total Angsuran:</p>
+            <p className="text-xl font-bold text-gray-900">
+              {formatCurrency(totalPayment)}
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="text-sm text-gray-600">Total:</p>
-          <p className="text-lg font-semibold text-gray-900">
-            {formatCurrency(totalPrincipal)}
-          </p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-600">Total:</p>
-          <p className="text-lg font-semibold text-gray-900">
-            {formatCurrency(totalPayment)}
-          </p>
+
+        {/* Additional Info - Ratio */}
+        <div className="pt-3 border-t border-gray-200">
+          <div className="flex justify-between items-center text-sm text-gray-600">
+            <span>Periode Pinjaman:</span>
+            <span className="font-medium">{schedule.length} bulan</span>
+          </div>
+          <div className="flex justify-between items-center text-sm text-gray-600 mt-1">
+            <span>Rasio Bunga terhadap Total:</span>
+            <span className="font-medium">
+              {totalPayment > 0
+                ? ((totalInterest / totalPayment) * 100).toFixed(1)
+                : 0}
+              %
+            </span>
+          </div>
         </div>
       </div>
     </div>
