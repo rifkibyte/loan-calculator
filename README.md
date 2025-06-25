@@ -275,9 +275,158 @@ Total	Rp 362.692.211,01	Rp 400.000.000,00	Rp 762.692.211,01
 
 Referensi
 
+types/common.ts
+export interface AmortizationItem {
+  period: number;
+  payment: number;
+  principal: number;
+  interest: number;
+  remainingBalance: number;
+}
+
+export interface CommonLoanResult {
+  loanAmount: number;
+  monthlyPayment?: number;
+  monthlyPrincipal: number;
+  monthlyInterest: number;
+  totalPayment?: number;
+  totalInterest?: number;
+  amortizationSchedule: AmortizationItem[];
+}
+
+types/car-loan.ts
+import { AmortizationItem, CommonLoanResult } from './common';
+
+// Car Loan Budget Types
+export interface CarLoanBudgetResult extends CommonLoanResult {
+  carPrice: number;
+  downPaymentAmount: number;
+  firstPayment: number;
+}
+
+// Car Loan Complete Types
+export interface CarLoanCompleteResult extends CommonLoanResult {
+  monthlyPayment: number;
+  totalPayment: number;
+  totalInterest: number;
+  insuranceAmount: number;
+  provisionAmount: number;
+  policyFee: number;
+  adminFee: number;
+  firstPayment: number;
+}
+
+// Car Loan Simple Types
+export interface CarLoanSimpleResult extends CommonLoanResult {
+  monthlyPayment: number;
+  totalPayment: number;
+  totalInterest: number;
+  firstPayment: number;
+}
+
+list directory
+── src
+│   ├── app
+│   │   ├── (calculators)
+│   │   │   ├── car-loan
+│   │   │   │   ├── budget
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── complete
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── simple
+│   │   │   │       └── page.tsx
+│   │   │   ├── mortgage
+│   │   │   │   ├── budget
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── complete
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── house-price
+│   │   │   │       └── page.tsx
+│   │   │   └── personal-loan
+│   │   │       ├── amount
+│   │   │       │   └── page.tsx
+│   │   │       └── budget
+│   │   │           └── page.tsx
+│   │   ├── favicon.ico
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── components
+│   │   ├── car-loan
+│   │   │   ├── budget
+│   │   │   │   ├── CarLoanBudgetForm.tsx
+│   │   │   │   ├── CarLoanBudgetResult.tsx
+│   │   │   │   ├── CarLoanBudgetSchedule.tsx
+│   │   │   │   └── index.ts
+│   │   │   ├── complete
+│   │   │   │   ├── CarLoanForm.tsx
+│   │   │   │   ├── CarLoanResult.tsx
+│   │   │   │   ├── CarLoanSchedule.tsx
+│   │   │   │   └── index.ts
+│   │   │   └── simple
+│   │   │       ├── CarLoanSimpleForm.tsx
+│   │   │       ├── CarLoanSimpleResult.tsx
+│   │   │       ├── CarLoanSimpleSchedule.tsx
+│   │   │       └── index.ts
+│   │   ├── common
+│   │   │   ├── Footer.tsx
+│   │   │   ├── Header.tsx
+│   │   │   └── index.ts
+│   │   ├── mortgage
+│   │   │   ├── budget
+│   │   │   │   ├── MortgageBudgetForm.tsx
+│   │   │   │   ├── MortgageBudgetResult.tsx
+│   │   │   │   ├── MortgageBudgetSchedule.tsx
+│   │   │   │   └── index.ts
+│   │   │   ├── complete
+│   │   │   │   ├── MortgageCompleteForm.tsx
+│   │   │   │   ├── MortgageCompleteResult.tsx
+│   │   │   │   ├── MortgageCompleteSchedule.tsx
+│   │   │   │   └── index.ts
+│   │   │   └── house-price
+│   │   │       ├── MortgageHousePriceForm.tsx
+│   │   │       ├── MortgageHousePriceResult.tsx
+│   │   │       ├── MortgageHousePriceSchedule.tsx
+│   │   │       └── index.ts
+│   │   └── personal-loan
+│   │       ├── amount
+│   │       │   ├── PersonalLoanAmountForm.tsx
+│   │       │   ├── PersonalLoanAmountResult.tsx
+│   │       │   ├── PersonalLoanAmountSchedule.tsx
+│   │       │   └── index.ts
+│   │       └── budget
+│   │           ├── PersonalLoanForm.tsx
+│   │           ├── PersonalLoanResult.tsx
+│   │           ├── PersonalLoanSchedule.tsx
+│   │           └── index.ts
+│   ├── types
+│   │   ├── car-loan.ts
+│   │   ├── common.ts
+│   │   ├── mortgage-budget.ts
+│   │   ├── mortgage-house-price.ts
+│   │   ├── mortgage.ts
+│   │   ├── personal-loan-amount.ts
+│   │   └── personal-loan.ts
+│   └── utils
+│       ├── calculators
+│       │   ├── car-loan
+│       │   │   ├── budgetCalculator.ts
+│       │   │   ├── completeCalculator.ts
+│       │   │   └── simpleCalculator.ts
+│       │   ├── mortgage
+│       │   │   ├── budgetCalculator.ts
+│       │   │   ├── housePriceCalculator.ts
+│       │   │   └── mortgageCalculator.ts
+│       │   └── personal-loan
+│       │       ├── personalLoanAmountCalculator.ts
+│       │       └── personalLoanCalculator.ts
+│       ├── formatters.ts
+│       └── index.ts
+└── tsconfig.json
 
 
-page
+
+page.tsx
 "use client";
 
 import { useState } from "react";
