@@ -4,48 +4,98 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+// Define types for menu items
+interface BaseMenuItem {
+  href: string;
+  label: string;
+  isPlanned?: boolean;
+}
+
+interface LinkMenuItem {
+  href: string;
+  label: string;
+  type: "link";
+}
+
+interface DropdownMenuItem {
+  label: string;
+  type: "dropdown";
+  items: BaseMenuItem[];
+}
+
+type MenuItem = LinkMenuItem | DropdownMenuItem;
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
 
   // Navigation menu items with dropdown support
-  const menuItems = [
-    {
-      href: "/",
-      label: "Beranda",
-      type: "link",
-    },
+  const menuItems: MenuItem[] = [
     {
       label: "Kredit Kendaraan",
       type: "dropdown",
       items: [
-        { href: "/car-loan/complete", label: "🚗 Kredit Kendaraan Lengkap" },
-        { href: "/car-loan/simple", label: "🚙 Kredit Kendaraan Sederhana" },
-        { href: "/car-loan/budget", label: "💰 Berdasarkan Budget Kendaraan" },
+        { href: "/car-loan/complete", label: "Kredit Kendaraan Lengkap" },
+        { href: "/car-loan/simple", label: "Kredit Kendaraan Sederhana" },
+        { href: "/car-loan/budget", label: "Berdasarkan Budget Kendaraan" },
       ],
     },
     {
-      label: "Kredit Properti & Lainnya",
+      label: "Kredit Properti",
       type: "dropdown",
       items: [
-        { href: "/mortgage/complete", label: "🏠 KPR (Kredit Rumah)" },
-        { href: "/personal-loan/budget", label: "💳 KTA (Kredit Tanpa Agunan)" },
-        { href: "/personal-loan/amount", label: "💳 KTA (Kredit Tanpa Agunan) Pinjaman" },
-        { href: "/multipurpose-loan", label: "🎯 Kredit Multiguna" },
-        { href: "/business-loan", label: "🏢 Kredit Usaha" },
+        { href: "/mortgage/complete", label: "KPR Lengkap" },
+        { href: "/mortgage/house-price", label: "KPR Berdasar Harga Rumah" },
+        { href: "/mortgage/income", label: "KPR Berdasar Penghasilan" },
+        { href: "/mortgage/budget", label: "KPR Berdasar Budget" },
+        { href: "/mortgage/fixed", label: "KPR Fixed Rate" },
+        { href: "/mortgage/islamic-mortgage", label: "KPR Syariah" },
+      ],
+    },
+    {
+      label: "Kredit Personal",
+      type: "dropdown",
+      items: [
+        { href: "/personal-loan/budget", label: "KTA Berdasar Budget" },
+        { href: "/personal-loan/amount", label: "KTA Berdasar Pinjaman" },
+      ],
+    },
+    {
+      label: "Kredit Lainnya",
+      type: "dropdown",
+      items: [
+        {
+          href: "/multipurpose-loan",
+          label: "Kredit Multiguna",
+          isPlanned: true,
+        },
+        { href: "/business-loan", label: "Kredit Usaha", isPlanned: true },
       ],
     },
     {
       label: "Kalkulator Finansial",
       type: "dropdown",
       items: [
-        { href: "/annuity-calculator", label: "📊 Kalkulator Anuitas" },
+        {
+          href: "/annuity-calculator",
+          label: "Kalkulator Anuitas",
+          isPlanned: true,
+        },
         {
           href: "/credit-card-calculator",
-          label: "💳 Kalkulator Kartu Kredit",
+          label: "Kalkulator Kartu Kredit",
+          isPlanned: true,
         },
-        { href: "/investment-calculator", label: "📈 Kalkulator Investasi" },
-        { href: "/savings-calculator", label: "💰 Kalkulator Tabungan" },
+        {
+          href: "/investment-calculator",
+          label: "Kalkulator Investasi",
+          isPlanned: true,
+        },
+        {
+          href: "/savings-calculator",
+          label: "Kalkulator Tabungan",
+          isPlanned: true,
+        },
       ],
     },
     {
@@ -59,7 +109,7 @@ export default function Header() {
   const isActiveLink = (href: string) => pathname === href;
 
   // Check if any dropdown item is active
-  const isActiveDropdown = (items: any[]) =>
+  const isActiveDropdown = (items: BaseMenuItem[]) =>
     items.some((item) => pathname === item.href);
 
   // Toggle mobile menu
@@ -67,6 +117,12 @@ export default function Header() {
 
   // Close mobile menu
   const closeMenu = () => setIsMenuOpen(false);
+
+  // Handle planned feature click
+  const handlePlannedClick = (e: React.MouseEvent, label: string) => {
+    e.preventDefault();
+    alert(`${label} sedang dalam pengembangan dan akan segera tersedia!`);
+  };
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -78,22 +134,10 @@ export default function Header() {
               href="/"
               className="flex items-center gap-2 text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span className="hidden sm:block">SimulasiKredit</span>
-              <span className="sm:hidden">SK</span>
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                KK
+              </div>
+              <span className="hidden sm:block">KalkulatorKredit</span>
             </Link>
           </div>
 
@@ -104,9 +148,9 @@ export default function Header() {
                 <li key={index} className="relative group">
                   {item.type === "link" ? (
                     <Link
-                      href={item.href!}
+                      href={item.href}
                       className={`px-4 py-2 rounded-md font-medium transition-colors ${
-                        isActiveLink(item.href!)
+                        isActiveLink(item.href)
                           ? "text-blue-600 bg-blue-50"
                           : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
                       }`}
@@ -117,7 +161,7 @@ export default function Header() {
                     <>
                       <button
                         className={`px-4 py-2 rounded-md font-medium transition-colors flex items-center gap-1 ${
-                          isActiveDropdown(item.items!)
+                          isActiveDropdown(item.items)
                             ? "text-blue-600 bg-blue-50"
                             : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
                         }`}
@@ -139,20 +183,35 @@ export default function Header() {
                       </button>
 
                       {/* Dropdown Menu */}
-                      <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-md shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                      <div className="absolute top-full left-0 mt-1 w-72 bg-white rounded-md shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                         <div className="py-2">
-                          {item.items!.map((subItem, subIndex) => (
-                            <Link
-                              key={subIndex}
-                              href={subItem.href}
-                              className={`block px-4 py-2 text-sm transition-colors ${
-                                isActiveLink(subItem.href)
-                                  ? "text-blue-600 bg-blue-50"
-                                  : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
-                              }`}
-                            >
-                              {subItem.label}
-                            </Link>
+                          {item.items.map((subItem, subIndex) => (
+                            <div key={subIndex}>
+                              {subItem.isPlanned ? (
+                                <button
+                                  onClick={(e) =>
+                                    handlePlannedClick(e, subItem.label)
+                                  }
+                                  className="w-full text-left px-4 py-2 text-sm transition-colors text-gray-500 hover:text-gray-700 hover:bg-gray-50 flex items-center justify-between group/item"
+                                >
+                                  <span>{subItem.label}</span>
+                                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                    Segera
+                                  </span>
+                                </button>
+                              ) : (
+                                <Link
+                                  href={subItem.href}
+                                  className={`block px-4 py-2 text-sm transition-colors ${
+                                    isActiveLink(subItem.href)
+                                      ? "text-blue-600 bg-blue-50"
+                                      : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                                  }`}
+                                >
+                                  {subItem.label}
+                                </Link>
+                              )}
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -169,35 +228,27 @@ export default function Header() {
             className="lg:hidden p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-50 transition-colors"
             aria-label="Toggle menu"
           >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <div className="w-6 h-6 flex flex-col justify-center items-center">
               {isMenuOpen ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
+                <>
+                  <span className="block w-5 h-0.5 bg-current transform rotate-45 translate-y-0.5"></span>
+                  <span className="block w-5 h-0.5 bg-current transform -rotate-45 -translate-y-0.5"></span>
+                </>
               ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
+                <>
+                  <span className="block w-5 h-0.5 bg-current mb-1"></span>
+                  <span className="block w-5 h-0.5 bg-current mb-1"></span>
+                  <span className="block w-5 h-0.5 bg-current"></span>
+                </>
               )}
-            </svg>
+            </div>
           </button>
         </div>
 
         {/* Mobile Navigation */}
         <div
           className={`lg:hidden overflow-hidden transition-all duration-300 ${
-            isMenuOpen ? "max-h-96 pb-4" : "max-h-0"
+            isMenuOpen ? "max-h-screen pb-4" : "max-h-0"
           }`}
         >
           <nav className="border-t pt-4">
@@ -206,10 +257,10 @@ export default function Header() {
                 <li key={index}>
                   {item.type === "link" ? (
                     <Link
-                      href={item.href!}
+                      href={item.href}
                       onClick={closeMenu}
                       className={`block px-4 py-2 rounded-md font-medium transition-colors ${
-                        isActiveLink(item.href!)
+                        isActiveLink(item.href)
                           ? "text-blue-600 bg-blue-50"
                           : "text-gray-700 hover:text-blue-600 hover:bg-gray-50"
                       }`}
@@ -222,19 +273,34 @@ export default function Header() {
                         {item.label}
                       </div>
                       <div className="pl-4">
-                        {item.items!.map((subItem, subIndex) => (
-                          <Link
-                            key={subIndex}
-                            href={subItem.href}
-                            onClick={closeMenu}
-                            className={`block px-4 py-2 text-sm transition-colors ${
-                              isActiveLink(subItem.href)
-                                ? "text-blue-600 bg-blue-50"
-                                : "text-gray-600 hover:text-blue-600 hover:bg-gray-50"
-                            }`}
-                          >
-                            {subItem.label}
-                          </Link>
+                        {item.items.map((subItem, subIndex) => (
+                          <div key={subIndex}>
+                            {subItem.isPlanned ? (
+                              <button
+                                onClick={(e) =>
+                                  handlePlannedClick(e, subItem.label)
+                                }
+                                className="w-full text-left px-4 py-2 text-sm transition-colors text-gray-500 hover:text-gray-700 hover:bg-gray-50 flex items-center justify-between"
+                              >
+                                <span>{subItem.label}</span>
+                                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
+                                  Segera
+                                </span>
+                              </button>
+                            ) : (
+                              <Link
+                                href={subItem.href}
+                                onClick={closeMenu}
+                                className={`block px-4 py-2 text-sm transition-colors ${
+                                  isActiveLink(subItem.href)
+                                    ? "text-blue-600 bg-blue-50"
+                                    : "text-gray-600 hover:text-blue-600 hover:bg-gray-50"
+                                }`}
+                              >
+                                {subItem.label}
+                              </Link>
+                            )}
+                          </div>
                         ))}
                       </div>
                     </div>
