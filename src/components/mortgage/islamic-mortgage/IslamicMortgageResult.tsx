@@ -1,39 +1,14 @@
 // components/islamic-mortgage/IslamicMortgageResult.tsx
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { formatCurrencyDisplay, formatNumber } from "@/utils/formatters";
 import { jsPDF } from "jspdf";
-
-interface IslamicMortgageResultProps {
-  mortgageDetails: {
-    housePrice: number;
-    downPaymentPercent: number;
-    downPaymentAmount: number;
-    loanTerm: number;
-    loanTermMonths: number;
-    marginRate: number;
-    monthlyMarginRate: number;
-    calculationMethod: "anuitas" | "flat";
-    loanAmount: number;
-    monthlyPayment: number;
-    totalPayment: number;
-    totalMargin: number;
-    minimumIncomeRatios: {
-      ratio25: number;
-      ratio30: number;
-      ratio33: number;
-      ratio35: number;
-      ratio40: number;
-    };
-    provisionAmount: number;
-    adminAmount: number;
-  };
-}
+import type { IslamicMortgageResultProps } from "@/types/islamic-mortgage";
 
 export default function IslamicMortgageResult({
   mortgageDetails,
-}: IslamicMortgageResultProps): JSX.Element {
+}: IslamicMortgageResultProps): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<string>("ringkasan");
 
   const safeFormatCurrency = (value: number) => {

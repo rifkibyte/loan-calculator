@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { formatCurrency } from "@/utils/formatters";
 
 interface ScheduleItem {
@@ -15,7 +15,9 @@ interface MortgageIncomeScheduleProps {
   schedule: ScheduleItem[];
 }
 
-export default function MortgageIncomeSchedule({ schedule }: MortgageIncomeScheduleProps) {
+export default function MortgageIncomeSchedule({
+  schedule,
+}: MortgageIncomeScheduleProps): React.JSX.Element {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -25,15 +27,18 @@ export default function MortgageIncomeSchedule({ schedule }: MortgageIncomeSched
 
   // Hitung total akumulasi
   const { totalInterest, totalPrincipal, totalPayment } = useMemo(() => {
-    return schedule.reduce((acc, item) => ({
-      totalInterest: acc.totalInterest + item.interest,
-      totalPrincipal: acc.totalPrincipal + item.principal,
-      totalPayment: acc.totalPayment + item.payment,
-    }), {
-      totalInterest: 0,
-      totalPrincipal: 0,
-      totalPayment: 0
-    });
+    return schedule.reduce(
+      (acc, item) => ({
+        totalInterest: acc.totalInterest + item.interest,
+        totalPrincipal: acc.totalPrincipal + item.principal,
+        totalPayment: acc.totalPayment + item.payment,
+      }),
+      {
+        totalInterest: 0,
+        totalPrincipal: 0,
+        totalPayment: 0,
+      }
+    );
   }, [schedule]);
 
   const goToPage = (page: number) => {
@@ -98,10 +103,14 @@ export default function MortgageIncomeSchedule({ schedule }: MortgageIncomeSched
                 0
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {schedule.length > 0 ? formatCurrency(schedule[0].remainingBalance + schedule[0].principal) : "Rp 0"}
+                {schedule.length > 0
+                  ? formatCurrency(
+                      schedule[0].remainingBalance + schedule[0].principal
+                    )
+                  : "Rp 0"}
               </td>
             </tr>
-            
+
             {currentItems.map((item) => (
               <tr
                 key={item.period}

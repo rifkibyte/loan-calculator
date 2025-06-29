@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { jsPDF } from "jspdf";
-import { MortgageResult as MortgageDetails } from "@/types/mortgage";
+import type { MortgageResult as MortgageDetails } from "@/types/mortgage";
 
 interface MortgageResultProps {
   mortgageDetails: MortgageDetails;
@@ -10,7 +10,7 @@ interface MortgageResultProps {
 
 export default function MortgageCompleteResult({
   mortgageDetails,
-}: MortgageResultProps): JSX.Element {
+}: MortgageResultProps): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<string>("summary");
 
   const formatCurrency = (value: number): string => {

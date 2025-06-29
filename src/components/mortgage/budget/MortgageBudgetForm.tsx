@@ -1,7 +1,7 @@
 // src/components/mortgage/budget/MortgageBudgetForm.tsx
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 
 interface FormData {
   monthlyBudget: number;
@@ -21,7 +21,9 @@ interface MortgageBudgetFormProps {
   onCalculate: (formData: FormData) => void;
 }
 
-export default function MortgageBudgetForm({ onCalculate }: MortgageBudgetFormProps): JSX.Element {
+export default function MortgageBudgetForm({
+  onCalculate,
+}: MortgageBudgetFormProps): React.JSX.Element {
   const [monthlyBudget, setMonthlyBudget] = useState<string>("5000000");
   const [downPaymentPercent, setDownPaymentPercent] = useState<string>("20");
   const [loanTerm, setLoanTerm] = useState<string>("15");
@@ -38,32 +40,68 @@ export default function MortgageBudgetForm({ onCalculate }: MortgageBudgetFormPr
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!monthlyBudget || isNaN(Number(monthlyBudget)) || Number(monthlyBudget) <= 0) {
+    if (
+      !monthlyBudget ||
+      isNaN(Number(monthlyBudget)) ||
+      Number(monthlyBudget) <= 0
+    ) {
       newErrors.monthlyBudget = "Budget angsuran harus berupa angka positif";
     }
 
-    if (!downPaymentPercent || isNaN(Number(downPaymentPercent)) || Number(downPaymentPercent) <= 0 || Number(downPaymentPercent) >= 100) {
-      newErrors.downPaymentPercent = "Persentase uang muka harus antara 0 dan 100";
+    if (
+      !downPaymentPercent ||
+      isNaN(Number(downPaymentPercent)) ||
+      Number(downPaymentPercent) <= 0 ||
+      Number(downPaymentPercent) >= 100
+    ) {
+      newErrors.downPaymentPercent =
+        "Persentase uang muka harus antara 0 dan 100";
     }
 
-    if (!loanTerm || isNaN(Number(loanTerm)) || Number(loanTerm) <= 0 || !Number.isInteger(Number(loanTerm))) {
+    if (
+      !loanTerm ||
+      isNaN(Number(loanTerm)) ||
+      Number(loanTerm) <= 0 ||
+      !Number.isInteger(Number(loanTerm))
+    ) {
       newErrors.loanTerm = "Tenor harus berupa bilangan bulat positif";
     }
 
-    if (!annualInterestRate || isNaN(Number(annualInterestRate)) || Number(annualInterestRate) < 0) {
-      newErrors.annualInterestRate = "Suku bunga harus berupa angka positif atau nol";
+    if (
+      !annualInterestRate ||
+      isNaN(Number(annualInterestRate)) ||
+      Number(annualInterestRate) < 0
+    ) {
+      newErrors.annualInterestRate =
+        "Suku bunga harus berupa angka positif atau nol";
     }
 
-    if (!installmentPercent || isNaN(Number(installmentPercent)) || Number(installmentPercent) <= 0 || Number(installmentPercent) > 100) {
-      newErrors.installmentPercent = "Persentase angsuran harus antara 0 dan 100";
+    if (
+      !installmentPercent ||
+      isNaN(Number(installmentPercent)) ||
+      Number(installmentPercent) <= 0 ||
+      Number(installmentPercent) > 100
+    ) {
+      newErrors.installmentPercent =
+        "Persentase angsuran harus antara 0 dan 100";
     }
 
-    if (!provisionPercent || isNaN(Number(provisionPercent)) || Number(provisionPercent) < 0) {
-      newErrors.provisionPercent = "Persentase provisi harus berupa angka positif atau nol";
+    if (
+      !provisionPercent ||
+      isNaN(Number(provisionPercent)) ||
+      Number(provisionPercent) < 0
+    ) {
+      newErrors.provisionPercent =
+        "Persentase provisi harus berupa angka positif atau nol";
     }
 
-    if (!adminPercent || isNaN(Number(adminPercent)) || Number(adminPercent) < 0) {
-      newErrors.adminPercent = "Persentase administrasi harus berupa angka positif atau nol";
+    if (
+      !adminPercent ||
+      isNaN(Number(adminPercent)) ||
+      Number(adminPercent) < 0
+    ) {
+      newErrors.adminPercent =
+        "Persentase administrasi harus berupa angka positif atau nol";
     }
 
     setErrors(newErrors);
@@ -80,7 +118,7 @@ export default function MortgageBudgetForm({ onCalculate }: MortgageBudgetFormPr
         annualInterestRate: Number(annualInterestRate),
         installmentPercent: Number(installmentPercent),
         provisionPercent: Number(provisionPercent),
-        adminPercent: Number(adminPercent)
+        adminPercent: Number(adminPercent),
       });
     }
   };
@@ -107,7 +145,9 @@ export default function MortgageBudgetForm({ onCalculate }: MortgageBudgetFormPr
           <input
             type="text"
             value={monthlyBudget}
-            onChange={(e) => setMonthlyBudget(formatInputCurrency(e.target.value))}
+            onChange={(e) =>
+              setMonthlyBudget(formatInputCurrency(e.target.value))
+            }
             className="w-full pl-12 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="5000000"
           />
@@ -115,7 +155,9 @@ export default function MortgageBudgetForm({ onCalculate }: MortgageBudgetFormPr
             <span className="text-gray-500 sm:text-sm">,00</span>
           </div>
         </div>
-        <p className="mt-1 text-xs text-gray-600">masukkan angka, tidak boleh pakai koma atau titik</p>
+        <p className="mt-1 text-xs text-gray-600">
+          masukkan angka, tidak boleh pakai koma atau titik
+        </p>
         {errors.monthlyBudget && (
           <p className="mt-1 text-sm text-red-600">{errors.monthlyBudget}</p>
         )}
@@ -140,7 +182,9 @@ export default function MortgageBudgetForm({ onCalculate }: MortgageBudgetFormPr
         </div>
         <p className="mt-1 text-xs text-gray-600">(persen dari harga rumah)</p>
         {errors.downPaymentPercent && (
-          <p className="mt-1 text-sm text-red-600">{errors.downPaymentPercent}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.downPaymentPercent}
+          </p>
         )}
       </div>
 
@@ -184,9 +228,13 @@ export default function MortgageBudgetForm({ onCalculate }: MortgageBudgetFormPr
             <span className="text-gray-500 sm:text-sm">% / tahun</span>
           </div>
         </div>
-        <p className="mt-1 text-xs text-gray-600">= {monthlyInterestRate.toFixed(2)}% / bulan</p>
+        <p className="mt-1 text-xs text-gray-600">
+          = {monthlyInterestRate.toFixed(2)}% / bulan
+        </p>
         {errors.annualInterestRate && (
-          <p className="mt-1 text-sm text-red-600">{errors.annualInterestRate}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.annualInterestRate}
+          </p>
         )}
       </div>
 
@@ -207,9 +255,13 @@ export default function MortgageBudgetForm({ onCalculate }: MortgageBudgetFormPr
             <span className="text-gray-500 sm:text-sm">%</span>
           </div>
         </div>
-        <p className="mt-1 text-xs text-gray-600">(persen dari penghasilan bersih)</p>
+        <p className="mt-1 text-xs text-gray-600">
+          (persen dari penghasilan bersih)
+        </p>
         {errors.installmentPercent && (
-          <p className="mt-1 text-sm text-red-600">{errors.installmentPercent}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.installmentPercent}
+          </p>
         )}
       </div>
 
@@ -226,7 +278,7 @@ export default function MortgageBudgetForm({ onCalculate }: MortgageBudgetFormPr
       {/* Additional Fees */}
       <div className="border-t border-gray-200 pt-4">
         <h3 className="font-medium text-gray-900 mb-3">Biaya Bank</h3>
-        
+
         <div className="space-y-4">
           {/* Provision Percentage */}
           <div>
@@ -247,7 +299,9 @@ export default function MortgageBudgetForm({ onCalculate }: MortgageBudgetFormPr
             </div>
             <p className="mt-1 text-xs text-gray-600">(persen dari plafon)</p>
             {errors.provisionPercent && (
-              <p className="mt-1 text-sm text-red-600">{errors.provisionPercent}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.provisionPercent}
+              </p>
             )}
           </div>
 

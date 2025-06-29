@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { MortgageHousePriceFormData } from "@/types/mortgage-house-price";
 
 interface FormErrors {
@@ -11,12 +11,16 @@ interface MortgageFormProps {
   onCalculate: (formData: MortgageHousePriceFormData) => void;
 }
 
-export default function MortgageHousePriceForm({ onCalculate }: MortgageFormProps): JSX.Element {
+export default function MortgageHousePriceForm({
+  onCalculate,
+}: MortgageFormProps): React.JSX.Element {
   const [housePrice, setHousePrice] = useState<string>("500000000");
   const [loanTerm, setLoanTerm] = useState<string>("10");
   const [annualInterestRate, setAnnualInterestRate] = useState<string>("14.6");
   const [downPaymentPercent, setDownPaymentPercent] = useState<string>("20");
-  const [calculationMethod, setCalculationMethod] = useState<'anuitas' | 'flat'>('anuitas');
+  const [calculationMethod, setCalculationMethod] = useState<
+    "anuitas" | "flat"
+  >("anuitas");
   const [errors, setErrors] = useState<FormErrors>({});
 
   // Derived values for display
@@ -36,7 +40,8 @@ export default function MortgageHousePriceForm({ onCalculate }: MortgageFormProp
       Number(downPaymentPercent) <= 0 ||
       Number(downPaymentPercent) >= 100
     ) {
-      newErrors.downPaymentPercent = "Persentase uang muka harus antara 0 dan 100";
+      newErrors.downPaymentPercent =
+        "Persentase uang muka harus antara 0 dan 100";
     }
 
     if (
@@ -53,7 +58,8 @@ export default function MortgageHousePriceForm({ onCalculate }: MortgageFormProp
       isNaN(Number(annualInterestRate)) ||
       Number(annualInterestRate) < 0
     ) {
-      newErrors.annualInterestRate = "Suku bunga harus berupa angka positif atau nol";
+      newErrors.annualInterestRate =
+        "Suku bunga harus berupa angka positif atau nol";
     }
 
     setErrors(newErrors);
@@ -68,7 +74,7 @@ export default function MortgageHousePriceForm({ onCalculate }: MortgageFormProp
         loanTerm: Number(loanTerm),
         annualInterestRate: Number(annualInterestRate),
         downPaymentPercent: Number(downPaymentPercent),
-        calculationMethod
+        calculationMethod,
       });
     }
   };
@@ -80,7 +86,9 @@ export default function MortgageHousePriceForm({ onCalculate }: MortgageFormProp
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="text-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">Simulasi KPR - berdasar harga rumah</h2>
+        <h2 className="text-xl font-semibold text-gray-900">
+          Simulasi KPR - berdasar harga rumah
+        </h2>
       </div>
 
       {/* House Price Input */}
@@ -92,7 +100,7 @@ export default function MortgageHousePriceForm({ onCalculate }: MortgageFormProp
           <input
             type="text"
             value={housePrice}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setHousePrice(formatInputCurrency(e.target.value))
             }
             className="w-full pl-3 pr-16 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -102,9 +110,11 @@ export default function MortgageHousePriceForm({ onCalculate }: MortgageFormProp
             <span className="text-gray-500 sm:text-sm">rupiah</span>
           </div>
         </div>
-        <p className="mt-1 text-xs text-gray-600">masukkan angka, tidak boleh pakai koma atau titik</p>
+        <p className="mt-1 text-xs text-gray-600">
+          masukkan angka, tidak boleh pakai koma atau titik
+        </p>
         <p className="mt-1 text-sm font-medium text-gray-900">
-          Rp {Number(housePrice || 0).toLocaleString('id-ID')},00
+          Rp {Number(housePrice || 0).toLocaleString("id-ID")},00
         </p>
         {errors.housePrice && (
           <p className="mt-1 text-sm text-red-600">{errors.housePrice}</p>
@@ -120,7 +130,7 @@ export default function MortgageHousePriceForm({ onCalculate }: MortgageFormProp
           <input
             type="text"
             value={loanTerm}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setLoanTerm(e.target.value)
             }
             className="w-full pl-3 pr-14 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -130,7 +140,9 @@ export default function MortgageHousePriceForm({ onCalculate }: MortgageFormProp
             <span className="text-gray-500 sm:text-sm">tahun</span>
           </div>
         </div>
-        <p className="mt-1 text-xs text-gray-600">masukkan angka, tidak boleh pakai koma atau titik</p>
+        <p className="mt-1 text-xs text-gray-600">
+          masukkan angka, tidak boleh pakai koma atau titik
+        </p>
         <p className="mt-1 text-sm text-gray-900">= {loanTermMonths} bulan</p>
         {errors.loanTerm && (
           <p className="mt-1 text-sm text-red-600">{errors.loanTerm}</p>
@@ -146,7 +158,7 @@ export default function MortgageHousePriceForm({ onCalculate }: MortgageFormProp
           <input
             type="text"
             value={annualInterestRate}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setAnnualInterestRate(e.target.value)
             }
             className="w-full pl-3 pr-20 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -157,9 +169,13 @@ export default function MortgageHousePriceForm({ onCalculate }: MortgageFormProp
           </div>
         </div>
         <p className="mt-1 text-xs text-gray-600">masukkan angka, misal 6.5</p>
-        <p className="mt-1 text-sm text-gray-900">= {monthlyInterestRate.toFixed(2)} % / bulan</p>
+        <p className="mt-1 text-sm text-gray-900">
+          = {monthlyInterestRate.toFixed(2)} % / bulan
+        </p>
         {errors.annualInterestRate && (
-          <p className="mt-1 text-sm text-red-600">{errors.annualInterestRate}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.annualInterestRate}
+          </p>
         )}
       </div>
 
@@ -172,7 +188,7 @@ export default function MortgageHousePriceForm({ onCalculate }: MortgageFormProp
           <input
             type="text"
             value={downPaymentPercent}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setDownPaymentPercent(e.target.value)
             }
             className="w-full pl-3 pr-8 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -184,7 +200,9 @@ export default function MortgageHousePriceForm({ onCalculate }: MortgageFormProp
         </div>
         <p className="mt-1 text-xs text-gray-600">(persen dari harga rumah)</p>
         {errors.downPaymentPercent && (
-          <p className="mt-1 text-sm text-red-600">{errors.downPaymentPercent}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.downPaymentPercent}
+          </p>
         )}
       </div>
 
@@ -195,8 +213,8 @@ export default function MortgageHousePriceForm({ onCalculate }: MortgageFormProp
         </label>
         <select
           value={calculationMethod}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => 
-            setCalculationMethod(e.target.value as 'anuitas' | 'flat')
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+            setCalculationMethod(e.target.value as "anuitas" | "flat")
           }
           className="w-full pl-3 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >

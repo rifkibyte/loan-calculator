@@ -1,7 +1,7 @@
 // components/islamic-mortgage/IslamicMortgageSchedule.tsx
 "use client";
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { formatCurrency } from "@/utils/formatters";
 
 interface ScheduleItem {
@@ -18,7 +18,7 @@ interface IslamicMortgageScheduleProps {
 
 export default function IslamicMortgageSchedule({
   schedule,
-}: IslamicMortgageScheduleProps) {
+}: IslamicMortgageScheduleProps): React.JSX.Element {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 

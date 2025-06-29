@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { formatCurrency } from "@/utils/formatters";
 
 interface FormData {
@@ -18,10 +18,14 @@ interface MortgageFixedFormProps {
   onCalculate: (formData: FormData) => void;
 }
 
-export default function MortgageFixedForm({ onCalculate }: MortgageFixedFormProps) {
+export default function MortgageFixedForm({
+  onCalculate,
+}: MortgageFixedFormProps): React.JSX.Element {
   const [loanAmount, setLoanAmount] = useState<string>("500000000");
   const [loanTerm, setLoanTerm] = useState<string>("10");
-  const [yearlyRates, setYearlyRates] = useState<{ year: number; rate: number }[]>([
+  const [yearlyRates, setYearlyRates] = useState<
+    { year: number; rate: number }[]
+  >([
     { year: 1, rate: 5 },
     { year: 2, rate: 5 },
     { year: 3, rate: 5 },
@@ -31,7 +35,7 @@ export default function MortgageFixedForm({ onCalculate }: MortgageFixedFormProp
     { year: 7, rate: 12 },
     { year: 8, rate: 13 },
     { year: 9, rate: 9 },
-    { year: 10, rate: 8 }
+    { year: 10, rate: 8 },
   ]);
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -53,7 +57,9 @@ export default function MortgageFixedForm({ onCalculate }: MortgageFixedFormProp
     // Validate yearly rates
     yearlyRates.forEach((rate, index) => {
       if (isNaN(rate.rate) || rate.rate < 0) {
-        newErrors[`rate_${index}`] = `Bunga tahun ke-${rate.year} harus berupa angka positif`;
+        newErrors[
+          `rate_${index}`
+        ] = `Bunga tahun ke-${rate.year} harus berupa angka positif`;
       }
     });
 
@@ -68,7 +74,7 @@ export default function MortgageFixedForm({ onCalculate }: MortgageFixedFormProp
         loanAmount: Number(loanAmount),
         loanTerm: Number(loanTerm),
         yearlyRates: yearlyRates,
-        calculationMethod: "Anuitas - Floating"
+        calculationMethod: "Anuitas - Floating",
       });
     }
   };
@@ -76,22 +82,22 @@ export default function MortgageFixedForm({ onCalculate }: MortgageFixedFormProp
   const handleLoanTermChange = (value: string) => {
     const termValue = Number(value);
     setLoanTerm(value);
-    
+
     // Update yearly rates array based on loan term
     const newRates = [];
     for (let i = 1; i <= termValue; i++) {
-      const existingRate = yearlyRates.find(r => r.year === i);
+      const existingRate = yearlyRates.find((r) => r.year === i);
       newRates.push({
         year: i,
-        rate: existingRate ? existingRate.rate : 5
+        rate: existingRate ? existingRate.rate : 5,
       });
     }
     setYearlyRates(newRates);
   };
 
   const handleRateChange = (year: number, rate: string) => {
-    setYearlyRates(prev => 
-      prev.map(r => r.year === year ? { ...r, rate: Number(rate) || 0 } : r)
+    setYearlyRates((prev) =>
+      prev.map((r) => (r.year === year ? { ...r, rate: Number(rate) || 0 } : r))
     );
   };
 
@@ -133,7 +139,9 @@ export default function MortgageFixedForm({ onCalculate }: MortgageFixedFormProp
         <div className="flex items-center space-x-2">
           <button
             type="button"
-            onClick={() => handleLoanTermChange(String(Math.max(1, Number(loanTerm) - 1)))}
+            onClick={() =>
+              handleLoanTermChange(String(Math.max(1, Number(loanTerm) - 1)))
+            }
             className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
           >
             -
@@ -187,7 +195,9 @@ export default function MortgageFixedForm({ onCalculate }: MortgageFixedFormProp
                 </div>
               </div>
               {errors[`rate_${rate.year - 1}`] && (
-                <p className="text-sm text-red-600">{errors[`rate_${rate.year - 1}`]}</p>
+                <p className="text-sm text-red-600">
+                  {errors[`rate_${rate.year - 1}`]}
+                </p>
               )}
             </div>
           ))}

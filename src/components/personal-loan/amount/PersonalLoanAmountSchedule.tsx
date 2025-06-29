@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { AmortizationItem } from "@/types/personal-loan-amount";
 
 interface PersonalLoanAmountScheduleProps {
@@ -12,14 +12,14 @@ interface PersonalLoanAmountScheduleProps {
   onTermChange: (term: number) => void;
 }
 
-export default function PersonalLoanAmountSchedule({ 
-  schedule, 
-  loanAmount, 
-  monthlyInterestRate, 
+export default function PersonalLoanAmountSchedule({
+  schedule,
+  loanAmount,
+  monthlyInterestRate,
   calculationMethod,
   selectedTerm,
-  onTermChange 
-}: PersonalLoanAmountScheduleProps): JSX.Element {
+  onTermChange,
+}: PersonalLoanAmountScheduleProps): React.JSX.Element {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -32,15 +32,18 @@ export default function PersonalLoanAmountSchedule({
 
   // Calculate totals
   const { totalInterest, totalPrincipal, totalPayment } = useMemo(() => {
-    return schedule.reduce((acc, item) => ({
-      totalInterest: acc.totalInterest + item.interest,
-      totalPrincipal: acc.totalPrincipal + item.principal,
-      totalPayment: acc.totalPayment + item.payment,
-    }), {
-      totalInterest: 0,
-      totalPrincipal: 0,
-      totalPayment: 0
-    });
+    return schedule.reduce(
+      (acc, item) => ({
+        totalInterest: acc.totalInterest + item.interest,
+        totalPrincipal: acc.totalPrincipal + item.principal,
+        totalPayment: acc.totalPayment + item.payment,
+      }),
+      {
+        totalInterest: 0,
+        totalPrincipal: 0,
+        totalPayment: 0,
+      }
+    );
   }, [schedule]);
 
   const formatCurrency = (value: number): string => {
@@ -70,7 +73,7 @@ export default function PersonalLoanAmountSchedule({
         <h2 className="text-xl font-semibold text-gray-800 mb-4 sm:mb-0">
           Tabel Angsuran KTA
         </h2>
-        
+
         {/* Term Selector */}
         <div className="flex items-center space-x-3">
           <label className="text-sm font-medium text-gray-700">
@@ -95,7 +98,9 @@ export default function PersonalLoanAmountSchedule({
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
           <div>
             <span className="text-gray-600">Pinjaman:</span>
-            <p className="font-semibold text-gray-900">{formatCurrency(loanAmount)}</p>
+            <p className="font-semibold text-gray-900">
+              {formatCurrency(loanAmount)}
+            </p>
           </div>
           <div>
             <span className="text-gray-600">Jangka Waktu:</span>
@@ -103,7 +108,9 @@ export default function PersonalLoanAmountSchedule({
           </div>
           <div>
             <span className="text-gray-600">Bunga:</span>
-            <p className="font-semibold text-gray-900">{monthlyInterestRate}% / bulan</p>
+            <p className="font-semibold text-gray-900">
+              {monthlyInterestRate}% / bulan
+            </p>
           </div>
           <div>
             <span className="text-gray-600">Metode:</span>
@@ -327,9 +334,16 @@ export default function PersonalLoanAmountSchedule({
         <h3 className="font-semibold text-gray-900 mb-2">Catatan:</h3>
         <div className="text-sm text-gray-600 space-y-1">
           <p>• Perhitungan menggunakan metode bunga {calculationMethod}</p>
-          <p>• Angsuran pokok dan bunga tetap setiap bulan (untuk metode FLAT)</p>
-          <p>• Sisa pinjaman berkurang setiap bulan sesuai dengan angsuran pokok</p>
-          <p>• Tabel ini adalah simulasi dan dapat berbeda dengan kondisi sebenarnya</p>
+          <p>
+            • Angsuran pokok dan bunga tetap setiap bulan (untuk metode FLAT)
+          </p>
+          <p>
+            • Sisa pinjaman berkurang setiap bulan sesuai dengan angsuran pokok
+          </p>
+          <p>
+            • Tabel ini adalah simulasi dan dapat berbeda dengan kondisi
+            sebenarnya
+          </p>
         </div>
       </div>
     </div>

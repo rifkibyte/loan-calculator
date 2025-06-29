@@ -1,5 +1,16 @@
-// src/types/mortgage-budget.ts (lengkap)
-import { CommonLoanResult, AmortizationItem } from "./common";
+// src/types/common.ts (diperbaiki)
+import { AmortizationItem } from "./common";
+export interface CommonLoanResult {
+  loanAmount: number;
+  monthlyPayment: number;
+  totalPayment: number;
+  totalInterest: number;
+  loanTerm: number; // ✅ Tambahkan
+  loanTermMonths: number; // ✅ Tambahkan
+  annualInterestRate: number; // ✅ Tambahkan
+  monthlyInterestRate: number; // ✅ Ganti dari monthlyInterest
+  calculationMethod: string;
+}
 
 export interface MortgageBudgetFormData {
   monthlyBudget: number;

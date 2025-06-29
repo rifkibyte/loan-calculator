@@ -1,15 +1,17 @@
 // src/components/mortgage/budget/MortgageBudgetResult.tsx
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { jsPDF } from "jspdf";
-import { MortgageBudgetResult as BudgetDetails } from "@/types/mortgage-budget";
+import type { MortgageBudgetResult as BudgetDetails } from "@/types/mortgage-budget";
 
 interface MortgageBudgetResultProps {
   budgetDetails: BudgetDetails;
 }
 
-export default function MortgageBudgetResult({ budgetDetails }: MortgageBudgetResultProps): JSX.Element {
+export default function MortgageBudgetResult({
+  budgetDetails,
+}: MortgageBudgetResultProps): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<string>("data");
 
   const formatCurrency = (value: number): string => {
@@ -45,9 +47,22 @@ export default function MortgageBudgetResult({ budgetDetails }: MortgageBudgetRe
     doc.text("Data Anda", 14, 30);
 
     const dataInfo = [
-      ["Budget Angsuran (per bulan)", formatCurrency(budgetDetails.monthlyBudget)],
-      ["Tenor", `${budgetDetails.loanTerm} tahun (${budgetDetails.loanTermMonths} bulan)`],
-      ["Bunga Pinjaman", `${formatPercent(budgetDetails.annualInterestRate)}% / tahun (${formatPercent(budgetDetails.monthlyInterestRate)}% / bulan)`],
+      [
+        "Budget Angsuran (per bulan)",
+        formatCurrency(budgetDetails.monthlyBudget),
+      ],
+      [
+        "Tenor",
+        `${budgetDetails.loanTerm} tahun (${budgetDetails.loanTermMonths} bulan)`,
+      ],
+      [
+        "Bunga Pinjaman",
+        `${formatPercent(
+          budgetDetails.annualInterestRate
+        )}% / tahun (${formatPercent(
+          budgetDetails.monthlyInterestRate
+        )}% / bulan)`,
+      ],
       ["Perhitungan Bunga", "Anuitas"],
     ];
 
@@ -97,13 +112,18 @@ export default function MortgageBudgetResult({ budgetDetails }: MortgageBudgetRe
 
             <div className="bg-gray-50 p-4 rounded-lg space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Budget Angsuran (per bulan):</span>
-                <span className="font-medium text-gray-900">{formatCurrency(budgetDetails.monthlyBudget)}</span>
+                <span className="text-gray-600">
+                  Budget Angsuran (per bulan):
+                </span>
+                <span className="font-medium text-gray-900">
+                  {formatCurrency(budgetDetails.monthlyBudget)}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Tenor:</span>
                 <span className="font-medium text-gray-900">
-                  {budgetDetails.loanTerm} tahun ({budgetDetails.loanTermMonths} bulan)
+                  {budgetDetails.loanTerm} tahun ({budgetDetails.loanTermMonths}{" "}
+                  bulan)
                 </span>
               </div>
               <div className="flex justify-between">
@@ -112,7 +132,8 @@ export default function MortgageBudgetResult({ budgetDetails }: MortgageBudgetRe
                   {formatPercent(budgetDetails.annualInterestRate)}% / tahun
                   <br />
                   <span className="text-sm text-gray-500">
-                    ({formatPercent(budgetDetails.monthlyInterestRate)}% / bulan)
+                    ({formatPercent(budgetDetails.monthlyInterestRate)}% /
+                    bulan)
                   </span>
                 </span>
               </div>
@@ -136,23 +157,35 @@ export default function MortgageBudgetResult({ budgetDetails }: MortgageBudgetRe
               <div className="bg-blue-50 p-4 rounded-lg space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Max. Harga Rumah:</span>
-                  <span className="font-bold text-blue-700">{formatCurrency(budgetDetails.maxHousePrice)}</span>
+                  <span className="font-bold text-blue-700">
+                    {formatCurrency(budgetDetails.maxHousePrice)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Min. Uang Muka:</span>
-                  <span className="font-medium text-gray-900">{formatCurrency(budgetDetails.minDownPayment)}</span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(budgetDetails.minDownPayment)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Max. Plafon Pinjaman:</span>
-                  <span className="font-medium text-gray-900">{formatCurrency(budgetDetails.maxLoanAmount)}</span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(budgetDetails.maxLoanAmount)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Max. Angsuran per Periode:</span>
-                  <span className="font-medium text-gray-900">{formatCurrency(budgetDetails.maxMonthlyPayment)}</span>
+                  <span className="text-gray-600">
+                    Max. Angsuran per Periode:
+                  </span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(budgetDetails.maxMonthlyPayment)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total Periode:</span>
-                  <span className="font-medium text-gray-900">{budgetDetails.loanTermMonths} bulan</span>
+                  <span className="font-medium text-gray-900">
+                    {budgetDetails.loanTermMonths} bulan
+                  </span>
                 </div>
               </div>
             </div>
@@ -165,27 +198,38 @@ export default function MortgageBudgetResult({ budgetDetails }: MortgageBudgetRe
 
               <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Min. Penghasilan Bersih (per bulan):</span>
-                  <span className="font-medium text-gray-900">{formatCurrency(budgetDetails.minMonthlyIncome)}</span>
+                  <span className="text-gray-600">
+                    Min. Penghasilan Bersih (per bulan):
+                  </span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(budgetDetails.minMonthlyIncome)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">
-                    Biaya Provisi ({formatPercent(budgetDetails.provisionPercent)}% plafon):
+                    Biaya Provisi (
+                    {formatPercent(budgetDetails.provisionPercent)}% plafon):
                   </span>
-                  <span className="font-medium text-gray-900">{formatCurrency(budgetDetails.provisionAmount)}</span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(budgetDetails.provisionAmount)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">
-                    Biaya Administrasi ({formatPercent(budgetDetails.adminPercent)}% plafon):
+                    Biaya Administrasi (
+                    {formatPercent(budgetDetails.adminPercent)}% plafon):
                   </span>
-                  <span className="font-medium text-gray-900">{formatCurrency(budgetDetails.adminAmount)}</span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(budgetDetails.adminAmount)}
+                  </span>
                 </div>
               </div>
 
               <div className="bg-yellow-50 p-4 rounded-lg mt-4">
                 <p className="text-sm text-gray-600">
-                  * Syarat dan ketentuan dapat berbeda untuk setiap bank. 
-                  Silakan konsultasikan dengan bank pilihan Anda untuk informasi yang lebih akurat.
+                  * Syarat dan ketentuan dapat berbeda untuk setiap bank.
+                  Silakan konsultasikan dengan bank pilihan Anda untuk informasi
+                  yang lebih akurat.
                 </p>
               </div>
             </div>

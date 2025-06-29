@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { formatCurrency, formatCurrencyDisplay } from "@/utils/formatters";
 
 // Interface for form data
@@ -29,7 +29,7 @@ interface MortgageFormProps {
 
 export default function MortgageCompleteForm({
   onCalculate,
-}: MortgageFormProps): JSX.Element {
+}: MortgageFormProps): React.JSX.Element {
   // Form state variables
   const [housePrice, setHousePrice] = useState<string>("500000000");
   const [loanTerm, setLoanTerm] = useState<string>("10");
@@ -127,7 +127,10 @@ export default function MortgageCompleteForm({
   /**
    * Handle currency input change
    */
-  const handleCurrencyChange = (value: string, setter: (value: string) => void): void => {
+  const handleCurrencyChange = (
+    value: string,
+    setter: (value: string) => void
+  ): void => {
     const cleanValue = formatInputCurrency(value);
     setter(cleanValue);
   };
@@ -147,7 +150,9 @@ export default function MortgageCompleteForm({
           <input
             type="text"
             value={formatCurrency(housePrice)}
-            onChange={(e) => handleCurrencyChange(e.target.value, setHousePrice)}
+            onChange={(e) =>
+              handleCurrencyChange(e.target.value, setHousePrice)
+            }
             className="w-full pl-3 pr-16 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="500,000,000"
           />
@@ -292,7 +297,9 @@ export default function MortgageCompleteForm({
               <input
                 type="text"
                 value={formatCurrency(appraisalFee)}
-                onChange={(e) => handleCurrencyChange(e.target.value, setAppraisalFee)}
+                onChange={(e) =>
+                  handleCurrencyChange(e.target.value, setAppraisalFee)
+                }
                 className="w-full pl-3 pr-16 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="500,000"
               />
@@ -317,7 +324,9 @@ export default function MortgageCompleteForm({
               <input
                 type="text"
                 value={formatCurrency(adminFee)}
-                onChange={(e) => handleCurrencyChange(e.target.value, setAdminFee)}
+                onChange={(e) =>
+                  handleCurrencyChange(e.target.value, setAdminFee)
+                }
                 className="w-full pl-3 pr-16 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="450,000"
               />
@@ -349,7 +358,9 @@ export default function MortgageCompleteForm({
               <input
                 type="text"
                 value={formatCurrency(notaryFee)}
-                onChange={(e) => handleCurrencyChange(e.target.value, setNotaryFee)}
+                onChange={(e) =>
+                  handleCurrencyChange(e.target.value, setNotaryFee)
+                }
                 className="w-full pl-3 pr-16 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="12,000,000"
               />
@@ -374,7 +385,9 @@ export default function MortgageCompleteForm({
               <input
                 type="text"
                 value={formatCurrency(insuranceFee)}
-                onChange={(e) => handleCurrencyChange(e.target.value, setInsuranceFee)}
+                onChange={(e) =>
+                  handleCurrencyChange(e.target.value, setInsuranceFee)
+                }
                 className="w-full pl-3 pr-16 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="7,500,000"
               />

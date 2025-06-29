@@ -1,14 +1,16 @@
 // src/components/mortgage/budget/MortgageBudgetSchedule.tsx
 "use client";
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { AmortizationItem } from "@/types/common";
 
 interface MortgageBudgetScheduleProps {
   schedule: AmortizationItem[];
 }
 
-export default function MortgageBudgetSchedule({ schedule }: MortgageBudgetScheduleProps): JSX.Element {
+export default function MortgageBudgetSchedule({
+  schedule,
+}: MortgageBudgetScheduleProps): React.JSX.Element {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -30,15 +32,18 @@ export default function MortgageBudgetSchedule({ schedule }: MortgageBudgetSched
 
   // Hitung total akumulasi
   const { totalInterest, totalPrincipal, totalPayment } = useMemo(() => {
-    return schedule.reduce((acc, item) => ({
-      totalInterest: acc.totalInterest + item.interest,
-      totalPrincipal: acc.totalPrincipal + item.principal,
-      totalPayment: acc.totalPayment + item.payment,
-    }), {
-      totalInterest: 0,
-      totalPrincipal: 0,
-      totalPayment: 0
-    });
+    return schedule.reduce(
+      (acc, item) => ({
+        totalInterest: acc.totalInterest + item.interest,
+        totalPrincipal: acc.totalPrincipal + item.principal,
+        totalPayment: acc.totalPayment + item.payment,
+      }),
+      {
+        totalInterest: 0,
+        totalPrincipal: 0,
+        totalPayment: 0,
+      }
+    );
   }, [schedule]);
 
   const goToPage = (page: number) => {
@@ -76,17 +81,32 @@ export default function MortgageBudgetSchedule({ schedule }: MortgageBudgetSched
             {/* Initial row showing starting balance */}
             {currentPage === 1 && (
               <tr className="bg-blue-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">0</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">0</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">0</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">0</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                  0
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {schedule.length > 0 ? formatCurrency(schedule[0].remainingBalance + schedule[0].principal) : formatCurrency(0)}
+                  0
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  0
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
+                  0
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {schedule.length > 0
+                    ? formatCurrency(
+                        schedule[0].remainingBalance + schedule[0].principal
+                      )
+                    : formatCurrency(0)}
                 </td>
               </tr>
             )}
             {currentItems.map((item) => (
-              <tr key={item.period} className={item.period % 2 === 0 ? "bg-gray-50" : ""}>
+              <tr
+                key={item.period}
+                className={item.period % 2 === 0 ? "bg-gray-50" : ""}
+              >
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                   {item.period}
                 </td>
@@ -116,7 +136,9 @@ export default function MortgageBudgetSchedule({ schedule }: MortgageBudgetSched
               onClick={() => goToPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
               className={`relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${
-                currentPage === 1 ? "text-gray-300" : "text-gray-700 hover:bg-gray-50"
+                currentPage === 1
+                  ? "text-gray-300"
+                  : "text-gray-700 hover:bg-gray-50"
               }`}
             >
               Previous
@@ -125,7 +147,9 @@ export default function MortgageBudgetSchedule({ schedule }: MortgageBudgetSched
               onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
               className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${
-                currentPage === totalPages ? "text-gray-300" : "text-gray-700 hover:bg-gray-50"
+                currentPage === totalPages
+                  ? "text-gray-300"
+                  : "text-gray-700 hover:bg-gray-50"
               }`}
             >
               Next
@@ -138,7 +162,8 @@ export default function MortgageBudgetSchedule({ schedule }: MortgageBudgetSched
                 <span className="font-medium">
                   {Math.min(startIndex + itemsPerPage, schedule.length)}
                 </span>{" "}
-                of <span className="font-medium">{schedule.length}</span> results
+                of <span className="font-medium">{schedule.length}</span>{" "}
+                results
               </p>
             </div>
             <div>
@@ -153,7 +178,11 @@ export default function MortgageBudgetSchedule({ schedule }: MortgageBudgetSched
                   }`}
                 >
                   <span className="sr-only">Previous</span>
-                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
                     <path
                       fillRule="evenodd"
                       d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
@@ -190,7 +219,9 @@ export default function MortgageBudgetSchedule({ schedule }: MortgageBudgetSched
                 })}
 
                 <button
-                  onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
+                  onClick={() =>
+                    goToPage(Math.min(totalPages, currentPage + 1))
+                  }
                   disabled={currentPage === totalPages}
                   className={`relative inline-flex items-center rounded-r-md px-2 py-2 ${
                     currentPage === totalPages
@@ -199,7 +230,11 @@ export default function MortgageBudgetSchedule({ schedule }: MortgageBudgetSched
                   }`}
                 >
                   <span className="sr-only">Next</span>
-                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
                     <path
                       fillRule="evenodd"
                       d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"

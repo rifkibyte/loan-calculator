@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
 interface FormData {
   loanAmount: number;
@@ -17,28 +17,40 @@ interface PersonalLoanAmountFormProps {
   onCalculate: (formData: FormData) => void;
 }
 
-export default function PersonalLoanAmountForm({ onCalculate }: PersonalLoanAmountFormProps) {
+export default function PersonalLoanAmountForm({
+  onCalculate,
+}: PersonalLoanAmountFormProps): React.JSX.Element {
   const [loanAmount, setLoanAmount] = useState<string>("50000000");
   const [creditRatio, setCreditRatio] = useState<string>("30");
-  const [monthlyInterestRate, setMonthlyInterestRate] = useState<string>("1.25");
+  const [monthlyInterestRate, setMonthlyInterestRate] =
+    useState<string>("1.25");
   const [calculationMethod] = useState<string>("FLAT");
   const [errors, setErrors] = useState<FormErrors>({});
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-    
+
     if (!loanAmount || isNaN(Number(loanAmount)) || Number(loanAmount) <= 0) {
       newErrors.loanAmount = "Besar pinjaman harus berupa angka positif";
     }
-    
-    if (!creditRatio || isNaN(Number(creditRatio)) || Number(creditRatio) <= 0 || Number(creditRatio) > 100) {
+
+    if (
+      !creditRatio ||
+      isNaN(Number(creditRatio)) ||
+      Number(creditRatio) <= 0 ||
+      Number(creditRatio) > 100
+    ) {
       newErrors.creditRatio = "Baki kredit harus antara 1-100%";
     }
-    
-    if (!monthlyInterestRate || isNaN(Number(monthlyInterestRate)) || Number(monthlyInterestRate) <= 0) {
+
+    if (
+      !monthlyInterestRate ||
+      isNaN(Number(monthlyInterestRate)) ||
+      Number(monthlyInterestRate) <= 0
+    ) {
       newErrors.monthlyInterestRate = "Bunga harus angka positif";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -50,7 +62,7 @@ export default function PersonalLoanAmountForm({ onCalculate }: PersonalLoanAmou
         loanAmount: Number(loanAmount),
         creditRatio: Number(creditRatio),
         monthlyInterestRate: Number(monthlyInterestRate),
-        calculationMethod
+        calculationMethod,
       });
     }
   };
@@ -68,10 +80,8 @@ export default function PersonalLoanAmountForm({ onCalculate }: PersonalLoanAmou
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">
-        Simulasi KTA
-      </h2>
-      
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">Simulasi KTA</h2>
+
       {/* Loan Amount */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">
@@ -99,18 +109,23 @@ export default function PersonalLoanAmountForm({ onCalculate }: PersonalLoanAmou
           <p className="mt-1 text-sm text-red-600">{errors.loanAmount}</p>
         )}
       </div>
-      
+
       {/* Credit Ratio */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">
-          Baki Kredit<br />
-          <span className="text-xs text-gray-600">(maksimum angsuran per bulan)</span>
+          Baki Kredit
+          <br />
+          <span className="text-xs text-gray-600">
+            (maksimum angsuran per bulan)
+          </span>
         </label>
         <div className="relative">
           <input
             type="text"
             value={creditRatio}
-            onChange={(e) => setCreditRatio(e.target.value.replace(/[^\d.]/g, ""))}
+            onChange={(e) =>
+              setCreditRatio(e.target.value.replace(/[^\d.]/g, ""))
+            }
             className="w-full pr-8 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="30"
           />
@@ -125,7 +140,7 @@ export default function PersonalLoanAmountForm({ onCalculate }: PersonalLoanAmou
           <p className="mt-1 text-sm text-red-600">{errors.creditRatio}</p>
         )}
       </div>
-      
+
       {/* Interest Rate */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">
@@ -135,7 +150,9 @@ export default function PersonalLoanAmountForm({ onCalculate }: PersonalLoanAmou
           <input
             type="text"
             value={monthlyInterestRate}
-            onChange={(e) => setMonthlyInterestRate(e.target.value.replace(/[^\d.]/g, ""))}
+            onChange={(e) =>
+              setMonthlyInterestRate(e.target.value.replace(/[^\d.]/g, ""))
+            }
             className="w-full pr-28 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="1.25"
           />
@@ -143,17 +160,17 @@ export default function PersonalLoanAmountForm({ onCalculate }: PersonalLoanAmou
             <span className="text-gray-500 sm:text-sm">% / bulan</span>
           </div>
         </div>
-        <p className="mt-1 text-xs text-gray-600">
-          masukkan angka, misal 1.5
-        </p>
+        <p className="mt-1 text-xs text-gray-600">masukkan angka, misal 1.5</p>
         <p className="mt-1 text-xs text-gray-600">
           = {(Number(monthlyInterestRate) * 12).toFixed(2)}% / tahun
         </p>
         {errors.monthlyInterestRate && (
-          <p className="mt-1 text-sm text-red-600">{errors.monthlyInterestRate}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.monthlyInterestRate}
+          </p>
         )}
       </div>
-      
+
       {/* Calculation Method */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">
@@ -168,7 +185,7 @@ export default function PersonalLoanAmountForm({ onCalculate }: PersonalLoanAmou
           />
         </div>
       </div>
-      
+
       {/* Submit Button */}
       <div className="pt-4">
         <button

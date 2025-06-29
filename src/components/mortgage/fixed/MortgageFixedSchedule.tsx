@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { formatCurrency } from "@/utils/formatters";
 import { AmortizationItem } from "@/types/common";
 
@@ -9,7 +9,10 @@ interface MortgageFixedScheduleProps {
   yearlyRates: { year: number; rate: number }[];
 }
 
-export default function MortgageFixedSchedule({ schedule, yearlyRates }: MortgageFixedScheduleProps) {
+export default function MortgageFixedSchedule({
+  schedule,
+  yearlyRates,
+}: MortgageFixedScheduleProps): React.JSX.Element {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -19,15 +22,18 @@ export default function MortgageFixedSchedule({ schedule, yearlyRates }: Mortgag
 
   // Calculate totals
   const { totalInterest, totalPrincipal, totalPayment } = useMemo(() => {
-    return schedule.reduce((acc, item) => ({
-      totalInterest: acc.totalInterest + item.interest,
-      totalPrincipal: acc.totalPrincipal + item.principal,
-      totalPayment: acc.totalPayment + item.payment,
-    }), {
-      totalInterest: 0,
-      totalPrincipal: 0,
-      totalPayment: 0
-    });
+    return schedule.reduce(
+      (acc, item) => ({
+        totalInterest: acc.totalInterest + item.interest,
+        totalPrincipal: acc.totalPrincipal + item.principal,
+        totalPayment: acc.totalPayment + item.payment,
+      }),
+      {
+        totalInterest: 0,
+        totalPrincipal: 0,
+        totalPayment: 0,
+      }
+    );
   }, [schedule]);
 
   const getYearFromPeriod = (period: number): number => {
@@ -36,7 +42,7 @@ export default function MortgageFixedSchedule({ schedule, yearlyRates }: Mortgag
 
   const getInterestRateForPeriod = (period: number): number => {
     const year = getYearFromPeriod(period);
-    return yearlyRates.find(r => r.year === year)?.rate || 0;
+    return yearlyRates.find((r) => r.year === year)?.rate || 0;
   };
 
   const goToPage = (page: number) => {
@@ -93,7 +99,9 @@ export default function MortgageFixedSchedule({ schedule, yearlyRates }: Mortgag
                   0
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-bold">
-                  {formatCurrency(schedule[0]?.remainingBalance + schedule[0]?.principal || 0)}
+                  {formatCurrency(
+                    schedule[0]?.remainingBalance + schedule[0]?.principal || 0
+                  )}
                 </td>
               </tr>
             )}
@@ -176,7 +184,11 @@ export default function MortgageFixedSchedule({ schedule, yearlyRates }: Mortgag
                   }`}
                 >
                   <span className="sr-only">Previous</span>
-                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
                     <path
                       fillRule="evenodd"
                       d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
@@ -213,7 +225,9 @@ export default function MortgageFixedSchedule({ schedule, yearlyRates }: Mortgag
                 })}
 
                 <button
-                  onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
+                  onClick={() =>
+                    goToPage(Math.min(totalPages, currentPage + 1))
+                  }
                   disabled={currentPage === totalPages}
                   className={`relative inline-flex items-center rounded-r-md px-2 py-2 ${
                     currentPage === totalPages
@@ -222,7 +236,11 @@ export default function MortgageFixedSchedule({ schedule, yearlyRates }: Mortgag
                   }`}
                 >
                   <span className="sr-only">Next</span>
-                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
                     <path
                       fillRule="evenodd"
                       d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
