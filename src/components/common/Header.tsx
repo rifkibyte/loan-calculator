@@ -65,9 +65,8 @@ export default function Header() {
       type: "dropdown",
       items: [
         {
-          href: "/multipurpose-loan",
+          href: "other-kredit/multi-purpose-loan",
           label: "Kredit Multiguna",
-          isPlanned: true,
         },
         { href: "/business-loan", label: "Kredit Usaha", isPlanned: true },
       ],
