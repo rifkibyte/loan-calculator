@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { CarLoanSimpleForm, CarLoanSimpleResult, CarLoanSimpleSchedule } from "@/components/car-loan/simple";
+import {
+  CarLoanSimpleForm,
+  CarLoanSimpleResult,
+  CarLoanSimpleSchedule,
+} from "@/components/car-loan/simple";
 import { Header, Footer } from "@/components/common";
 import { calculateSimpleLoan } from "@/utils/calculators/car-loan/simpleCalculator";
 import { AmortizationItem } from "@/types/common";
@@ -15,8 +19,10 @@ interface FormData {
   interestRate: number;
 }
 
-export default function CarLoanSimplePage(): JSX.Element {
-  const [loanDetails, setLoanDetails] = useState<SimpleLoanDetails | null>(null);
+export default function CarLoanSimplePage() {
+  const [loanDetails, setLoanDetails] = useState<SimpleLoanDetails | null>(
+    null
+  );
   const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
   const [showResults, setShowResults] = useState<boolean>(false);
 
@@ -32,7 +38,8 @@ export default function CarLoanSimplePage(): JSX.Element {
     setLoanDetails({
       carPrice: formData.carPrice,
       downPaymentPercent: formData.downPaymentPercent,
-      downPaymentAmount: formData.carPrice * (formData.downPaymentPercent / 100),
+      downPaymentAmount:
+        formData.carPrice * (formData.downPaymentPercent / 100),
       loanTerm: formData.loanTerm,
       interestRate: formData.interestRate,
       monthlyInterestRate: formData.interestRate / 12,
@@ -43,7 +50,7 @@ export default function CarLoanSimplePage(): JSX.Element {
       totalPayment: calculationResult.totalPayment,
       totalInterest: calculationResult.totalInterest,
       firstPayment: calculationResult.firstPayment,
-      amortizationSchedule: calculationResult.amortizationSchedule
+      amortizationSchedule: calculationResult.amortizationSchedule,
     });
 
     setSchedule(calculationResult.amortizationSchedule);

@@ -65,10 +65,10 @@ export default function Header() {
       type: "dropdown",
       items: [
         {
-          href: "other-kredit/multi-purpose-loan",
+          href: "other-credit/multi-purpose-loan",
           label: "Kredit Multiguna",
         },
-        { href: "/business-loan", label: "Kredit Usaha", isPlanned: true },
+        { href: "other-credit/people-business-credit", label: "Kredit Usaha" },
       ],
     },
     {

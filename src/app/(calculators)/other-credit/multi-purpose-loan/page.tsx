@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { MultiPurposeLoanForm, MultiPurposeLoanResult, MultiPurposeLoanSchedule } from "@/components/other-kredit/multi-purpose-loan";
+import { MultiPurposeLoanForm, MultiPurposeLoanResult, MultiPurposeLoanSchedule } from "@/components/other-credit/multi-purpose-loan";
 import { Header, Footer } from "@/components/common";
-import { calculateMultiPurposeLoan } from "@/utils/calculators/other-kredit/multiPurposeLoanCalculator";
+import { calculateMultiPurposeLoan } from "@/utils/calculators/other-credit/multiPurposeLoanCalculator";
 import { AmortizationItem } from "@/types/common";
 import { MultiPurposeLoanResult as LoanDetails } from "@/types/multi-purpose-loan";
 
@@ -19,7 +19,7 @@ interface FormData {
   adminFee: number;
 }
 
-export default function MultiPurposeLoanPage(): JSX.Element {
+export default function MultiPurposeLoanPage() {
   const [loanDetails, setLoanDetails] = useState<LoanDetails | null>(null);
   const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
   const [showResults, setShowResults] = useState<boolean>(false);

@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { MortgageCompleteForm, MortgageCompleteResult, MortgageCompleteSchedule } from "@/components/mortgage/complete";
+import {
+  MortgageCompleteForm,
+  MortgageCompleteResult,
+  MortgageCompleteSchedule,
+} from "@/components/mortgage/complete";
 import { Header, Footer } from "@/components/common";
 import { calculateMortgage } from "@/utils/calculators/mortgage/mortgageCalculator";
 import { AmortizationItem } from "@/types/common";
@@ -21,8 +25,9 @@ interface FormData {
   njoptkp: number;
 }
 
-export default function MortgagePage(): JSX.Element {
-  const [mortgageDetails, setMortgageDetails] = useState<MortgageDetails | null>(null);
+export default function MortgagePage() {
+  const [mortgageDetails, setMortgageDetails] =
+    useState<MortgageDetails | null>(null);
   const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
   const [showResults, setShowResults] = useState<boolean>(false);
 
@@ -41,7 +46,7 @@ export default function MortgagePage(): JSX.Element {
         formData.insuranceFee,
         formData.njoptkp
       );
-      
+
       const mortgageDetailsData: MortgageDetails = {
         housePrice: formData.housePrice,
         downPaymentPercent: formData.downPaymentPercent,
@@ -65,9 +70,9 @@ export default function MortgagePage(): JSX.Element {
         totalCosts: calculationResult.totalCosts,
         firstPayment: calculationResult.firstPayment,
         calculationMethod: "Anuitas",
-        amortizationSchedule: calculationResult.amortizationSchedule
+        amortizationSchedule: calculationResult.amortizationSchedule,
       };
-      
+
       setMortgageDetails(mortgageDetailsData);
       setSchedule(calculationResult.amortizationSchedule);
       setShowResults(true);
@@ -79,7 +84,7 @@ export default function MortgagePage(): JSX.Element {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-      
+
       <div className="container mx-auto py-8 px-4 flex-grow">
         <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
           Simulasi Kredit Rumah
@@ -87,12 +92,12 @@ export default function MortgagePage(): JSX.Element {
         <p className="text-center text-gray-600 mb-8">
           Kalkulator kredit rumah dengan perhitungan yang lengkap.
         </p>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
             <MortgageCompleteForm onCalculate={handleCalculate} />
           </div>
-          
+
           <div className="lg:col-span-2">
             {showResults && mortgageDetails && (
               <div className="space-y-6">
@@ -103,7 +108,7 @@ export default function MortgagePage(): JSX.Element {
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );

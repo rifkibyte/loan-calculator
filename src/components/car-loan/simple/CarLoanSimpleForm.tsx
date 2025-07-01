@@ -17,7 +17,7 @@ interface CarLoanSimpleFormProps {
   onCalculate: (formData: FormData) => void;
 }
 
-export default function CarLoanSimpleForm({ onCalculate }: CarLoanSimpleFormProps): JSX.Element {
+export default function CarLoanSimpleForm({ onCalculate }: CarLoanSimpleFormProps) {
   // Form state with default values
   const [carPrice, setCarPrice] = useState<string>("250000000");
   const [downPaymentPercent, setDownPaymentPercent] = useState<string>("30");

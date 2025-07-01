@@ -15,7 +15,7 @@ interface FormData {
   monthlyInterestRate: number;
 }
 
-export default function PersonalLoanPage(): JSX.Element {
+export default function PersonalLoanPage() {
   const [loanDetails, setLoanDetails] = useState<LoanDetails | null>(null);
   const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
   const [showResults, setShowResults] = useState<boolean>(false);

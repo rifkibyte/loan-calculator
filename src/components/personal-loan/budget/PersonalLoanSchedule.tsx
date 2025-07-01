@@ -14,7 +14,7 @@ interface PersonalLoanScheduleProps {
   schedule: ScheduleItem[];
 }
 
-export default function PersonalLoanSchedule({ schedule }: PersonalLoanScheduleProps): JSX.Element {
+export default function PersonalLoanSchedule({ schedule }: PersonalLoanScheduleProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 

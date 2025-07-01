@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import  { useState } from "react";
 import { jsPDF } from "jspdf";
 import { LoanAmountTableItem } from "@/types/personal-loan-amount";
 
@@ -19,7 +19,7 @@ interface PersonalLoanAmountResultProps {
 
 export default function PersonalLoanAmountResult({
   resultData,
-}: PersonalLoanAmountResultProps): React.JSX.Element {
+}: PersonalLoanAmountResultProps) {
   const [activeTab, setActiveTab] = useState<string>("summary");
 
   const formatCurrency = (value: number): string => {

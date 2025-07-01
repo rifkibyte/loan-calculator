@@ -14,7 +14,7 @@ import {
   MortgageHousePriceFormData,
 } from "@/types/mortgage-house-price";
 
-export default function MortgageHousePricePage(): JSX.Element {
+export default function MortgageHousePricePage() {
   const [mortgageDetails, setMortgageDetails] =
     useState<MortgageDetails | null>(null);
   const [schedule, setSchedule] = useState<AmortizationItem[]>([]);

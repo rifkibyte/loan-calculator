@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { formatCurrencyDisplay } from "@/utils/formatters";
 import { AmortizationItem } from "@/types/common";
 
@@ -10,7 +10,7 @@ interface MortgageScheduleProps {
 
 export default function MortgageHousePriceSchedule({
   schedule,
-}: MortgageScheduleProps): React.JSX.Element {
+}: MortgageScheduleProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 

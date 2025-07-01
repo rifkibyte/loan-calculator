@@ -17,7 +17,7 @@ interface LoanFormProps {
   onCalculate: (formData: FormData) => void;
 }
 
-export default function CarLoanBudgetForm({ onCalculate }: LoanFormProps): JSX.Element {
+export default function CarLoanBudgetForm({ onCalculate }: LoanFormProps) {
   const [budget, setBudget] = useState<string>("2500000");
   const [downPaymentPercent, setDownPaymentPercent] = useState<string>("30");
   const [loanTerm, setLoanTerm] = useState<string>("5");

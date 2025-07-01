@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import  { useState } from "react";
 import { MortgageHousePriceFormData } from "@/types/mortgage-house-price";
 
 interface FormErrors {
@@ -13,7 +13,7 @@ interface MortgageFormProps {
 
 export default function MortgageHousePriceForm({
   onCalculate,
-}: MortgageFormProps): React.JSX.Element {
+}: MortgageFormProps) {
   const [housePrice, setHousePrice] = useState<string>("500000000");
   const [loanTerm, setLoanTerm] = useState<string>("10");
   const [annualInterestRate, setAnnualInterestRate] = useState<string>("14.6");

@@ -1,7 +1,7 @@
 // src/components/mortgage/budget/MortgageBudgetForm.tsx
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 
 interface FormData {
   monthlyBudget: number;
@@ -23,7 +23,7 @@ interface MortgageBudgetFormProps {
 
 export default function MortgageBudgetForm({
   onCalculate,
-}: MortgageBudgetFormProps): React.JSX.Element {
+}: MortgageBudgetFormProps) {
   const [monthlyBudget, setMonthlyBudget] = useState<string>("5000000");
   const [downPaymentPercent, setDownPaymentPercent] = useState<string>("20");
   const [loanTerm, setLoanTerm] = useState<string>("15");

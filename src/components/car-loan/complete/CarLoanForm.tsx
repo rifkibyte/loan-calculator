@@ -24,7 +24,7 @@ interface LoanFormProps {
   onCalculate: (formData: FormData) => void;
 }
 
-export default function LoanForm({ onCalculate }: LoanFormProps): JSX.Element {
+export default function LoanForm({ onCalculate }: LoanFormProps) {
   // Form state variables
   const [carPrice, setCarPrice] = useState<string>("250000000");
   const [downPaymentPercent, setDownPaymentPercent] = useState<string>("30");

@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { CarLoanForm, CarLoanResult, CarLoanSchedule } from "@/components/car-loan/complete";
+import {
+  CarLoanForm,
+  CarLoanResult,
+  CarLoanSchedule,
+} from "@/components/car-loan/complete";
 import { Header, Footer } from "@/components/common";
 import { calculateLoan } from "@/utils/calculators/car-loan/completeCalculator";
 import { AmortizationItem } from "@/types/common";
@@ -19,7 +23,7 @@ interface FormData {
   adminFee: number;
 }
 
-export default function CarLoanCompletePage(): JSX.Element {
+export default function CarLoanCompletePage() {
   const [loanDetails, setLoanDetails] = useState<LoanDetails | null>(null);
   const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
   const [showResults, setShowResults] = useState<boolean>(false);
@@ -36,11 +40,12 @@ export default function CarLoanCompletePage(): JSX.Element {
       formData.policyFee,
       formData.adminFee
     );
-    
+
     setLoanDetails({
       carPrice: formData.carPrice,
       downPaymentPercent: formData.downPaymentPercent,
-      downPaymentAmount: formData.carPrice * (formData.downPaymentPercent / 100),
+      downPaymentAmount:
+        formData.carPrice * (formData.downPaymentPercent / 100),
       loanTerm: formData.loanTerm,
       interestRate: formData.interestRate,
       monthlyInterestRate: formData.interestRate / 12,
@@ -57,9 +62,9 @@ export default function CarLoanCompletePage(): JSX.Element {
       policyFee: formData.policyFee,
       adminFee: formData.adminFee,
       firstPayment: calculationResult.firstPayment,
-      amortizationSchedule: calculationResult.amortizationSchedule
+      amortizationSchedule: calculationResult.amortizationSchedule,
     });
-    
+
     setSchedule(calculationResult.amortizationSchedule);
     setShowResults(true);
   };
@@ -67,17 +72,17 @@ export default function CarLoanCompletePage(): JSX.Element {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-      
+
       <div className="container mx-auto py-8 px-4 flex-grow">
         <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
           Simulasi Kredit Mobil Lengkap
         </h1>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
             <CarLoanForm onCalculate={handleCalculate} />
           </div>
-          
+
           <div className="lg:col-span-2">
             {showResults && loanDetails && (
               <div className="space-y-6">
@@ -88,7 +93,7 @@ export default function CarLoanCompletePage(): JSX.Element {
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );

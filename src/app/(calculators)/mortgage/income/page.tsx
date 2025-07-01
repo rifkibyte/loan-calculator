@@ -16,7 +16,7 @@ interface FormData {
   maxInstallmentPercent: number;
 }
 
-export default function MortgageIncomePage(): JSX.Element {
+export default function MortgageIncomePage() {
   const [loanDetails, setLoanDetails] = useState<LoanDetails | null>(null);
   const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
   const [showResults, setShowResults] = useState<boolean>(false);

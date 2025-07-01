@@ -1,7 +1,7 @@
 // components/islamic-mortgage/IslamicMortgageForm.tsx
 "use client";
 
-import React, { useState } from "react";
+import  { useState } from "react";
 
 interface FormData {
   housePrice: number;
@@ -21,7 +21,7 @@ interface IslamicMortgageFormProps {
 
 export default function IslamicMortgageForm({
   onCalculate,
-}: IslamicMortgageFormProps): React.JSX.Element {
+}: IslamicMortgageFormProps) {
   const [housePrice, setHousePrice] = useState<string>("500000000");
   const [downPaymentPercent, setDownPaymentPercent] = useState<string>("30");
   const [loanTerm, setLoanTerm] = useState<string>("10");

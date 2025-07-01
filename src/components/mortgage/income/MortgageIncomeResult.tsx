@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import  { useState } from "react";
 import { formatCurrency } from "@/utils/formatters";
 import { jsPDF } from "jspdf";
 import type { MortgageIncomeResultProps } from "@/types/mortgage-income";
 
 export default function MortgageIncomeResult({
   loanDetails,
-}: MortgageIncomeResultProps): React.JSX.Element {
+}: MortgageIncomeResultProps) {
   const [activeTab, setActiveTab] = useState<string>("ringkasan");
 
   const safeFormatCurrency = (value: number) => {

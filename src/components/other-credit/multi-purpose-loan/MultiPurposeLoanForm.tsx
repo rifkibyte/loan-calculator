@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getMaxLoanAmount, getMaxLoanTerm } from "@/utils/calculators/other-kredit/multiPurposeLoanCalculator";
+import { getMaxLoanAmount, getMaxLoanTerm } from "@/utils/calculators/other-credit/multiPurposeLoanCalculator";
 
 // Interface for form data
 interface FormData {

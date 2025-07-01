@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import  { useState } from "react";
 
 interface FormData {
   netIncome: number;
@@ -20,7 +20,7 @@ interface MortgageIncomeFormProps {
 
 export default function MortgageIncomeForm({
   onCalculate,
-}: MortgageIncomeFormProps): React.JSX.Element {
+}: MortgageIncomeFormProps) {
   const [netIncome, setNetIncome] = useState<string>("15000000");
   const [downPaymentPercent, setDownPaymentPercent] = useState<string>("20");
   const [loanTerm, setLoanTerm] = useState<string>("15");

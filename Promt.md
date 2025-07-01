@@ -1,19 +1,8 @@
 
 promt
-Buatkan perhitungan kalkulator Kredit multi Guna
-Suku bunga kompetitif
+Buatkan perhitungan kalkulator Kredit usaha rakyat, taruh di folder other-kredit
 
-mulai dari 6.00% fix 3 tahun pertama dengan minimum tenor 7 tahun (*suku bunga dapat berubah, info lebih lanjut hubungi Call Center) 
-
-BANK MANDIRI
-Limit lebih besar
-
-maksimal Rp 10.000.000.000,00 (sepuluh milyar) rupiah untuk Pegawai dan Professional, maksimal Rp 200.000.000 (dua ratus juta rupiah) untuk Wiraswasta
-
-BANK MANDIRI
-Jangka waktu hingga 10 (sepuluh) tahun
-
-maksimum hingga 15 (lima belas) tahun untuk Pegawai; 10 (sepuluh) tahun untuk Profesional; dan 7 (tujuh) tahun untuk Wiraswasta.
+perhitungannya begini , initial nya Suku Bunga : 6%, tapi bisa input dinamis
 
 Referensi
 
@@ -66,8 +55,7 @@ export interface CarLoanSimpleResult extends CommonLoanResult {
   firstPayment: number;
 }
 
-list directory
-── src
+├── src
 │   ├── app
 │   │   ├── (calculators)
 │   │   │   ├── car-loan
@@ -82,7 +70,16 @@ list directory
 │   │   │   │   │   └── page.tsx
 │   │   │   │   ├── complete
 │   │   │   │   │   └── page.tsx
-│   │   │   │   └── house-price
+│   │   │   │   ├── fixed
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── house-price
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── income
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── islamic-mortgage
+│   │   │   │       └── page.tsx
+│   │   │   ├── other-kredit
+│   │   │   │   └── multi-purpose-loan
 │   │   │   │       └── page.tsx
 │   │   │   └── personal-loan
 │   │   │       ├── amount
@@ -125,10 +122,31 @@ list directory
 │   │   │   │   ├── MortgageCompleteResult.tsx
 │   │   │   │   ├── MortgageCompleteSchedule.tsx
 │   │   │   │   └── index.ts
-│   │   │   └── house-price
-│   │   │       ├── MortgageHousePriceForm.tsx
-│   │   │       ├── MortgageHousePriceResult.tsx
-│   │   │       ├── MortgageHousePriceSchedule.tsx
+│   │   │   ├── fixed
+│   │   │   │   ├── MortgageFixedForm.tsx
+│   │   │   │   ├── MortgageFixedResult.tsx
+│   │   │   │   ├── MortgageFixedSchedule.tsx
+│   │   │   │   └── index.ts
+│   │   │   ├── house-price
+│   │   │   │   ├── MortgageHousePriceForm.tsx
+│   │   │   │   ├── MortgageHousePriceResult.tsx
+│   │   │   │   ├── MortgageHousePriceSchedule.tsx
+│   │   │   │   └── index.ts
+│   │   │   ├── income
+│   │   │   │   ├── MortgageIncomeForm.tsx
+│   │   │   │   ├── MortgageIncomeResult.tsx
+│   │   │   │   ├── MortgageIncomeSchedule.tsx
+│   │   │   │   └── index.ts
+│   │   │   └── islamic-mortgage
+│   │   │       ├── IslamicMortgageForm.tsx
+│   │   │       ├── IslamicMortgageResult.tsx
+│   │   │       ├── IslamicMortgageSchedule.tsx
+│   │   │       └── index.ts
+│   │   ├── other-kredit
+│   │   │   └── multi-purpose-loan
+│   │   │       ├── MultiPurposeLoanForm.tsx
+│   │   │       ├── MultiPurposeLoanResult.tsx
+│   │   │       ├── MultiPurposeLoanSchedule.tsx
 │   │   │       └── index.ts
 │   │   └── personal-loan
 │   │       ├── amount
@@ -144,9 +162,13 @@ list directory
 │   ├── types
 │   │   ├── car-loan.ts
 │   │   ├── common.ts
+│   │   ├── islamic-mortgage.ts
 │   │   ├── mortgage-budget.ts
+│   │   ├── mortgage-fixed.ts
 │   │   ├── mortgage-house-price.ts
+│   │   ├── mortgage-income.ts
 │   │   ├── mortgage.ts
+│   │   ├── multi-purpose-loan.ts
 │   │   ├── personal-loan-amount.ts
 │   │   └── personal-loan.ts
 │   └── utils
@@ -157,8 +179,13 @@ list directory
 │       │   │   └── simpleCalculator.ts
 │       │   ├── mortgage
 │       │   │   ├── budgetCalculator.ts
+│       │   │   ├── fixedCalculator.ts
 │       │   │   ├── housePriceCalculator.ts
+│       │   │   ├── incomeCalculator.ts
+│       │   │   ├── islamicMortgageCalculator.ts
 │       │   │   └── mortgageCalculator.ts
+│       │   ├── other-kredit
+│       │   │   └── multiPurposeLoanCalculator.ts
 │       │   └── personal-loan
 │       │       ├── personalLoanAmountCalculator.ts
 │       │       └── personalLoanCalculator.ts

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import  { useState, useMemo } from "react";
 import { formatCurrency } from "@/utils/formatters";
 
 interface ScheduleItem {
@@ -17,7 +17,7 @@ interface MortgageIncomeScheduleProps {
 
 export default function MortgageIncomeSchedule({
   schedule,
-}: MortgageIncomeScheduleProps): React.JSX.Element {
+}: MortgageIncomeScheduleProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 

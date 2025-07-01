@@ -24,7 +24,7 @@ interface PersonalLoanResultProps {
 
 export default function PersonalLoanResult({
   loanDetails,
-}: PersonalLoanResultProps): JSX.Element {
+}: PersonalLoanResultProps) {
   console.log("loanDetails", JSON.stringify(loanDetails));
 
   const [activeTab, setActiveTab] = useState<string>("info");

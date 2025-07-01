@@ -17,7 +17,7 @@ interface FormData {
   calculationMethod: 'anuitas' | 'flat';
 }
 
-export default function IslamicMortgagePage(): JSX.Element {
+export default function IslamicMortgagePage() {
   const [mortgageDetails, setMortgageDetails] = useState<MortgageDetails | null>(null);
   const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
   const [showResults, setShowResults] = useState<boolean>(false);

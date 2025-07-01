@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import  { useState, useMemo } from "react";
 import { AmortizationItem } from "@/types/personal-loan-amount";
 
 interface PersonalLoanAmountScheduleProps {
@@ -19,7 +19,7 @@ export default function PersonalLoanAmountSchedule({
   calculationMethod,
   selectedTerm,
   onTermChange,
-}: PersonalLoanAmountScheduleProps): React.JSX.Element {
+}: PersonalLoanAmountScheduleProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 

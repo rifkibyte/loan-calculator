@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import  { useState } from "react";
 import { formatCurrency, formatCurrencyDisplay } from "@/utils/formatters";
 
 // Interface for form data
@@ -29,7 +29,7 @@ interface MortgageFormProps {
 
 export default function MortgageCompleteForm({
   onCalculate,
-}: MortgageFormProps): React.JSX.Element {
+}: MortgageFormProps) {
   // Form state variables
   const [housePrice, setHousePrice] = useState<string>("500000000");
   const [loanTerm, setLoanTerm] = useState<string>("10");

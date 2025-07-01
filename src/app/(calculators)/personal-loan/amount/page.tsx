@@ -25,7 +25,7 @@ interface ResultData {
   loanTable: LoanAmountTableItem[];
 }
 
-export default function PersonalLoanAmountPage(): JSX.Element {
+export default function PersonalLoanAmountPage() {
   const [resultData, setResultData] = useState<ResultData | null>(null);
   const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
   const [selectedTerm, setSelectedTerm] = useState<number>(12);

@@ -1,7 +1,7 @@
 // src/components/mortgage/budget/MortgageBudgetSchedule.tsx
 "use client";
 
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { AmortizationItem } from "@/types/common";
 
 interface MortgageBudgetScheduleProps {
@@ -10,7 +10,7 @@ interface MortgageBudgetScheduleProps {
 
 export default function MortgageBudgetSchedule({
   schedule,
-}: MortgageBudgetScheduleProps): React.JSX.Element {
+}: MortgageBudgetScheduleProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 

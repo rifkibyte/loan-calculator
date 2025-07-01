@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import  { useState } from "react";
 import { formatCurrency } from "@/utils/formatters";
 
 interface FormData {
@@ -20,7 +20,7 @@ interface MortgageFixedFormProps {
 
 export default function MortgageFixedForm({
   onCalculate,
-}: MortgageFixedFormProps): React.JSX.Element {
+}: MortgageFixedFormProps) {
   const [loanAmount, setLoanAmount] = useState<string>("500000000");
   const [loanTerm, setLoanTerm] = useState<string>("10");
   const [yearlyRates, setYearlyRates] = useState<

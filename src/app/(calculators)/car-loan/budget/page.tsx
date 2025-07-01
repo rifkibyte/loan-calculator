@@ -1,15 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { CarLoanBudgetForm, CarLoanBudgetResult, CarLoanBudgetSchedule } from "@/components/car-loan/budget";
+import {
+  CarLoanBudgetForm,
+  CarLoanBudgetResult,
+  CarLoanBudgetSchedule,
+} from "@/components/car-loan/budget";
 import { Header, Footer } from "@/components/common";
 import { calculateLoanFromBudget } from "@/utils/calculators/car-loan/budgetCalculator";
 import { AmortizationItem } from "@/types/common";
 import { CarLoanBudgetResult as LoanDetails } from "@/types/car-loan";
 
-export default function CarLoanBudgetPage(): JSX.Element {
+export default function CarLoanBudgetPage() {
   const [loanDetails, setLoanDetails] = useState<LoanDetails | null>(null);
-  const [schedule, setSchedule] = useState<AmortizationItem[]>([]); 
+  const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
   const [showResults, setShowResults] = useState<boolean>(false);
 
   const handleCalculate = (formData: {
@@ -37,7 +41,7 @@ export default function CarLoanBudgetPage(): JSX.Element {
       monthlyPrincipal: calculationResult.monthlyPrincipal,
       monthlyInterest: calculationResult.monthlyInterest,
       firstPayment: calculationResult.firstPayment,
-      amortizationSchedule: calculationResult.amortizationSchedule
+      amortizationSchedule: calculationResult.amortizationSchedule,
     });
 
     setSchedule(calculationResult.amortizationSchedule);

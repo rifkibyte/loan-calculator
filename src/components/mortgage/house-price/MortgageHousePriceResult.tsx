@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import  { useState } from "react";
 import { formatCurrencyDisplay, formatNumber } from "@/utils/formatters";
 import { jsPDF } from "jspdf";
 import type { MortgageHousePriceResult } from "@/types/mortgage-house-price";
@@ -11,7 +11,7 @@ interface MortgageResultProps {
 
 export default function MortgageHousePriceResult({
   mortgageDetails,
-}: MortgageResultProps): React.JSX.Element {
+}: MortgageResultProps) {
   const [activeTab, setActiveTab] = useState<string>("ringkasan");
 
   const safeFormatCurrency = (value: number) => {

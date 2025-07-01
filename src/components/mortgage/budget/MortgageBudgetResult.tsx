@@ -1,7 +1,7 @@
 // src/components/mortgage/budget/MortgageBudgetResult.tsx
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { jsPDF } from "jspdf";
 import type { MortgageBudgetResult as BudgetDetails } from "@/types/mortgage-budget";
 
@@ -11,7 +11,7 @@ interface MortgageBudgetResultProps {
 
 export default function MortgageBudgetResult({
   budgetDetails,
-}: MortgageBudgetResultProps): React.JSX.Element {
+}: MortgageBudgetResultProps) {
   const [activeTab, setActiveTab] = useState<string>("data");
 
   const formatCurrency = (value: number): string => {

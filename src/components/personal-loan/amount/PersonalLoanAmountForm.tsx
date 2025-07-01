@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import  { useState } from "react";
 
 interface FormData {
   loanAmount: number;
@@ -19,7 +19,7 @@ interface PersonalLoanAmountFormProps {
 
 export default function PersonalLoanAmountForm({
   onCalculate,
-}: PersonalLoanAmountFormProps): React.JSX.Element {
+}: PersonalLoanAmountFormProps) {
   const [loanAmount, setLoanAmount] = useState<string>("50000000");
   const [creditRatio, setCreditRatio] = useState<string>("30");
   const [monthlyInterestRate, setMonthlyInterestRate] =

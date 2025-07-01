@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import  { useState } from "react";
 import { formatCurrency } from "@/utils/formatters";
 import { jsPDF } from "jspdf";
 import type { MortgageFixedResult } from "@/types/mortgage-fixed";
@@ -11,7 +11,7 @@ interface MortgageFixedResultProps {
 
 export default function MortgageFixedResult({
   loanDetails,
-}: MortgageFixedResultProps): React.JSX.Element {
+}: MortgageFixedResultProps) {
   const [activeTab, setActiveTab] = useState<string>("data");
 
   const safeFormatCurrency = (value: number) => {
