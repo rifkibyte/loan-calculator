@@ -76,9 +76,8 @@ export default function Header() {
       type: "dropdown",
       items: [
         {
-          href: "/annuity-calculator",
+          href: "credit/annuity",
           label: "Kalkulator Anuitas",
-          isPlanned: true,
         },
         {
           href: "/credit-card-calculator",
