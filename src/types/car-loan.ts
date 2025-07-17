@@ -1,10 +1,16 @@
-import { AmortizationItem, CommonLoanResult } from './common';
+import { CommonLoanResult } from "./common";
 
-// Car Loan Budget Types
 export interface CarLoanBudgetResult extends CommonLoanResult {
   carPrice: number;
   downPaymentAmount: number;
   firstPayment: number;
+  monthlyPrincipal: number;
+  monthlyInterest: number;
+  downPaymentPercent: number;
+  loanTerm: number;
+  interestRate: number;
+  monthlyInterestRate: number;
+  monthlyPayment: number;
 }
 
 // Car Loan Complete Types
