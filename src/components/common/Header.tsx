@@ -65,10 +65,10 @@ export default function Header() {
       type: "dropdown",
       items: [
         {
-          href: "other-credit/multi-purpose-loan",
+          href: "/other-credit/multi-purpose-loan",
           label: "Kredit Multiguna",
         },
-        { href: "other-credit/people-business-credit", label: "Kredit Usaha" },
+        { href: "/other-credit/people-business-credit", label: "Kredit Usaha" },
       ],
     },
     {
@@ -76,7 +76,7 @@ export default function Header() {
       type: "dropdown",
       items: [
         {
-          href: "credit/annuity",
+          href: "/credit/annuity",
           label: "Kalkulator Anuitas",
         },
         {

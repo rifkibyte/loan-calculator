@@ -1,6 +1,12 @@
 "use client";
 
 import { useState } from "react";
+// Mengimpor fungsi-fungsi utilitas
+import {
+  formatCurrency,
+  parseCurrency,
+  formatDecimal,
+} from "@/utils/formatters";
 
 // Interface for form data
 interface FormData {
@@ -19,7 +25,9 @@ interface CreditAnnuityFormProps {
   onCalculate: (formData: FormData) => void;
 }
 
-export default function CreditAnnuityForm({ onCalculate }: CreditAnnuityFormProps) {
+export default function CreditAnnuityForm({
+  onCalculate,
+}: CreditAnnuityFormProps) {
   // Form state variables
   const [loanAmount, setLoanAmount] = useState<string>("500000000");
   const [loanTermMonths, setLoanTermMonths] = useState<string>("120");
@@ -29,6 +37,17 @@ export default function CreditAnnuityForm({ onCalculate }: CreditAnnuityFormProp
   // Derived values for display
   const loanTermYears: number = Number(loanTermMonths) / 12;
   const monthlyInterestRate: number = Number(annualInterestRate) / 12;
+
+  /**
+   * Handles changes in the loan amount input using the parseCurrency utility.
+   * @param e - The input change event
+   */
+  const handleLoanAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Menggunakan parseCurrency untuk membersihkan input dan mengubahnya menjadi angka
+    const numericValue = parseCurrency(e.target.value);
+    // Menyimpan nilai mentah sebagai string di dalam state
+    setLoanAmount(String(numericValue));
+  };
 
   /**
    * Validate form inputs
@@ -47,7 +66,8 @@ export default function CreditAnnuityForm({ onCalculate }: CreditAnnuityFormProp
       Number(loanTermMonths) <= 0 ||
       !Number.isInteger(Number(loanTermMonths))
     ) {
-      newErrors.loanTermMonths = "Lama pinjaman harus berupa bilangan bulat positif";
+      newErrors.loanTermMonths =
+        "Lama pinjaman harus berupa bilangan bulat positif";
     }
 
     if (
@@ -55,7 +75,8 @@ export default function CreditAnnuityForm({ onCalculate }: CreditAnnuityFormProp
       isNaN(Number(annualInterestRate)) ||
       Number(annualInterestRate) < 0
     ) {
-      newErrors.annualInterestRate = "Bunga pinjaman harus berupa angka positif atau nol";
+      newErrors.annualInterestRate =
+        "Bunga pinjaman harus berupa angka positif atau nol";
     }
 
     setErrors(newErrors);
@@ -72,18 +93,9 @@ export default function CreditAnnuityForm({ onCalculate }: CreditAnnuityFormProp
       onCalculate({
         loanAmount: Number(loanAmount),
         loanTermMonths: Number(loanTermMonths),
-        annualInterestRate: Number(annualInterestRate)
+        annualInterestRate: Number(annualInterestRate),
       });
     }
-  };
-
-  /**
-   * Format input to remove non-numeric characters
-   * @param value - Input value
-   * @returns Formatted numeric string
-   */
-  const formatInputCurrency = (value: string): string => {
-    return value.replace(/[^\d]/g, "");
   };
 
   return (
@@ -99,20 +111,19 @@ export default function CreditAnnuityForm({ onCalculate }: CreditAnnuityFormProp
           </div>
           <input
             type="text"
-            value={loanAmount}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-              setLoanAmount(formatInputCurrency(e.target.value))
-            }
+            // Menggunakan formatCurrency dari utils untuk menampilkan nilai
+            value={formatCurrency(loanAmount)}
+            onChange={handleLoanAmountChange}
             className="w-full pl-12 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="500000000"
+            placeholder="500.000.000"
+            inputMode="numeric"
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
             <span className="text-gray-500 sm:text-sm">,00</span>
           </div>
         </div>
-        <p className="mt-1 text-xs text-gray-600">masukkan angka, tidak boleh pakai koma atau titik</p>
-        <p className="mt-1 text-sm text-blue-600 font-medium">
-          {Number(loanAmount).toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}
+        <p className="mt-1 text-xs text-gray-600">
+          Pemisah ribuan (titik) akan ditambahkan secara otomatis.
         </p>
         {errors.loanAmount && (
           <p className="mt-1 text-sm text-red-600">{errors.loanAmount}</p>
@@ -122,25 +133,26 @@ export default function CreditAnnuityForm({ onCalculate }: CreditAnnuityFormProp
       {/* Loan Term Input */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">
-          Lama Pinjaman:
+          Tenor (jangka waktu):
         </label>
         <div className="relative">
           <input
             type="text"
             value={loanTermMonths}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-              setLoanTermMonths(e.target.value)
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setLoanTermMonths(e.target.value.replace(/[^\d]/g, ""))
             }
             className="w-full pr-14 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="120"
+            inputMode="numeric"
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
             <span className="text-gray-500 sm:text-sm">bulan</span>
           </div>
         </div>
-        <p className="mt-1 text-xs text-gray-600">masukkan angka, tidak boleh pakai koma atau titik</p>
-        <p className="mt-1 text-sm text-blue-600 font-medium">
-          = {loanTermYears.toFixed(2)} tahun
+        {/* Menggunakan formatDecimal untuk konsistensi */}
+        <p className="mt-1 text-xs text-gray-900">
+          = {formatDecimal(loanTermYears, 2)} tahun
         </p>
         {errors.loanTermMonths && (
           <p className="mt-1 text-sm text-red-600">{errors.loanTermMonths}</p>
@@ -150,13 +162,13 @@ export default function CreditAnnuityForm({ onCalculate }: CreditAnnuityFormProp
       {/* Interest Rate Input */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">
-          Bunga Pinjaman:
+          Suku Bunga Pinjaman:
         </label>
         <div className="relative">
           <input
             type="text"
             value={annualInterestRate}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setAnnualInterestRate(e.target.value)
             }
             className="w-full pr-20 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -166,20 +178,22 @@ export default function CreditAnnuityForm({ onCalculate }: CreditAnnuityFormProp
             <span className="text-gray-500 sm:text-sm">% / tahun</span>
           </div>
         </div>
-        <p className="mt-1 text-xs text-gray-600">masukkan angka, misal 6.5</p>
-        <p className="mt-1 text-sm text-blue-600 font-medium">
-          = {monthlyInterestRate.toFixed(2)} % / bulan
+        {/* Menggunakan formatDecimal untuk konsistensi */}
+        <p className="mt-1 text-xs text-gray-900">
+          = {formatDecimal(monthlyInterestRate, 2)} % / bulan
         </p>
         {errors.annualInterestRate && (
-          <p className="mt-1 text-sm text-red-600">{errors.annualInterestRate}</p>
+          <p className="mt-1 text-sm text-red-600">
+            {errors.annualInterestRate}
+          </p>
         )}
       </div>
 
       {/* Calculation Method Display */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Perhitungan Bunga:
-        </label>
+      <div className="border-t border-gray-200 pt-4">
+        <h3 className="font-medium text-gray-900 mb-3">
+          Metode Perhitungan Bunga
+        </h3>
         <div className="bg-gray-50 p-3 rounded-md">
           <span className="text-gray-900 font-medium">Anuitas</span>
         </div>
@@ -190,16 +204,7 @@ export default function CreditAnnuityForm({ onCalculate }: CreditAnnuityFormProp
         type="submit"
         className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium"
       >
-        Hitung
-      </button>
-
-      {/* Print Button */}
-      <button
-        type="button"
-        onClick={() => window.print()}
-        className="w-full bg-gray-600 text-white py-3 px-4 rounded-md hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 font-medium"
-      >
-        Print
+        Hitung Simulasi
       </button>
     </form>
   );
