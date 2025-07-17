@@ -1,25 +1,35 @@
-export function formatCurrency(amount: number | string): string {
-  const numAmount =
-    typeof amount === "string" ? parseFloat(amount) || 0 : amount;
+// file: utils/formatters.ts (improved)
 
-  if (isNaN(numAmount) || !isFinite(numAmount)) {
-    return "0";
-  }
-
-  return new Intl.NumberFormat("id-ID", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(numAmount);
+/**
+ * Helper internal untuk mem-parsing dan memvalidasi nilai input.
+ * @param value - Nilai yang bisa berupa angka atau string.
+ * @param fallback - Nilai default jika parsing gagal.
+ * @returns Angka yang valid atau nilai fallback.
+ */
+function _parseAndValidate(value: number | string, fallback = 0): number {
+  const num = typeof value === 'string' ? parseFloat(value.replace(/,/g, '')) : value;
+  return isNaN(num) || !isFinite(num) ? fallback : num;
 }
 
+/**
+ * Memformat angka menjadi string mata uang tanpa simbol (hanya pemisah ribuan).
+ * Contoh: 1000000 -> "1.000.000"
+ * @param amount - Jumlah yang akan diformat.
+ * @returns String angka yang diformat.
+ */
+export function formatCurrency(amount: number | string): string {
+  const numAmount = _parseAndValidate(amount);
+  return new Intl.NumberFormat("id-ID").format(numAmount);
+}
+
+/**
+ * Memformat angka menjadi string mata uang lengkap dengan simbol "Rp".
+ * Contoh: 1000000 -> "Rp 1.000.000"
+ * @param amount - Jumlah yang akan diformat.
+ * @returns String mata uang yang diformat dengan simbol.
+ */
 export function formatCurrencyDisplay(amount: number | string): string {
-  const numAmount =
-    typeof amount === "string" ? parseFloat(amount) || 0 : amount;
-
-  if (isNaN(numAmount) || !isFinite(numAmount)) {
-    return "Rp 0";
-  }
-
+  const numAmount = _parseAndValidate(amount);
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
@@ -28,40 +38,28 @@ export function formatCurrencyDisplay(amount: number | string): string {
   }).format(numAmount);
 }
 
-export function formatNumber(value: number | string): string {
-  const numValue = typeof value === "string" ? parseFloat(value) || 0 : value;
-
-  if (isNaN(numValue) || !isFinite(numValue)) {
-    return "0";
-  }
-
-  return new Intl.NumberFormat("id-ID").format(numValue);
-}
-
-export function formatPercent(value: number): string {
-  if (isNaN(value) || !isFinite(value)) {
-    return "0%";
-  }
-
+/**
+ * Memformat angka menjadi persentase dengan 1-2 angka desimal.
+ * Contoh: 4.6 -> "4,6%"
+ * @param value - Angka yang akan diformat (misal: 4.6 untuk 4.6%).
+ * @returns String persentase yang diformat.
+ */
+export function formatPercent(value: number | string): string {
+  // Untuk persen, jika input tidak valid, lebih baik kembalikan string kosong atau 0%
+  const numValue = _parseAndValidate(value, 0);
   return new Intl.NumberFormat("id-ID", {
     style: "percent",
     minimumFractionDigits: 1,
     maximumFractionDigits: 2,
-  }).format(value / 100);
+  }).format(numValue / 100);
 }
 
-// Format angka dengan pemisah ribuan
-export function formatThousands(value: number | string): string {
-  const numValue = typeof value === "string" ? parseFloat(value) || 0 : value;
-
-  if (isNaN(numValue) || !isFinite(numValue)) {
-    return "0";
-  }
-
-  return new Intl.NumberFormat("id-ID").format(numValue);
-}
-
-// Format tanggal ke format Indonesia
+/**
+ * Memformat tanggal ke format lokal Indonesia.
+ * Contoh: new Date() -> "17 Juli 2025"
+ * @param date - Objek Date yang akan diformat.
+ * @returns String tanggal yang diformat.
+ */
 export function formatDate(date: Date): string {
   return new Intl.DateTimeFormat("id-ID", {
     day: "numeric",
@@ -70,16 +68,15 @@ export function formatDate(date: Date): string {
   }).format(date);
 }
 
-// Parse string currency back to number
-export function parseCurrency(value: string): number {
-  return parseFloat(value.replace(/[^\d]/g, "")) || 0;
-}
-
-// Format decimal number
-export function formatDecimal(value: number, decimals: number = 2): string {
-  if (isNaN(value) || !isFinite(value)) {
-    return "0";
-  }
-
-  return value.toFixed(decimals);
+/**
+ * Mengubah string (termasuk yang diformat) kembali menjadi string angka mentah.
+ * Berguna untuk menangani input dari pengguna.
+ * Contoh: "Rp 1.000.000" -> "1000000"
+ * @param value - String yang akan di-parse.
+ * @returns String yang hanya berisi angka.
+ */
+export function parseToNumericString(value: string): string {
+  // Hanya izinkan angka dan satu koma untuk desimal
+  const numericString = value.replace(/[^\d,]/g, '').replace(',', '.');
+  return numericString;
 }
