@@ -1,9 +1,5 @@
 import { CommonLoanResult } from "./common";
 
-// types/car-loan.ts (Updated)
-
-import { CommonLoanResult } from "./common";
-
 export interface CarLoanBudgetResult extends CommonLoanResult {
   carPrice: number;
   downPaymentAmount: number;
