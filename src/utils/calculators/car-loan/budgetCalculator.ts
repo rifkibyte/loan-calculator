@@ -7,15 +7,18 @@ export interface AmortizationItem {
   remainingBalance: number;
 }
 
-// Perluas interface CalculationResult
+// Perluas interface CalculationResult agar sesuai dengan LoanResultData
 export interface CalculationResult {
   carPrice: number;
   downPaymentAmount: number;
   loanAmount: number;
   monthlyPrincipal: number;
   monthlyInterest: number;
+  monthlyPayment: number; // Tambahkan ini
+  totalPayment: number;   // Tambahkan ini
+  totalInterest: number;  // Tambahkan ini
   firstPayment: number;
-  amortizationSchedule: AmortizationItem[]; // Tambahkan ini
+  amortizationSchedule: AmortizationItem[];
 }
 
 export function calculateLoanFromBudget(
@@ -27,12 +30,13 @@ export function calculateLoanFromBudget(
   const loanTermMonths: number = loanTermYears * 12;
   const monthlyInterestRate: number = annualInterestRate / 12 / 100;
   
-  // Hitung jumlah pinjaman
-  const monthlyPrincipalFactor: number = 1 / loanTermMonths;
-  const monthlyInterestFactor: number = monthlyInterestRate;
-  const totalMonthlyFactor: number = monthlyPrincipalFactor + monthlyInterestFactor;
-  
-  const loanAmount: number = budget / totalMonthlyFactor;
+  // Angsuran bulanan adalah budget yang ditetapkan pengguna
+  const monthlyPayment: number = budget;
+
+  // Hitung jumlah pinjaman berdasarkan bunga flat
+  // Rumus dibalik: loanAmount = (monthlyPayment - (loanAmount * monthlyInterestRate)) * loanTermMonths
+  // Sederhananya: loanAmount = monthlyPayment / ( (1/loanTermMonths) + monthlyInterestRate )
+  const loanAmount: number = monthlyPayment / ((1 / loanTermMonths) + monthlyInterestRate);
   
   // Hitung harga mobil dan DP
   const carPrice: number = loanAmount / (1 - downPaymentPercent / 100);
@@ -41,6 +45,10 @@ export function calculateLoanFromBudget(
   // Hitung komponen bulanan
   const monthlyPrincipal: number = loanAmount / loanTermMonths;
   const monthlyInterest: number = loanAmount * monthlyInterestRate;
+
+  // Hitung total pembayaran dan total bunga
+  const totalPayment: number = monthlyPayment * loanTermMonths;
+  const totalInterest: number = totalPayment - loanAmount;
   
   // Generate amortization schedule
   const amortizationSchedule: AmortizationItem[] = [];
@@ -48,13 +56,11 @@ export function calculateLoanFromBudget(
 
   for (let period = 1; period <= loanTermMonths; period++) {
     remainingBalance -= monthlyPrincipal;
-    
-    // Pastikan saldo terakhir menjadi 0
     const adjustedRemainingBalance = period === loanTermMonths ? 0 : remainingBalance;
 
     amortizationSchedule.push({
       period,
-      payment: budget,
+      payment: monthlyPayment,
       principal: monthlyPrincipal,
       interest: monthlyInterest,
       remainingBalance: adjustedRemainingBalance
@@ -62,7 +68,7 @@ export function calculateLoanFromBudget(
   }
 
   // Hitung pembayaran pertama
-  const firstPayment: number = downPaymentAmount + budget;
+  const firstPayment: number = downPaymentAmount + monthlyPayment;
   
   return {
     carPrice,
@@ -70,7 +76,10 @@ export function calculateLoanFromBudget(
     loanAmount,
     monthlyPrincipal,
     monthlyInterest,
+    monthlyPayment,
+    totalPayment,
+    totalInterest,
     firstPayment,
-    amortizationSchedule // Sertakan jadwal amortisasi
+    amortizationSchedule
   };
 }

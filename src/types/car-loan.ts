@@ -1,16 +1,22 @@
 import { CommonLoanResult } from "./common";
 
+// types/car-loan.ts (Updated)
+
+import { CommonLoanResult } from "./common";
+
 export interface CarLoanBudgetResult extends CommonLoanResult {
   carPrice: number;
   downPaymentAmount: number;
-  firstPayment: number;
-  monthlyPrincipal: number;
-  monthlyInterest: number;
   downPaymentPercent: number;
   loanTerm: number;
   interestRate: number;
   monthlyInterestRate: number;
   monthlyPayment: number;
+  monthlyPrincipal: number;
+  monthlyInterest: number;
+  totalPayment: number;      // Tambahkan ini
+  totalInterest: number;     // Tambahkan ini
+  firstPayment: number;
 }
 
 // Car Loan Complete Types
