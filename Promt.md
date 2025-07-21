@@ -1,168 +1,107 @@
-tolong buatkan Kalkulator Kredit - Kartu Kredit, tolong buatkan di folder credit/credit-card
-Referensi
+tolong gunakan formatter, gunakan clean code reusabble component
 
-── src
-│   ├── app
-│   │   ├── (calculators)
-│   │   │   ├── car-loan
-│   │   │   │   ├── budget
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── complete
-│   │   │   │   │   └── page.tsx
-│   │   │   │   └── simple
-│   │   │   │       └── page.tsx
-│   │   │   ├── credit
-│   │   │   │   └── annuity
-│   │   │   │       └── page.tsx
-│   │   │   ├── mortgage
-│   │   │   │   ├── budget
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── complete
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── fixed
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── house-price
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── income
-│   │   │   │   │   └── page.tsx
-│   │   │   │   └── islamic-mortgage
-│   │   │   │       └── page.tsx
-│   │   │   ├── other-credit
-│   │   │   │   ├── multi-purpose-loan
-│   │   │   │   │   └── page.tsx
-│   │   │   │   └── people-business-credit
-│   │   │   │       └── page.tsx
-│   │   │   └── personal-loan
-│   │   │       ├── amount
-│   │   │       │   └── page.tsx
-│   │   │       └── budget
-│   │   │           └── page.tsx
-│   │   ├── favicon.ico
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── components
-│   │   ├── car-loan
-│   │   │   ├── budget
-│   │   │   │   ├── CarLoanBudgetForm.tsx
-│   │   │   │   ├── CarLoanBudgetResult.tsx
-│   │   │   │   ├── CarLoanBudgetSchedule.tsx
-│   │   │   │   └── index.ts
-│   │   │   ├── complete
-│   │   │   │   ├── CarLoanForm.tsx
-│   │   │   │   ├── CarLoanResult.tsx
-│   │   │   │   ├── CarLoanSchedule.tsx
-│   │   │   │   └── index.ts
-│   │   │   └── simple
-│   │   │       ├── CarLoanSimpleForm.tsx
-│   │   │       ├── CarLoanSimpleResult.tsx
-│   │   │       ├── CarLoanSimpleSchedule.tsx
-│   │   │       └── index.ts
-│   │   ├── common
-│   │   │   ├── Footer.tsx
-│   │   │   ├── Header.tsx
-│   │   │   └── index.ts
-│   │   ├── credit
-│   │   │   └── annuity
-│   │   │       ├── CreditAnnuityForm.tsx
-│   │   │       ├── CreditAnnuityResult.tsx
-│   │   │       ├── CreditAnnuitySchedule.tsx
-│   │   │       └── index.ts
-│   │   ├── mortgage
-│   │   │   ├── budget
-│   │   │   │   ├── MortgageBudgetForm.tsx
-│   │   │   │   ├── MortgageBudgetResult.tsx
-│   │   │   │   ├── MortgageBudgetSchedule.tsx
-│   │   │   │   └── index.ts
-│   │   │   ├── complete
-│   │   │   │   ├── MortgageCompleteForm.tsx
-│   │   │   │   ├── MortgageCompleteResult.tsx
-│   │   │   │   ├── MortgageCompleteSchedule.tsx
-│   │   │   │   └── index.ts
-│   │   │   ├── fixed
-│   │   │   │   ├── MortgageFixedForm.tsx
-│   │   │   │   ├── MortgageFixedResult.tsx
-│   │   │   │   ├── MortgageFixedSchedule.tsx
-│   │   │   │   └── index.ts
-│   │   │   ├── house-price
-│   │   │   │   ├── MortgageHousePriceForm.tsx
-│   │   │   │   ├── MortgageHousePriceResult.tsx
-│   │   │   │   ├── MortgageHousePriceSchedule.tsx
-│   │   │   │   └── index.ts
-│   │   │   ├── income
-│   │   │   │   ├── MortgageIncomeForm.tsx
-│   │   │   │   ├── MortgageIncomeResult.tsx
-│   │   │   │   ├── MortgageIncomeSchedule.tsx
-│   │   │   │   └── index.ts
-│   │   │   └── islamic-mortgage
-│   │   │       ├── IslamicMortgageForm.tsx
-│   │   │       ├── IslamicMortgageResult.tsx
-│   │   │       ├── IslamicMortgageSchedule.tsx
-│   │   │       └── index.ts
-│   │   ├── other-credit
-│   │   │   ├── multi-purpose-loan
-│   │   │   │   ├── MultiPurposeLoanForm.tsx
-│   │   │   │   ├── MultiPurposeLoanResult.tsx
-│   │   │   │   ├── MultiPurposeLoanSchedule.tsx
-│   │   │   │   └── index.ts
-│   │   │   └── people-business-credit
-│   │   │       ├── PeopleBusinessCreditForm.tsx
-│   │   │       ├── PeopleBusinessCreditResult.tsx
-│   │   │       ├── PeopleBusinessCreditSchedule.tsx
-│   │   │       └── index.ts
-│   │   └── personal-loan
-│   │       ├── amount
-│   │       │   ├── PersonalLoanAmountForm.tsx
-│   │       │   ├── PersonalLoanAmountResult.tsx
-│   │       │   ├── PersonalLoanAmountSchedule.tsx
-│   │       │   └── index.ts
-│   │       └── budget
-│   │           ├── PersonalLoanForm.tsx
-│   │           ├── PersonalLoanResult.tsx
-│   │           ├── PersonalLoanSchedule.tsx
-│   │           └── index.ts
-│   ├── types
-│   │   ├── car-loan.ts
-│   │   ├── common.ts
-│   │   ├── credit-annuity.ts
-│   │   ├── islamic-mortgage.ts
-│   │   ├── mortgage-budget.ts
-│   │   ├── mortgage-fixed.ts
-│   │   ├── mortgage-house-price.ts
-│   │   ├── mortgage-income.ts
-│   │   ├── mortgage.ts
-│   │   ├── multi-purpose-loan.ts
-│   │   ├── peoples-business-credit.ts
-│   │   ├── personal-loan-amount.ts
-│   │   └── personal-loan.ts
-│   └── utils
-│       ├── calculators
-│       │   ├── car-loan
-│       │   │   ├── budgetCalculator.ts
-│       │   │   ├── completeCalculator.ts
-│       │   │   └── simpleCalculator.ts
-│       │   ├── credit
-│       │   │   └── annuityCalculator.ts
-│       │   ├── mortgage
-│       │   │   ├── budgetCalculator.ts
-│       │   │   ├── fixedCalculator.ts
-│       │   │   ├── housePriceCalculator.ts
-│       │   │   ├── incomeCalculator.ts
-│       │   │   ├── islamicMortgageCalculator.ts
-│       │   │   └── mortgageCalculator.ts
-│       │   ├── other-credit
-│       │   │   ├── multiPurposeLoanCalculator.ts
-│       │   │   └── peopleBusinessCreditCalculator.ts
-│       │   └── personal-loan
-│       │       ├── personalLoanAmountCalculator.ts
-│       │       └── personalLoanCalculator.ts
-│       ├── formatters.ts
-│       └── index.ts
-└── tsconfig.json
+// file: utils/formatters.ts (Ditingkatkan)
+
+/**
+ * Parses a locale-specific numeric string (ID-ID) into a number.
+ * Handles thousand separators (.) and decimal separators (,).
+ * @param value The string to parse.
+ * @returns A valid number or NaN if parsing is not possible.
+ */
+function parseLocaleNumber(value: string): number {
+  // 1. Hapus semua pemisah ribuan (titik)
+  // 2. Ganti pemisah desimal (koma) dengan titik
+  // 3. Parse sebagai float
+  const cleanValue = String(value).replace(/\./g, "").replace(",", ".");
+  return parseFloat(cleanValue);
+}
+
+/**
+ * Helper internal untuk memvalidasi nilai dan memberikan nilai fallback.
+ * @param value Nilai yang bisa berupa angka atau string.
+ * @param fallback Nilai default jika parsing gagal (default: 0).
+ * @returns Angka yang valid atau nilai fallback.
+ */
+function getValidNumber(value: number | string, fallback = 0): number {
+  const num = typeof value === "string" ? parseLocaleNumber(value) : value;
+  return isNaN(num) || !isFinite(num) ? fallback : num;
+}
+
+// --- FUNGSI-FUNGSI YANG DIEKSPOR ---
+
+/**
+ * Memformat angka menjadi string dengan pemisah ribuan (tanpa simbol mata uang).
+ * Digunakan untuk nilai input atau tampilan non-simbol.
+ * Contoh: 1000000 -> "1.000.000"
+ */
+export function formatCurrency(amount: number | string): string {
+  const numAmount = getValidNumber(amount);
+  return new Intl.NumberFormat("id-ID").format(numAmount);
+}
+
+/**
+ * Memformat angka menjadi string mata uang lengkap dengan simbol "Rp".
+ * Contoh: 1000000 -> "Rp 1.000.000"
+ */
+export function formatCurrencyDisplay(amount: number | string): string {
+  const numAmount = getValidNumber(amount);
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(numAmount);
+}
+
+/**
+ * Memformat angka menjadi persentase.
+ * Contoh: 4.6 -> "4,6%"
+ * @param value Angka yang akan diformat (misal: 4.6 untuk 4.6%).
+ * @param options Opsi untuk jumlah digit desimal.
+ */
+export function formatPercent(
+  value: number | string,
+  options?: { minimumFractionDigits?: number; maximumFractionDigits?: number }
+): string {
+  const numValue = getValidNumber(value, 0);
+  // Intl.NumberFormat dengan style: 'percent' mengharapkan nilai desimal (misal: 0.046 untuk 4.6%)
+  return new Intl.NumberFormat("id-ID", {
+    style: "percent",
+    minimumFractionDigits: options?.minimumFractionDigits ?? 1,
+    maximumFractionDigits: options?.maximumFractionDigits ?? 2,
+  }).format(numValue / 100);
+}
+
+/**
+ * Memformat tanggal ke format lokal Indonesia ("17 Juli 2025").
+ */
+export function formatDate(date: Date): string {
+  if (!(date instanceof Date) || isNaN(date.getTime())) {
+    return "Tanggal tidak valid";
+  }
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+/**
+ * Mengubah string (termasuk yang diformat) kembali menjadi string angka mentah.
+ * Berguna untuk menangani input dari pengguna.
+ * Contoh: "Rp 1.000.000" -> "1000000"
+ * @param value - String yang akan di-parse.
+ * @returns String yang hanya berisi angka.
+ */
+export function parseToNumericString(value: string): string {
+  // Hanya izinkan angka dan satu koma untuk desimal
+  const numericString = value.replace(/[^\d,]/g, "").replace(",", ".");
+  return numericString;
+}
 
 
-types/common.ts
-export interface AmortizationItem {
+completeCalculator.ts
+// Interface for amortization schedule item
+interface AmortizationItem {
   period: number;
   payment: number;
   principal: number;
@@ -170,24 +109,115 @@ export interface AmortizationItem {
   remainingBalance: number;
 }
 
-export interface CommonLoanResult {
+// Interface for calculation result
+interface CalculationResult {
   loanAmount: number;
-  monthlyPayment?: number;
+  monthlyPayment: number;
   monthlyPrincipal: number;
   monthlyInterest: number;
-  totalPayment?: number;
-  totalInterest?: number;
+  totalPayment: number;
+  totalInterest: number;
+  insuranceAmount: number;
+  provisionAmount: number;
+  policyFee: number;
+  adminFee: number;
+  firstPayment: number;
   amortizationSchedule: AmortizationItem[];
 }
 
-types/car-loan.ts
-import { AmortizationItem, CommonLoanResult } from './common';
+/**
+ * Calculate loan details using flat rate method
+ * @param carPrice - On The Road price of the car
+ * @param downPaymentPercent - Down payment percentage
+ * @param loanTermYears - Loan term in years
+ * @param annualInterestRate - Annual interest rate percentage
+ * @param insurancePercent - Insurance percentage
+ * @param provisionPercent - Provision percentage
+ * @param policyFee - Policy fee amount
+ * @param adminFee - Administration fee amount
+ * @returns Calculation result with all loan details
+ */
+export function calculateLoan(
+  carPrice: number,
+  downPaymentPercent: number,
+  loanTermYears: number,
+  annualInterestRate: number,
+  insurancePercent: number,
+  provisionPercent: number,
+  policyFee: number,
+  adminFee: number
+): CalculationResult {
+  // Calculate basic loan parameters
+  const downPaymentAmount: number = carPrice * (downPaymentPercent / 100);
+  const loanAmount: number = carPrice - downPaymentAmount;
+  const loanTermMonths: number = loanTermYears * 12;
+  
+  // Calculate insurance and provision amounts
+  const insuranceAmount: number = carPrice * (insurancePercent / 100);
+  const provisionAmount: number = loanAmount * (provisionPercent / 100);
+  
+  // Calculate monthly payments using flat rate method
+  const monthlyPrincipal: number = loanAmount / loanTermMonths;
+  const monthlyInterest: number = loanAmount * (annualInterestRate / 100) / 12;
+  const monthlyPayment: number = monthlyPrincipal + monthlyInterest;
+  
+  // Calculate totals
+  const totalPayment: number = monthlyPayment * loanTermMonths;
+  const totalInterest: number = monthlyInterest * loanTermMonths;
+  
+  // Calculate first payment (all upfront costs)
+  const firstPayment: number = downPaymentAmount + monthlyPayment + insuranceAmount + provisionAmount + policyFee + adminFee;
+  
+  // Generate amortization schedule for flat rate
+  const amortizationSchedule: AmortizationItem[] = [];
+  let remainingBalance: number = loanAmount;
+  
+  for (let period: number = 1; period <= loanTermMonths; period++) {
+    remainingBalance -= monthlyPrincipal;
+    
+    // Ensure the last payment eliminates any rounding errors
+    const adjustedRemainingBalance: number = period === loanTermMonths ? 0 : remainingBalance;
+    
+    amortizationSchedule.push({
+      period,
+      payment: monthlyPayment,
+      principal: monthlyPrincipal,
+      interest: monthlyInterest,
+      remainingBalance: adjustedRemainingBalance
+    });
+  }
+  
+  return {
+    loanAmount,
+    monthlyPayment,
+    monthlyPrincipal,
+    monthlyInterest,
+    totalPayment,
+    totalInterest,
+    insuranceAmount,
+    provisionAmount,
+    policyFee,
+    adminFee,
+    firstPayment,
+    amortizationSchedule
+  };
+}
 
-// Car Loan Budget Types
+
+carLoan.ts
+import { CommonLoanResult } from "./common";
+
 export interface CarLoanBudgetResult extends CommonLoanResult {
   carPrice: number;
   downPaymentAmount: number;
   firstPayment: number;
+  monthlyPrincipal: number;
+  monthlyInterest: number;
+  downPaymentPercent: number;
+  loanTerm: number;
+  interestRate: number;
+  monthlyInterestRate: number;
+  monthlyPayment: number;
 }
 
 // Car Loan Complete Types
@@ -211,12 +241,15 @@ export interface CarLoanSimpleResult extends CommonLoanResult {
 }
 
 
-
 page.tsx
 "use client";
 
 import { useState } from "react";
-import { CarLoanForm, CarLoanResult, CarLoanSchedule } from "@/components/car-loan/complete";
+import {
+  CarLoanForm,
+  CarLoanResult,
+  CarLoanSchedule,
+} from "@/components/car-loan/complete";
 import { Header, Footer } from "@/components/common";
 import { calculateLoan } from "@/utils/calculators/car-loan/completeCalculator";
 import { AmortizationItem } from "@/types/common";
@@ -234,7 +267,7 @@ interface FormData {
   adminFee: number;
 }
 
-export default function CarLoanCompletePage(): JSX.Element {
+export default function CarLoanCompletePage() {
   const [loanDetails, setLoanDetails] = useState<LoanDetails | null>(null);
   const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
   const [showResults, setShowResults] = useState<boolean>(false);
@@ -251,11 +284,12 @@ export default function CarLoanCompletePage(): JSX.Element {
       formData.policyFee,
       formData.adminFee
     );
-    
+
     setLoanDetails({
       carPrice: formData.carPrice,
       downPaymentPercent: formData.downPaymentPercent,
-      downPaymentAmount: formData.carPrice * (formData.downPaymentPercent / 100),
+      downPaymentAmount:
+        formData.carPrice * (formData.downPaymentPercent / 100),
       loanTerm: formData.loanTerm,
       interestRate: formData.interestRate,
       monthlyInterestRate: formData.interestRate / 12,
@@ -272,9 +306,9 @@ export default function CarLoanCompletePage(): JSX.Element {
       policyFee: formData.policyFee,
       adminFee: formData.adminFee,
       firstPayment: calculationResult.firstPayment,
-      amortizationSchedule: calculationResult.amortizationSchedule
+      amortizationSchedule: calculationResult.amortizationSchedule,
     });
-    
+
     setSchedule(calculationResult.amortizationSchedule);
     setShowResults(true);
   };
@@ -282,17 +316,17 @@ export default function CarLoanCompletePage(): JSX.Element {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-      
+
       <div className="container mx-auto py-8 px-4 flex-grow">
         <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
           Simulasi Kredit Mobil Lengkap
         </h1>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
             <CarLoanForm onCalculate={handleCalculate} />
           </div>
-          
+
           <div className="lg:col-span-2">
             {showResults && loanDetails && (
               <div className="space-y-6">
@@ -303,15 +337,14 @@ export default function CarLoanCompletePage(): JSX.Element {
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );
 }
 
 
-
-Form
+form
 "use client";
 
 import { useState } from "react";
@@ -338,7 +371,7 @@ interface LoanFormProps {
   onCalculate: (formData: FormData) => void;
 }
 
-export default function LoanForm({ onCalculate }: LoanFormProps): JSX.Element {
+export default function LoanForm({ onCalculate }: LoanFormProps) {
   // Form state variables
   const [carPrice, setCarPrice] = useState<string>("250000000");
   const [downPaymentPercent, setDownPaymentPercent] = useState<string>("30");
@@ -691,7 +724,7 @@ export default function LoanForm({ onCalculate }: LoanFormProps): JSX.Element {
 }
 
 
-Result
+result
 "use client";
 
 import { useState } from "react";
@@ -987,8 +1020,7 @@ export default function LoanResult({ loanDetails }: LoanResultProps) {
 
 
 
-Schedule
-
+schedule
 "use client";
 
 import { useState, useMemo } from "react";
@@ -1247,128 +1279,4 @@ export default function LoanSchedule({ schedule }: LoanScheduleProps) {
       </div>
     </div>
   );
-}
-
-
-import make easier
-export { default as CarLoanForm } from './CarLoanForm';
-export { default as CarLoanResult } from './CarLoanResult';
-export { default as CarLoanSchedule } from './CarLoanSchedule';
-
-
-car-LoanDetails.ts
-export interface CarLoanCompleteResult extends CommonLoanResult {
-  monthlyPayment: number;
-  totalPayment: number;
-  totalInterest: number;
-  insuranceAmount: number;
-  provisionAmount: number;
-  policyFee: number;
-  adminFee: number;
-  firstPayment: number;
-}
-
-
-calculator
-// Interface for amortization schedule item
-interface AmortizationItem {
-  period: number;
-  payment: number;
-  principal: number;
-  interest: number;
-  remainingBalance: number;
-}
-
-// Interface for calculation result
-interface CalculationResult {
-  loanAmount: number;
-  monthlyPayment: number;
-  monthlyPrincipal: number;
-  monthlyInterest: number;
-  totalPayment: number;
-  totalInterest: number;
-  insuranceAmount: number;
-  provisionAmount: number;
-  policyFee: number;
-  adminFee: number;
-  firstPayment: number;
-  amortizationSchedule: AmortizationItem[];
-}
-
-/**
- * Calculate loan details using flat rate method
- * @param carPrice - On The Road price of the car
- * @param downPaymentPercent - Down payment percentage
- * @param loanTermYears - Loan term in years
- * @param annualInterestRate - Annual interest rate percentage
- * @param insurancePercent - Insurance percentage
- * @param provisionPercent - Provision percentage
- * @param policyFee - Policy fee amount
- * @param adminFee - Administration fee amount
- * @returns Calculation result with all loan details
- */
-export function calculateLoan(
-  carPrice: number,
-  downPaymentPercent: number,
-  loanTermYears: number,
-  annualInterestRate: number,
-  insurancePercent: number,
-  provisionPercent: number,
-  policyFee: number,
-  adminFee: number
-): CalculationResult {
-  // Calculate basic loan parameters
-  const downPaymentAmount: number = carPrice * (downPaymentPercent / 100);
-  const loanAmount: number = carPrice - downPaymentAmount;
-  const loanTermMonths: number = loanTermYears * 12;
-  
-  // Calculate insurance and provision amounts
-  const insuranceAmount: number = carPrice * (insurancePercent / 100);
-  const provisionAmount: number = loanAmount * (provisionPercent / 100);
-  
-  // Calculate monthly payments using flat rate method
-  const monthlyPrincipal: number = loanAmount / loanTermMonths;
-  const monthlyInterest: number = loanAmount * (annualInterestRate / 100) / 12;
-  const monthlyPayment: number = monthlyPrincipal + monthlyInterest;
-  
-  // Calculate totals
-  const totalPayment: number = monthlyPayment * loanTermMonths;
-  const totalInterest: number = monthlyInterest * loanTermMonths;
-  
-  // Calculate first payment (all upfront costs)
-  const firstPayment: number = downPaymentAmount + monthlyPayment + insuranceAmount + provisionAmount + policyFee + adminFee;
-  
-  // Generate amortization schedule for flat rate
-  const amortizationSchedule: AmortizationItem[] = [];
-  let remainingBalance: number = loanAmount;
-  
-  for (let period: number = 1; period <= loanTermMonths; period++) {
-    remainingBalance -= monthlyPrincipal;
-    
-    // Ensure the last payment eliminates any rounding errors
-    const adjustedRemainingBalance: number = period === loanTermMonths ? 0 : remainingBalance;
-    
-    amortizationSchedule.push({
-      period,
-      payment: monthlyPayment,
-      principal: monthlyPrincipal,
-      interest: monthlyInterest,
-      remainingBalance: adjustedRemainingBalance
-    });
-  }
-  
-  return {
-    loanAmount,
-    monthlyPayment,
-    monthlyPrincipal,
-    monthlyInterest,
-    totalPayment,
-    totalInterest,
-    insuranceAmount,
-    provisionAmount,
-    policyFee,
-    adminFee,
-    firstPayment,
-    amortizationSchedule
-  };
 }

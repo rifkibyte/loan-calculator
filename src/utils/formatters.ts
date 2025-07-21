@@ -1,4 +1,4 @@
-// file: utils/formatters.ts (Ditingkatkan)
+// file: utils/formatters.ts
 
 /**
  * Parses a locale-specific numeric string (ID-ID) into a number.
@@ -7,9 +7,6 @@
  * @returns A valid number or NaN if parsing is not possible.
  */
 function parseLocaleNumber(value: string): number {
-  // 1. Hapus semua pemisah ribuan (titik)
-  // 2. Ganti pemisah desimal (koma) dengan titik
-  // 3. Parse sebagai float
   const cleanValue = String(value).replace(/\./g, "").replace(",", ".");
   return parseFloat(cleanValue);
 }
@@ -28,17 +25,17 @@ function getValidNumber(value: number | string, fallback = 0): number {
 // --- FUNGSI-FUNGSI YANG DIEKSPOR ---
 
 /**
- * Memformat angka menjadi string dengan pemisah ribuan (tanpa simbol mata uang).
- * Digunakan untuk nilai input atau tampilan non-simbol.
+ * Memformat angka atau string angka menjadi string dengan pemisah ribuan.
  * Contoh: 1000000 -> "1.000.000"
  */
 export function formatCurrency(amount: number | string): string {
   const numAmount = getValidNumber(amount);
+  // Selalu format tanpa desimal untuk input
   return new Intl.NumberFormat("id-ID").format(numAmount);
 }
 
 /**
- * Memformat angka menjadi string mata uang lengkap dengan simbol "Rp".
+ * Memformat angka menjadi string mata uang lengkap dengan simbol "Rp" dan tanpa desimal.
  * Contoh: 1000000 -> "Rp 1.000.000"
  */
 export function formatCurrencyDisplay(amount: number | string): string {
@@ -54,15 +51,12 @@ export function formatCurrencyDisplay(amount: number | string): string {
 /**
  * Memformat angka menjadi persentase.
  * Contoh: 4.6 -> "4,6%"
- * @param value Angka yang akan diformat (misal: 4.6 untuk 4.6%).
- * @param options Opsi untuk jumlah digit desimal.
  */
 export function formatPercent(
   value: number | string,
   options?: { minimumFractionDigits?: number; maximumFractionDigits?: number }
 ): string {
   const numValue = getValidNumber(value, 0);
-  // Intl.NumberFormat dengan style: 'percent' mengharapkan nilai desimal (misal: 0.046 untuk 4.6%)
   return new Intl.NumberFormat("id-ID", {
     style: "percent",
     minimumFractionDigits: options?.minimumFractionDigits ?? 1,
@@ -83,15 +77,14 @@ export function formatDate(date: Date): string {
     year: "numeric",
   }).format(date);
 }
+
 /**
- * Mengubah string (termasuk yang diformat) kembali menjadi string angka mentah.
- * Berguna untuk menangani input dari pengguna.
+ * Mengubah string input (termasuk yang diformat) kembali menjadi string angka mentah.
  * Contoh: "Rp 1.000.000" -> "1000000"
  * @param value - String yang akan di-parse.
  * @returns String yang hanya berisi angka.
  */
 export function parseToNumericString(value: string): string {
-  // Hanya izinkan angka dan satu koma untuk desimal
-  const numericString = value.replace(/[^\d,]/g, "").replace(",", ".");
-  return numericString;
+  // Hanya simpan angka dari string
+  return String(value).replace(/[^\d]/g, "");
 }

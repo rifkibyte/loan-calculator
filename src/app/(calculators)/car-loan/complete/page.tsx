@@ -5,8 +5,8 @@ import {
   CarLoanForm,
   CarLoanResult,
   CarLoanSchedule,
-} from "@/components/car-loan/complete";
-import { Header, Footer } from "@/components/common";
+} from "@/features/car-loan/complete";
+import { Header, Footer } from "@/features/common";
 import { calculateLoan } from "@/utils/calculators/car-loan/completeCalculator";
 import { AmortizationItem } from "@/types/common";
 import { CarLoanCompleteResult as LoanDetails } from "@/types/car-loan";

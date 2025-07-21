@@ -5,8 +5,8 @@ import {
   MortgageHousePriceForm,
   MortgageHousePriceResult,
   MortgageHousePriceSchedule,
-} from "@/components/mortgage/house-price";
-import { Header, Footer } from "@/components/common";
+} from "@/features/mortgage/house-price";
+import { Header, Footer } from "@/features/common";
 import { calculateMortgage } from "@/utils/calculators/mortgage/housePriceCalculator";
 import { AmortizationItem } from "@/types/common";
 import {

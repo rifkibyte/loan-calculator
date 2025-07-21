@@ -5,8 +5,8 @@ import {
   MortgageCompleteForm,
   MortgageCompleteResult,
   MortgageCompleteSchedule,
-} from "@/components/mortgage/complete";
-import { Header, Footer } from "@/components/common";
+} from "@/features/mortgage/complete";
+import { Header, Footer } from "@/features/common";
 import { calculateMortgage } from "@/utils/calculators/mortgage/mortgageCalculator";
 import { AmortizationItem } from "@/types/common";
 import { MortgageResult as MortgageDetails } from "@/types/mortgage";

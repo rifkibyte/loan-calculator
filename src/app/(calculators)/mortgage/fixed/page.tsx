@@ -5,8 +5,8 @@ import {
   MortgageFixedForm,
   MortgageFixedResult,
   MortgageFixedSchedule,
-} from "@/components/mortgage/fixed";
-import { Header, Footer } from "@/components/common";
+} from "@/features/mortgage/fixed";
+import { Header, Footer } from "@/features/common";
 import { calculateMortgageFixed } from "@/utils/calculators/mortgage/fixedCalculator";
 import { AmortizationItem } from "@/types/common";
 import {

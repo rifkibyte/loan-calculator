@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { CreditAnnuityForm, CreditAnnuityResult, CreditAnnuitySchedule } from "@/components/credit/annuity";
-import { Header, Footer } from "@/components/common";
+import { CreditAnnuityForm, CreditAnnuityResult, CreditAnnuitySchedule } from "@/features/credit/annuity";
+import { Header, Footer } from "@/features/common";
 import { calculateAnnuityLoan } from "@/utils/calculators/credit/annuityCalculator";
 import { AmortizationItem } from "@/types/common";
 import { CreditAnnuityResult as LoanDetails } from "@/types/credit-annuity";

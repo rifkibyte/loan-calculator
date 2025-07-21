@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, FC, ReactNode } from "react";
+import { useState, useMemo, FC } from "react";
 import { formatCurrencyDisplay } from "@/utils/formatters";
 
 interface ScheduleItem {

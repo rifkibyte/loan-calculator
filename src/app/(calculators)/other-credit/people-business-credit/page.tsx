@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { PeopleBusinessCreditForm, PeopleBusinessCreditResult, PeopleBusinessCreditSchedule } from "@/components/other-credit/people-business-credit";
-import { Header, Footer } from "@/components/common";
+import { PeopleBusinessCreditForm, PeopleBusinessCreditResult, PeopleBusinessCreditSchedule } from "@/features/other-credit/people-business-credit";
+import { Header, Footer } from "@/features/common";
 import { calculatePeopleBusinessCredit } from "@/utils/calculators/other-credit/peopleBusinessCreditCalculator";
 import { AmortizationItem } from "@/types/common";
 import { PeopleBusinessCreditResult as LoanDetails } from "@/types/peoples-business-credit";

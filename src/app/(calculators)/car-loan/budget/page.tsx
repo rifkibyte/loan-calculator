@@ -5,8 +5,8 @@ import {
   CarLoanBudgetForm,
   CarLoanBudgetResult,
   CarLoanBudgetSchedule,
-} from "@/components/car-loan/budget";
-import { Header, Footer } from "@/components/common";
+} from "@/features/car-loan/budget";
+import { Header, Footer } from "@/features/common";
 import {
   calculateLoanFromBudget,
   CalculationResult,
