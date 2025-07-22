@@ -1,195 +1,158 @@
+// features/credit/annuity/CreditAnnuityForm.tsx (Refactored)
 "use client";
 
-import { useState } from "react";
-// Mengimpor fungsi-fungsi utilitas
+import { useState, useMemo, FormEvent, ChangeEvent } from "react";
 import {
-  formatCurrency,
-  parseCurrency,
-  formatDecimal,
-} from "@/utils/formatters";
+  CurrencyInput,
+  Input, // Komponen input generik
+  Button,
+} from "@/components/ui/form"; // Asumsi path ke komponen UI Anda
+import { formatPercent } from "@/utils/formatters"; // Menggunakan formatter baru
 
-// Interface for form data
+// --- Interface & Tipe ---
+// State form akan menyimpan semua nilai sebagai string
 interface FormData {
-  loanAmount: number;
-  loanTermMonths: number;
-  annualInterestRate: number;
+  loanAmount: string;
+  loanTermMonths: string;
+  annualInterestRate: string;
 }
 
-// Interface for form validation errors
+// Tipe data untuk error validasi
 interface FormErrors {
-  [key: string]: string;
+  [key: string]: string | undefined;
 }
 
-// Interface for component props
+// Tipe data untuk properti komponen
 interface CreditAnnuityFormProps {
-  onCalculate: (formData: FormData) => void;
+  // onCalculate akan menerima objek dengan nilai numerik
+  onCalculate: (data: { [K in keyof FormData]: number }) => void;
 }
 
+// --- Komponen Form Utama ---
 export default function CreditAnnuityForm({
   onCalculate,
 }: CreditAnnuityFormProps) {
-  // Form state variables
-  const [loanAmount, setLoanAmount] = useState<string>("500000000");
-  const [loanTermMonths, setLoanTermMonths] = useState<string>("120");
-  const [annualInterestRate, setAnnualInterestRate] = useState<string>("14.6");
+  // 1. Menggunakan satu state object untuk semua data form
+  const [formData, setFormData] = useState<FormData>({
+    loanAmount: "500000000",
+    loanTermMonths: "120",
+    annualInterestRate: "14.6",
+  });
   const [errors, setErrors] = useState<FormErrors>({});
 
-  // Derived values for display
-  const loanTermYears: number = Number(loanTermMonths) / 12;
-  const monthlyInterestRate: number = Number(annualInterestRate) / 12;
+  // 2. Menggunakan useMemo untuk kalkulasi turunan agar lebih efisien
+  const { loanTermYears, monthlyInterestRate } = useMemo(() => {
+    const term = parseInt(formData.loanTermMonths, 10) || 0;
+    // Menggunakan replace untuk menangani input desimal dengan koma atau titik
+    const rate = parseFloat(formData.annualInterestRate.replace(",", ".")) || 0;
+    return {
+      loanTermYears: term / 12,
+      monthlyInterestRate: rate / 12,
+    };
+  }, [formData.loanTermMonths, formData.annualInterestRate]);
 
-  /**
-   * Handles changes in the loan amount input using the parseCurrency utility.
-   * @param e - The input change event
-   */
-  const handleLoanAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Menggunakan parseCurrency untuk membersihkan input dan mengubahnya menjadi angka
-    const numericValue = parseCurrency(e.target.value);
-    // Menyimpan nilai mentah sebagai string di dalam state
-    setLoanAmount(String(numericValue));
+  // --- Event Handlers ---
+  // 3. Handler generik untuk input standar (teks, angka)
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    // Membersihkan input tenor agar hanya menerima angka
+    if (name === "loanTermMonths") {
+      setFormData((prev) => ({ ...prev, [name]: value.replace(/[^\d]/g, "") }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  /**
-   * Validate form inputs
-   * @returns boolean indicating if form is valid
-   */
+  // 4. Handler khusus untuk CurrencyInput yang mengembalikan nilai string numerik
+  const handleLoanAmountChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, loanAmount: value }));
+  };
+
+  // --- Validasi & Submit ---
+  // Logika validasi disesuaikan untuk membaca dari state object
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
+    const { loanAmount, loanTermMonths, annualInterestRate } = formData;
 
-    if (!loanAmount || isNaN(Number(loanAmount)) || Number(loanAmount) <= 0) {
-      newErrors.loanAmount = "Jumlah pinjaman harus berupa angka positif";
+    if (parseFloat(loanAmount) <= 0) {
+      newErrors.loanAmount = "Jumlah pinjaman harus berupa angka positif.";
     }
-
     if (
-      !loanTermMonths ||
-      isNaN(Number(loanTermMonths)) ||
-      Number(loanTermMonths) <= 0 ||
-      !Number.isInteger(Number(loanTermMonths))
+      !Number.isInteger(parseFloat(loanTermMonths)) ||
+      parseFloat(loanTermMonths) <= 0
     ) {
-      newErrors.loanTermMonths =
-        "Lama pinjaman harus berupa bilangan bulat positif";
+      newErrors.loanTermMonths = "Tenor harus berupa bilangan bulat positif.";
     }
-
-    if (
-      !annualInterestRate ||
-      isNaN(Number(annualInterestRate)) ||
-      Number(annualInterestRate) < 0
-    ) {
-      newErrors.annualInterestRate =
-        "Bunga pinjaman harus berupa angka positif atau nol";
+    if (parseFloat(annualInterestRate.replace(",", ".")) < 0) {
+      newErrors.annualInterestRate = "Suku bunga tidak boleh negatif.";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  /**
-   * Handle form submission
-   * @param e - Form event
-   */
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (validateForm()) {
-      onCalculate({
-        loanAmount: Number(loanAmount),
-        loanTermMonths: Number(loanTermMonths),
-        annualInterestRate: Number(annualInterestRate),
-      });
+      // 5. Konversi semua state string ke number sebelum dikirim
+      const numericData = {
+        loanAmount: parseFloat(formData.loanAmount),
+        loanTermMonths: parseInt(formData.loanTermMonths, 10),
+        annualInterestRate: parseFloat(
+          formData.annualInterestRate.replace(",", ".")
+        ),
+      };
+      onCalculate(numericData);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Loan Amount Input */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Jumlah Pinjaman:
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">Rp</span>
-          </div>
-          <input
-            type="text"
-            // Menggunakan formatCurrency dari utils untuk menampilkan nilai
-            value={formatCurrency(loanAmount)}
-            onChange={handleLoanAmountChange}
-            className="w-full pl-12 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="500.000.000"
-            inputMode="numeric"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">,00</span>
-          </div>
-        </div>
-        <p className="mt-1 text-xs text-gray-600">
-          Pemisah ribuan (titik) akan ditambahkan secara otomatis.
-        </p>
-        {errors.loanAmount && (
-          <p className="mt-1 text-sm text-red-600">{errors.loanAmount}</p>
-        )}
-      </div>
+      {/* 6. Menggunakan komponen CurrencyInput yang sudah jadi */}
+      <CurrencyInput
+        id="loanAmount"
+        name="loanAmount"
+        label="Jumlah Pinjaman"
+        value={formData.loanAmount}
+        onValueChange={handleLoanAmountChange}
+        error={errors.loanAmount}
+        placeholder="500.000.000"
+        info="Pemisah ribuan akan ditambahkan otomatis."
+      />
 
-      {/* Loan Term Input */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Tenor (jangka waktu):
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            value={loanTermMonths}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setLoanTermMonths(e.target.value.replace(/[^\d]/g, ""))
-            }
-            className="w-full pr-14 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="120"
-            inputMode="numeric"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">bulan</span>
-          </div>
-        </div>
-        {/* Menggunakan formatDecimal untuk konsistensi */}
-        <p className="mt-1 text-xs text-gray-900">
-          = {formatDecimal(loanTermYears, 2)} tahun
-        </p>
-        {errors.loanTermMonths && (
-          <p className="mt-1 text-sm text-red-600">{errors.loanTermMonths}</p>
-        )}
-      </div>
+      {/* 7. Menggunakan komponen Input generik untuk tenor */}
+      <Input
+        id="loanTermMonths"
+        name="loanTermMonths" // 'name' diperlukan untuk handleInputChange
+        label="Tenor (jangka waktu)"
+        value={formData.loanTermMonths}
+        onChange={handleInputChange}
+        error={errors.loanTermMonths}
+        unit="bulan"
+        placeholder="120"
+        inputMode="numeric"
+        info={`= ${loanTermYears.toFixed(2)} tahun`}
+      />
 
-      {/* Interest Rate Input */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Suku Bunga Pinjaman:
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            value={annualInterestRate}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setAnnualInterestRate(e.target.value)
-            }
-            className="w-full pr-20 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="14.6"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">% / tahun</span>
-          </div>
-        </div>
-        {/* Menggunakan formatDecimal untuk konsistensi */}
-        <p className="mt-1 text-xs text-gray-900">
-          = {formatDecimal(monthlyInterestRate, 2)} % / bulan
-        </p>
-        {errors.annualInterestRate && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.annualInterestRate}
-          </p>
-        )}
-      </div>
+      {/* 8. Menggunakan komponen Input generik untuk bunga */}
+      <Input
+        id="annualInterestRate"
+        name="annualInterestRate" // 'name' diperlukan untuk handleInputChange
+        label="Suku Bunga Pinjaman"
+        value={formData.annualInterestRate}
+        onChange={handleInputChange}
+        error={errors.annualInterestRate}
+        unit="% / tahun"
+        placeholder="14.6"
+        inputMode="decimal"
+        // Menggunakan formatter baru untuk tampilan yang konsisten
+        info={`= ${formatPercent(monthlyInterestRate, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 3,
+        })} / bulan`}
+      />
 
-      {/* Calculation Method Display */}
+      {/* Bagian ini tidak perlu diubah */}
       <div className="border-t border-gray-200 pt-4">
         <h3 className="font-medium text-gray-900 mb-3">
           Metode Perhitungan Bunga
@@ -199,13 +162,10 @@ export default function CreditAnnuityForm({
         </div>
       </div>
 
-      {/* Submit Button */}
-      <button
-        type="submit"
-        className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium"
-      >
+      {/* 9. Menggunakan komponen Button yang reusable */}
+      <Button type="submit" fullWidth>
         Hitung Simulasi
-      </button>
+      </Button>
     </form>
   );
 }

@@ -48,6 +48,25 @@ export function formatCurrencyDisplay(amount: number | string): string {
   }).format(numAmount);
 }
 
+// --- FUNGSI BARU DITAMBAHKAN ---
+/**
+ * Memformat angka menjadi string desimal dengan jumlah digit di belakang koma yang ditentukan.
+ * Menggunakan locale Indonesia (koma sebagai pemisah desimal).
+ * Contoh: (123.456, 2) -> "123,46"
+ * @param value Angka yang akan diformat.
+ * @param decimalPlaces Jumlah digit di belakang koma (default: 2).
+ */
+export function formatDecimal(
+  value: number | string,
+  decimalPlaces = 2
+): string {
+  const numValue = getValidNumber(value);
+  return new Intl.NumberFormat("id-ID", {
+    minimumFractionDigits: decimalPlaces,
+    maximumFractionDigits: decimalPlaces,
+  }).format(numValue);
+}
+
 /**
  * Memformat angka menjadi persentase.
  * Contoh: 4.6 -> "4,6%"
@@ -58,11 +77,7 @@ export function formatPercent(
 ): string {
   const numValue = getValidNumber(value, 0);
 
-  // --- PERBAIKAN LOGIKA ---
-  // Tentukan digit min/max untuk mencegah error.
   const minDigits = options?.minimumFractionDigits ?? 1;
-  // Pastikan maxDigits tidak pernah lebih kecil dari minDigits.
-  // Jika maxDigits tidak diset, gunakan nilai yang lebih besar antara minDigits atau default (2).
   const maxDigits = options?.maximumFractionDigits ?? Math.max(minDigits, 2);
 
   return new Intl.NumberFormat("id-ID", {
