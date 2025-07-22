@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { MortgageIncomeForm, MortgageIncomeResult, MortgageIncomeSchedule } from "@/features/mortgage/income";
-import { Header, Footer } from "@/features/common";
+import { Header, Footer } from "@/components/layout/";
+
 import { calculateMortgageIncome } from "@/utils/calculators/mortgage/incomeCalculator";
 import { AmortizationItem } from "@/types/common";
 import { MortgageIncomeResult as LoanDetails } from "@/types/mortgage-income";

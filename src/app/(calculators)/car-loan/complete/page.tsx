@@ -6,7 +6,7 @@ import {
   CarLoanResult,
   CarLoanSchedule, // Menggunakan CarLoanSchedule seperti permintaan Anda
 } from "@/features/car-loan/complete";
-import { Header, Footer } from "@/features/common";
+import { Header, Footer } from "@/components/layout";
 import { calculateLoan } from "@/utils/calculators/car-loan/completeCalculator";
 
 // --- Definisi Tipe Data Langsung di File ---

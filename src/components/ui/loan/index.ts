@@ -1,2 +1,3 @@
-export { default as Header } from '../../components/layout/Header';
-export { default as Footer } from '../../components/layout/Footer';
+// components/ui/form/index.ts
+export * from "./LoanResultDisplay";
+export { default as LoanSchedule } from "./LoanSchedule";

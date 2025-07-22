@@ -6,7 +6,7 @@ import {
   CarLoanSimpleResult,
   CarLoanSimpleSchedule,
 } from "@/features/car-loan/simple";
-import { Header, Footer } from "@/features/common";
+import { Header, Footer } from "@/components/layout";
 import { calculateSimpleLoan } from "@/utils/calculators/car-loan/simpleCalculator";
 import { AmortizationItem } from "@/types/common";
 import { CarLoanSimpleResult as SimpleLoanDetails } from "@/types/car-loan";

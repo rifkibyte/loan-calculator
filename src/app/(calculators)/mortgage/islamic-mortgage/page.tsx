@@ -3,7 +3,8 @@
 
 import { useState } from "react";
 import { IslamicMortgageForm, IslamicMortgageResult, IslamicMortgageSchedule } from "@/features/mortgage/islamic-mortgage";
-import { Header, Footer } from "@/features/common";
+import { Header, Footer } from "@/components/layout/";
+
 import { calculateIslamicMortgage } from "@/utils/calculators/mortgage/islamicMortgageCalculator";
 import { AmortizationItem } from "@/types/common";
 import { IslamicMortgageResult as MortgageDetails } from "@/types/islamic-mortgage";

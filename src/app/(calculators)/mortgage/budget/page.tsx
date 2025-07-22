@@ -7,7 +7,8 @@ import {
   MortgageBudgetResult,
   MortgageBudgetSchedule,
 } from "@/features/mortgage/budget";
-import { Header, Footer } from "@/features/common";
+import { Header, Footer } from "@/components/layout/";
+
 import { calculateMortgageBudget } from "@/utils/calculators/mortgage/budgetCalculator";
 import { AmortizationItem } from "@/types/common";
 import { MortgageBudgetResult as BudgetDetails } from "@/types/mortgage-budget";

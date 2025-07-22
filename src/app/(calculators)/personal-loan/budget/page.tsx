@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { PersonalLoanForm, PersonalLoanResult, PersonalLoanSchedule } from "@/features/personal-loan/budget";
-import { Header, Footer } from "@/features/common";
+import { Header, Footer } from "@/components/layout/";
+
 import { calculateKtaLoan } from "@/utils/calculators/personal-loan/personalLoanCalculator";
 import { AmortizationItem } from "@/types/common";
 import { PersonalLoanResult as LoanDetails } from "@/types/personal-loan";

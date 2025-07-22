@@ -2,7 +2,7 @@
 
 "use client";
 
-import LoanSchedule from "@/features/common/LoanSchedule";
+import { LoanSchedule } from "@/components/ui/loan";
 import { CarLoanBudgetResult } from "@/types/car-loan";
 
 interface CarLoanBudgetScheduleProps {

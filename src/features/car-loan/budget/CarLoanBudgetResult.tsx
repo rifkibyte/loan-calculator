@@ -3,7 +3,7 @@
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 // BARU: Impor versi LoanResultDisplay yang sudah di-refactor
-import { LoanResultDisplay } from "@/features/common/LoanResultDisplay";
+import { LoanResultDisplay } from "@/components/ui/loan/"
 import { formatCurrency, formatPercent } from "@/utils/formatters";
 import { CarLoanBudgetResult as LoanDetailsType } from "@/types/car-loan";
 

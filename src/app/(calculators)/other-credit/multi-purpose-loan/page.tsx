@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { MultiPurposeLoanForm, MultiPurposeLoanResult, MultiPurposeLoanSchedule } from "@/features/other-credit/multi-purpose-loan";
-import { Header, Footer } from "@/features/common";
+import { Header, Footer } from "@/components/layout/";
+
 import { calculateMultiPurposeLoan } from "@/utils/calculators/other-credit/multiPurposeLoanCalculator";
 import { AmortizationItem } from "@/types/common";
 import { MultiPurposeLoanResult as LoanDetails } from "@/types/multi-purpose-loan";

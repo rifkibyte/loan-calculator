@@ -2,7 +2,7 @@
 
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
-import { LoanResultDisplay } from "@/features/common/LoanResultDisplay";
+import { LoanResultDisplay } from "@/components/ui/loan/"
 import { formatCurrency, formatPercent } from "@/utils/formatters";
 
 // Interface lokal untuk memastikan semua properti tersedia
