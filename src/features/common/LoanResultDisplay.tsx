@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useMemo } from "react";
+import { FC, useMemo, ReactNode } from "react";
 import {
   ResultCard,
   ResultTabs,
@@ -11,18 +11,13 @@ import {
 } from "@/components/ui/result";
 import { formatCurrency, formatPercent } from "@/utils/formatters";
 
-// --- Tipe Generik untuk Data Hasil ---
-// Ini dapat mencakup semua kemungkinan field dari semua kalkulator
+// --- Tipe Data ---
 interface LoanResultData {
-  // Input & Info Dasar
-  carPrice?: number;
+  mainAssetPrice?: number;
   downPaymentPercent?: number;
   downPaymentAmount?: number;
   loanTerm?: number;
   interestRate?: number;
-  monthlyInterestRate?: number;
-
-  // Hasil Kalkulasi
   loanAmount: number;
   monthlyPrincipal: number;
   monthlyInterest: number;
@@ -30,8 +25,6 @@ interface LoanResultData {
   totalInterest: number;
   totalPayment: number;
   firstPayment: number;
-
-  // Biaya Tambahan (Opsional)
   insurancePercent?: number;
   insuranceAmount?: number;
   provisionPercent?: number;
@@ -40,11 +33,18 @@ interface LoanResultData {
   adminFee?: number;
 }
 
-// --- Tipe untuk Konfigurasi ---
+// --- Tipe Konfigurasi ---
 interface LoanResultConfig {
-  showOtherFees?: boolean;
-  showTotalPaymentSimple?: boolean; // Untuk total pembayaran di tab 'payment'
   onExport: () => void;
+  showOtherFees?: boolean;
+  showTotalPaymentSimple?: boolean;
+  labels?: {
+    mainAssetLabel?: string;
+    downPaymentLabel?: string;
+    loanPrincipalLabel?: string;
+  };
+  showPrincipalCalculation?: boolean;
+  showDownPayment?: boolean;
 }
 
 interface LoanResultDisplayProps {
@@ -61,23 +61,40 @@ export const LoanResultDisplay: FC<LoanResultDisplayProps> = ({
     onExport,
     showOtherFees = false,
     showTotalPaymentSimple = false,
+    labels = {
+      mainAssetLabel: "Harga Aset",
+      downPaymentLabel: "Uang Muka",
+      loanPrincipalLabel: "Pokok Pinjaman",
+    },
+    showPrincipalCalculation = false,
+    showDownPayment = false,
   } = config;
 
-  // Memoize grid items untuk performa
-  const infoGridItems = useMemo(
-    () => [
-      { label: "Harga Mobil OTR", value: formatCurrency(data.carPrice ?? 0) },
-      {
-        label: "Uang Muka (DP)",
+  const infoGridItems = useMemo(() => {
+    const items: { label: string; value: ReactNode }[] = [];
+
+    if (data.mainAssetPrice) {
+      items.push({
+        label: labels.mainAssetLabel!,
+        value: formatCurrency(data.mainAssetPrice),
+      });
+    }
+
+    if (showDownPayment && data.downPaymentAmount) {
+      items.push({
+        label: labels.downPaymentLabel!,
         value: (
           <>
-            {formatCurrency(data.downPaymentAmount ?? 0)}
+            {formatCurrency(data.downPaymentAmount)}
             <span className="text-sm font-normal text-gray-500 ml-1">
               ({formatPercent(data.downPaymentPercent ?? 0)})
             </span>
           </>
         ),
-      },
+      });
+    }
+
+    items.push(
       {
         label: "Tenor",
         value: (
@@ -93,18 +110,19 @@ export const LoanResultDisplay: FC<LoanResultDisplayProps> = ({
         label: "Bunga (Flat)",
         value: (
           <>
-            {/* --- PERBAIKAN: Hapus '%' manual setelah fungsi --- */}
-            {formatPercent(data.interestRate ?? 0, 1)} / tahun
+            {/* --- PERBAIKAN 1 --- */}
+            {formatPercent(data.interestRate ?? 0, { minimumFractionDigits: 1 })} / tahun
             <span className="text-sm font-normal text-gray-500 ml-1">
-              {/* --- PERBAIKAN: Hapus '%' manual setelah fungsi --- */}(
-              {formatPercent((data.interestRate ?? 0) / 12, 3)} / bulan)
+              {/* --- PERBAIKAN 2 --- */}
+              ({formatPercent((data.interestRate ?? 0) / 12, { minimumFractionDigits: 3 })} / bulan)
             </span>
           </>
         ),
-      },
-    ],
-    [data]
-  );
+      }
+    );
+
+    return items;
+  }, [data, labels, showDownPayment]);
 
   const infoTabContent = (
     <div className="space-y-6">
@@ -113,39 +131,41 @@ export const LoanResultDisplay: FC<LoanResultDisplayProps> = ({
       </h2>
       <ResultGrid items={infoGridItems} />
 
-      <ResultSection title="Plafon Pinjaman Anda" variant="blue">
-        {data.carPrice && (
+      {showPrincipalCalculation && (
+        // --- PERBAIKAN 3 ---
+        <ResultSection title={labels.loanPrincipalLabel!} variant="blue">
           <ResultRow
-            label="Harga Mobil OTR:"
-            value={formatCurrency(data.carPrice)}
+            label={`${labels.mainAssetLabel!}:`}
+            value={formatCurrency(data.mainAssetPrice ?? 0)}
           />
-        )}
-        <ResultRow
-          label="Uang Muka (DP):"
-          value={`- ${formatCurrency(data.downPaymentAmount ?? 0)}`}
-        />
-        <ResultRow
-          label="Plafon Pinjaman Anda:"
-          value={formatCurrency(data.loanAmount)}
-          isTotal
-        />
-      </ResultSection>
+          <ResultRow
+            label={`${labels.downPaymentLabel!}:`}
+            value={`- ${formatCurrency(data.downPaymentAmount ?? 0)}`}
+          />
+          <ResultRow
+            label={`${labels.loanPrincipalLabel!}:`}
+            value={formatCurrency(data.loanAmount)}
+            isTotal
+          />
+        </ResultSection>
+      )}
 
       {showOtherFees && (
         <ResultSection title="Biaya Lainnya (dibayar di muka)" variant="gray">
           <ResultRow
             label="Asuransi:"
             value={formatCurrency(data.insuranceAmount ?? 0)}
-            info={`${formatPercent(
+            info={data.mainAssetPrice ? `${formatPercent(
               data.insurancePercent ?? 0
-            )}% dari harga OTR`}
+            )}% dari ${labels.mainAssetLabel!}` : undefined}
           />
           <ResultRow
             label="Provisi:"
             value={formatCurrency(data.provisionAmount ?? 0)}
             info={`${formatPercent(
               data.provisionPercent ?? 0,
-              1
+              // --- PERBAIKAN 4 ---
+              { minimumFractionDigits: 1 }
             )}% dari plafon pinjaman`}
           />
           <ResultRow
@@ -184,32 +204,22 @@ export const LoanResultDisplay: FC<LoanResultDisplayProps> = ({
       </ResultSection>
 
       <ResultSection title="Pembayaran Pertama Kali" variant="purple">
-        <ResultRow
-          label="Uang Muka (DP):"
-          value={formatCurrency(data.downPaymentAmount ?? 0)}
-        />
+        {showDownPayment && (
+          <ResultRow
+            label={`${labels.downPaymentLabel!}:`}
+            value={formatCurrency(data.downPaymentAmount ?? 0)}
+          />
+        )}
         <ResultRow
           label="Angsuran Pertama:"
           value={formatCurrency(data.monthlyPayment)}
         />
         {showOtherFees && (
           <>
-            <ResultRow
-              label="Asuransi:"
-              value={formatCurrency(data.insuranceAmount ?? 0)}
-            />
-            <ResultRow
-              label="Provisi:"
-              value={formatCurrency(data.provisionAmount ?? 0)}
-            />
-            <ResultRow
-              label="Biaya Polis:"
-              value={formatCurrency(data.policyFee ?? 0)}
-            />
-            <ResultRow
-              label="Administrasi:"
-              value={formatCurrency(data.adminFee ?? 0)}
-            />
+            <ResultRow label="Asuransi:" value={formatCurrency(data.insuranceAmount ?? 0)} />
+            <ResultRow label="Provisi:" value={formatCurrency(data.provisionAmount ?? 0)} />
+            <ResultRow label="Biaya Polis:" value={formatCurrency(data.policyFee ?? 0)} />
+            <ResultRow label="Administrasi:" value={formatCurrency(data.adminFee ?? 0)} />
           </>
         )}
         <ResultRow
@@ -221,19 +231,9 @@ export const LoanResultDisplay: FC<LoanResultDisplayProps> = ({
 
       {showTotalPaymentSimple && (
         <ResultSection title="Total Pembayaran" variant="indigo">
-          <ResultRow
-            label="Total Pokok Pinjaman:"
-            value={formatCurrency(data.loanAmount)}
-          />
-          <ResultRow
-            label="Total Bunga:"
-            value={formatCurrency(data.totalInterest)}
-          />
-          <ResultRow
-            label="Total Keseluruhan:"
-            value={formatCurrency(data.totalPayment)}
-            isTotal
-          />
+          <ResultRow label="Total Pokok Pinjaman:" value={formatCurrency(data.loanAmount)} />
+          <ResultRow label="Total Bunga:" value={formatCurrency(data.totalInterest)} />
+          <ResultRow label="Total Keseluruhan:" value={formatCurrency(data.totalPayment)} isTotal />
         </ResultSection>
       )}
     </div>

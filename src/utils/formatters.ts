@@ -57,10 +57,18 @@ export function formatPercent(
   options?: { minimumFractionDigits?: number; maximumFractionDigits?: number }
 ): string {
   const numValue = getValidNumber(value, 0);
+
+  // --- PERBAIKAN LOGIKA ---
+  // Tentukan digit min/max untuk mencegah error.
+  const minDigits = options?.minimumFractionDigits ?? 1;
+  // Pastikan maxDigits tidak pernah lebih kecil dari minDigits.
+  // Jika maxDigits tidak diset, gunakan nilai yang lebih besar antara minDigits atau default (2).
+  const maxDigits = options?.maximumFractionDigits ?? Math.max(minDigits, 2);
+
   return new Intl.NumberFormat("id-ID", {
     style: "percent",
-    minimumFractionDigits: options?.minimumFractionDigits ?? 1,
-    maximumFractionDigits: options?.maximumFractionDigits ?? 2,
+    minimumFractionDigits: minDigits,
+    maximumFractionDigits: maxDigits,
   }).format(numValue / 100);
 }
 

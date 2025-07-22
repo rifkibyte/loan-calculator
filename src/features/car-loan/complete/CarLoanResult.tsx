@@ -3,87 +3,85 @@
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import { LoanResultDisplay } from "@/features/common/LoanResultDisplay";
-import { formatCurrencyDisplay, formatPercent } from "@/utils/formatters";
+import { formatCurrency, formatPercent } from "@/utils/formatters";
 
-// Tipe data spesifik untuk hasil kalkulator lengkap
-// Pastikan semua field yang dibutuhkan oleh LoanResultDisplay ada di sini
-interface LoanDetails {
+// Interface lokal untuk memastikan semua properti tersedia
+interface CarLoanCompleteDetails {
   carPrice: number;
   downPaymentPercent: number;
   downPaymentAmount: number;
   loanTerm: number;
   interestRate: number;
-  monthlyInterestRate: number;
   loanAmount: number;
-  monthlyPayment: number;
   monthlyPrincipal: number;
   monthlyInterest: number;
-  totalPayment: number;
+  monthlyPayment: number;
   totalInterest: number;
+  totalPayment: number;
+  firstPayment: number;
   insurancePercent: number;
   insuranceAmount: number;
   provisionPercent: number;
   provisionAmount: number;
   policyFee: number;
   adminFee: number;
-  firstPayment: number;
 }
 
-interface LoanResultProps {
-  loanDetails: LoanDetails;
+interface CarLoanCompleteResultProps {
+  loanDetails: CarLoanCompleteDetails;
 }
 
-export default function LoanResult({ loanDetails }: LoanResultProps) {
+export default function CarLoanCompleteResult({ loanDetails }: CarLoanCompleteResultProps) {
   
   const handleExportPDF = () => {
     const doc = new jsPDF();
-    const startY = 25; // Posisi awal untuk tabel pertama
-    
-    // Judul Dokumen
+    const startY = 25;
+
     doc.setFontSize(18);
     doc.text("Simulasi Kredit Mobil (Lengkap)", 105, 15, { align: "center" });
 
-    // Tabel 1: Informasi Pinjaman Utama
     (doc as any).autoTable({
       startY: startY,
       head: [['Informasi Pinjaman', '']],
       body: [
-        ['Harga Mobil OTR', formatCurrencyDisplay(loanDetails.carPrice)],
-        ['Uang Muka (DP)', `${formatCurrencyDisplay(loanDetails.downPaymentAmount)} (${formatPercent(loanDetails.downPaymentPercent)})`],
+        ['Harga Mobil OTR', formatCurrency(loanDetails.carPrice)],
+        ['Uang Muka (DP)', `${formatCurrency(loanDetails.downPaymentAmount)} (${formatPercent(loanDetails.downPaymentPercent)})`],
         ['Tenor Pinjaman', `${loanDetails.loanTerm} tahun (${loanDetails.loanTerm * 12} bulan)`],
-        ['Suku Bunga', `${formatPercent(loanDetails.interestRate, 1)}% / tahun`],
-        ['Plafon Pinjaman', formatCurrencyDisplay(loanDetails.loanAmount)],
-        ['Angsuran per Bulan', formatCurrencyDisplay(loanDetails.monthlyPayment)],
+        // --- PERBAIKAN 1 ---
+        // Mengubah argumen kedua dari '1' menjadi objek '{ minimumFractionDigits: 1 }'
+        ['Suku Bunga', `${formatPercent(loanDetails.interestRate, { minimumFractionDigits: 1 })} / tahun`],
+        ['Plafon Pinjaman', formatCurrency(loanDetails.loanAmount)],
+        ['Angsuran per Bulan', formatCurrency(loanDetails.monthlyPayment)],
       ],
       theme: 'grid',
-      headStyles: { fillColor: [41, 128, 185] }, // Biru
+      headStyles: { fillColor: [41, 128, 185] },
     });
 
-    // Tabel 2: Biaya Lain-lain
     (doc as any).autoTable({
       startY: (doc as any).lastAutoTable.finalY + 10,
       head: [['Biaya Lainnya (dibayar di muka)', '']],
       body: [
-        ['Asuransi', `${formatCurrencyDisplay(loanDetails.insuranceAmount)} (${formatPercent(loanDetails.insurancePercent)}% dari OTR)`],
-        ['Provisi', `${formatCurrencyDisplay(loanDetails.provisionAmount)} (${formatPercent(loanDetails.provisionPercent, 1)}% dari Plafon)`],
-        ['Biaya Polis Asuransi', formatCurrencyDisplay(loanDetails.policyFee)],
-        ['Biaya Administrasi', formatCurrencyDisplay(loanDetails.adminFee)],
+        ['Asuransi', `${formatCurrency(loanDetails.insuranceAmount)} (${formatPercent(loanDetails.insurancePercent)}% dari OTR)`],
+        // --- PERBAIKAN 2 ---
+        // Mengubah argumen kedua dari '1' menjadi objek '{ minimumFractionDigits: 1 }'
+        ['Provisi', `${formatCurrency(loanDetails.provisionAmount)} (${formatPercent(loanDetails.provisionPercent, { minimumFractionDigits: 1 })}% dari Plafon)`],
+        ['Biaya Polis Asuransi', formatCurrency(loanDetails.policyFee)],
+        ['Biaya Administrasi', formatCurrency(loanDetails.adminFee)],
       ],
       theme: 'grid',
-      headStyles: { fillColor: [142, 68, 173] }, // Ungu
+      headStyles: { fillColor: [142, 68, 173] },
     });
     
-    // Tabel 3: Ringkasan Pembayaran
     (doc as any).autoTable({
         startY: (doc as any).lastAutoTable.finalY + 10,
         head: [['Ringkasan Pembayaran', '']],
         body: [
-            ['Total Pembayaran Pertama', formatCurrencyDisplay(loanDetails.firstPayment)],
-            ['Total Bunga Selama Tenor', formatCurrencyDisplay(loanDetails.totalInterest)],
-            ['Total Pembayaran Selama Tenor', formatCurrencyDisplay(loanDetails.totalPayment)],
+            ['Total Pembayaran Pertama', formatCurrency(loanDetails.firstPayment)],
+            ['Total Bunga Selama Tenor', formatCurrency(loanDetails.totalInterest)],
+            ['Total Pembayaran Selama Tenor', formatCurrency(loanDetails.totalPayment)],
         ],
         theme: 'grid',
-        headStyles: { fillColor: [22, 160, 133] }, // Hijau
+        headStyles: { fillColor: [22, 160, 133] },
       });
 
     doc.save('simulasi-kredit-lengkap.pdf');
@@ -91,11 +89,21 @@ export default function LoanResult({ loanDetails }: LoanResultProps) {
 
   return (
     <LoanResultDisplay
-      data={loanDetails}
+      data={{
+        ...loanDetails,
+        mainAssetPrice: loanDetails.carPrice,
+      }}
       config={{
-        showOtherFees: true, // <-- Tampilkan bagian "Biaya Lainnya"
-        showTotalPaymentSimple: true, // <-- Tampilkan bagian "Total Pembayaran"
-        onExport: handleExportPDF, // <-- Gunakan fungsi ekspor yang sudah kita buat
+        onExport: handleExportPDF,
+        showOtherFees: true,
+        showTotalPaymentSimple: true,
+        showPrincipalCalculation: true,
+        showDownPayment: true,
+        labels: {
+          mainAssetLabel: "Harga Mobil OTR",
+          downPaymentLabel: "Uang Muka (DP)",
+          loanPrincipalLabel: "Plafon Pinjaman Anda",
+        },
       }}
     />
   );
