@@ -6,7 +6,7 @@
  * @param value The string to parse.
  * @returns A valid number or NaN if parsing is not possible.
  */
-function parseLocaleNumber(value: string): number {
+export function parseLocaleNumber(value: string): number {
   const cleanValue = String(value).replace(/\./g, "").replace(",", ".");
   return parseFloat(cleanValue);
 }
@@ -17,7 +17,7 @@ function parseLocaleNumber(value: string): number {
  * @param fallback Nilai default jika parsing gagal (default: 0).
  * @returns Angka yang valid atau nilai fallback.
  */
-function getValidNumber(value: number | string, fallback = 0): number {
+export function getValidNumber(value: number | string, fallback = 0): number {
   const num = typeof value === "string" ? parseLocaleNumber(value) : value;
   return isNaN(num) || !isFinite(num) ? fallback : num;
 }

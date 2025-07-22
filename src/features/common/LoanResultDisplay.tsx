@@ -93,9 +93,11 @@ export const LoanResultDisplay: FC<LoanResultDisplayProps> = ({
         label: "Bunga (Flat)",
         value: (
           <>
-            {formatPercent(data.interestRate ?? 0, 1)}% / tahun
+            {/* --- PERBAIKAN: Hapus '%' manual setelah fungsi --- */}
+            {formatPercent(data.interestRate ?? 0, 1)} / tahun
             <span className="text-sm font-normal text-gray-500 ml-1">
-              ({formatPercent((data.interestRate ?? 0) / 12, 3)}% / bulan)
+              {/* --- PERBAIKAN: Hapus '%' manual setelah fungsi --- */}(
+              {formatPercent((data.interestRate ?? 0) / 12, 3)} / bulan)
             </span>
           </>
         ),

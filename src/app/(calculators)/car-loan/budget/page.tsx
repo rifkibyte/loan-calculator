@@ -33,6 +33,15 @@ export default function CarLoanBudgetPage() {
       interestRate
     );
 
+    console.log("Data yang akan disimpan ke state:", {
+      ...calculationResult,
+      downPaymentPercent,
+      loanTerm,
+      interestRate,
+      monthlyInterestRate: interestRate / 12 / 100,
+      monthlyPayment: budget,
+    });
+
     setLoanDetails({
       ...calculationResult,
       downPaymentPercent,
@@ -65,9 +74,8 @@ export default function CarLoanBudgetPage() {
               {loanDetails ? (
                 <div className="space-y-8">
                   <CarLoanBudgetResult loanDetails={loanDetails} />
-                  <CarLoanBudgetSchedule
-                    schedule={loanDetails.amortizationSchedule}
-                  />
+
+                  <CarLoanBudgetSchedule loanDetails={loanDetails} />
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-full bg-white p-6 rounded-lg shadow-lg">

@@ -1,4 +1,3 @@
-// features/car-loan/budget/CarLoanBudgetResult.tsx (Updated)
 "use client";
 
 import { jsPDF } from "jspdf";
@@ -7,16 +6,12 @@ import { LoanResultDisplay } from "@/features/common/LoanResultDisplay";
 import { formatCurrency, formatPercent } from "@/utils/formatters";
 import { CarLoanBudgetResult as LoanDetailsType } from "@/types/car-loan";
 
-
-// --- Tipe Properti ---
 interface CarLoanBudgetResultProps {
   loanDetails: LoanDetailsType;
 }
 
-// --- Komponen Utama (Setelah Refactor) ---
 export default function CarLoanBudgetResult({ loanDetails }: CarLoanBudgetResultProps) {
   
-  // Fungsi untuk mengekspor hasil ke PDF
   const handleExportPDF = () => {
     const doc = new jsPDF();
     doc.text("Simulasi Kredit Mobil (Berdasarkan Budget)", 14, 20);
@@ -30,6 +25,7 @@ export default function CarLoanBudgetResult({ loanDetails }: CarLoanBudgetResult
         ['Tenor Pinjaman', `${loanDetails.loanTerm} tahun`],
         ['Plafon Pinjaman', formatCurrency(loanDetails.loanAmount)],
         ['Angsuran per Bulan', formatCurrency(loanDetails.monthlyPayment)],
+        ['Total Pembayaran', formatCurrency(loanDetails.totalPayment)], // Data ini sekarang ada
         ['Pembayaran Pertama', formatCurrency(loanDetails.firstPayment)],
       ],
       theme: 'grid',
@@ -39,16 +35,12 @@ export default function CarLoanBudgetResult({ loanDetails }: CarLoanBudgetResult
     doc.save('simulasi-kredit-mobil-budget.pdf');
   };
 
-  // Render komponen reusable dengan data dan konfigurasi yang sesuai
   return (
     <LoanResultDisplay
       data={loanDetails}
       config={{
-        // Kalkulator budget tidak memiliki biaya lain seperti asuransi/provisi
-        showOtherFees: false, 
-        // Kalkulator budget tidak menampilkan bagian "Total Pembayaran"
-        showTotalPaymentSimple: false, 
-        // Menyediakan fungsi ekspor
+        showOtherFees: false,
+        showTotalPaymentSimple: true, 
         onExport: handleExportPDF,
       }}
     />
