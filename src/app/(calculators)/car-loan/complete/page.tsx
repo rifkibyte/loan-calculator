@@ -1,17 +1,20 @@
 "use client";
 
-import { useState } from "react";
+// 1. Impor komponen spesifik untuk fitur ini
 import {
   CarLoanForm,
   CarLoanResult,
-  CarLoanSchedule, // Menggunakan CarLoanSchedule seperti permintaan Anda
+  CarLoanSchedule,
 } from "@/features/car-loan/complete";
+
+// 2. Impor komponen layout dan controller reusable
 import { Header, Footer } from "@/components/layout";
+import { LoanCalculatorController } from "@/components/ui/loan"; // Pastikan path ini benar
+
+// 3. Impor fungsi kalkulator murni
 import { calculateLoan } from "@/utils/calculators/car-loan/completeCalculator";
 
-// --- Definisi Tipe Data Langsung di File ---
-
-// Interface untuk setiap baris dalam tabel amortisasi
+// --- Definisi Tipe Data Langsung di File (sesuai permintaan) ---
 interface AmortizationItem {
   period: number;
   payment: number;
@@ -33,7 +36,6 @@ interface FormData {
 }
 
 // Interface lengkap untuk detail hasil kalkulasi pinjaman
-// Ini menggantikan import dari "@/types/car-loan"
 interface LoanDetails {
   carPrice: number;
   downPaymentPercent: number;
@@ -60,11 +62,10 @@ interface LoanDetails {
 // --- Komponen Halaman ---
 
 export default function CarLoanCompletePage() {
-  const [loanDetails, setLoanDetails] = useState<LoanDetails | null>(null);
-  const [showResults, setShowResults] = useState<boolean>(false);
-
-  // Fungsi untuk menangani kalkulasi dari form
-  const handleCalculate = (formData: FormData): void => {
+  // 4. Logika kalkulasi dan transformasi data diekstrak ke fungsi murni.
+  // Fungsi ini akan diteruskan sebagai prop ke controller.
+  const performCompleteCalculation = (formData: FormData): LoanDetails => {
+    // Panggil fungsi kalkulator inti
     const calculationResult = calculateLoan(
       formData.carPrice,
       formData.downPaymentPercent,
@@ -76,8 +77,8 @@ export default function CarLoanCompletePage() {
       formData.adminFee
     );
 
-    // Set state dengan data yang lengkap untuk ditampilkan
-    setLoanDetails({
+    // Gabungkan data dari form dan hasil kalkulasi untuk membentuk objek state yang lengkap
+    return {
       // Data dari form
       carPrice: formData.carPrice,
       downPaymentPercent: formData.downPaymentPercent,
@@ -87,10 +88,11 @@ export default function CarLoanCompletePage() {
       provisionPercent: formData.provisionPercent,
       policyFee: formData.policyFee,
       adminFee: formData.adminFee,
-      
+
       // Data dari hasil kalkulasi
-      downPaymentAmount: formData.carPrice * (formData.downPaymentPercent / 100),
-      monthlyInterestRate: formData.interestRate / 12,
+      downPaymentAmount:
+        formData.carPrice * (formData.downPaymentPercent / 100),
+      monthlyInterestRate: formData.interestRate / 12, // Pastikan ini sesuai dengan kalkulasi Anda
       loanAmount: calculationResult.loanAmount,
       monthlyPayment: calculationResult.monthlyPayment,
       monthlyPrincipal: calculationResult.monthlyPrincipal,
@@ -101,37 +103,29 @@ export default function CarLoanCompletePage() {
       provisionAmount: calculationResult.provisionAmount,
       firstPayment: calculationResult.firstPayment,
       amortizationSchedule: calculationResult.amortizationSchedule,
-    });
-
-    setShowResults(true);
+    };
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-
-      <main className="container mx-auto py-8 px-4 flex-grow">
-        <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
-          Simulasi Kredit Mobil Lengkap
-        </h1>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
-            <CarLoanForm onCalculate={handleCalculate} />
-          </div>
-
-          <div className="lg:col-span-2">
-            {showResults && loanDetails && (
-              <div className="space-y-6">
-                <CarLoanResult loanDetails={loanDetails} />
-                {/* Memanggil komponen tabel dengan prop yang benar */}
-                <CarLoanSchedule loanDetails={loanDetails} />
-              </div>
-            )}
-          </div>
-        </div>
+      <main className="container mx-auto py-10 px-4 flex-grow">
+        {/* 5. Gunakan controller reusable. Semua state, layout, dan logika ada di dalamnya. */}
+        <LoanCalculatorController<FormData, LoanDetails>
+          pageTitle="Simulasi Kredit Mobil Lengkap"
+          pageDescription="Hitung estimasi cicilan bulanan dan total biaya kredit mobil Anda dengan detail biaya tambahan seperti asuransi dan provisi."
+          FormComponent={CarLoanForm}
+          performCalculation={performCompleteCalculation}
+        >
+          {/* 6. Gunakan pola "render prop" untuk mendefinisikan bagaimana hasil ditampilkan */}
+          {(loanDetails) => (
+            <>
+              <CarLoanResult loanDetails={loanDetails} />
+              <CarLoanSchedule loanDetails={loanDetails} />
+            </>
+          )}
+        </LoanCalculatorController>
       </main>
-
       <Footer />
     </div>
   );

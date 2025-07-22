@@ -1,17 +1,22 @@
 "use client";
 
-import { useState } from "react";
+// 1. Impor komponen spesifik untuk fitur ini
 import {
   CarLoanSimpleForm,
   CarLoanSimpleResult,
   CarLoanSimpleSchedule,
 } from "@/features/car-loan/simple";
-import { Header, Footer } from "@/components/layout";
-import { calculateSimpleLoan } from "@/utils/calculators/car-loan/simpleCalculator";
-import { AmortizationItem } from "@/types/common";
-import { CarLoanSimpleResult as SimpleLoanDetails } from "@/types/car-loan";
 
-// Interface for form data
+// 2. Impor komponen layout dan controller reusable
+import { Header, Footer } from "@/components/layout";
+import { LoanCalculatorController } from "@/components/ui/loan"; // Pastikan path ini benar
+
+// 3. Impor fungsi kalkulator murni
+import { calculateSimpleLoan } from "@/utils/calculators/car-loan/simpleCalculator";
+
+// --- Definisi Tipe Data Langsung di File (sesuai permintaan) ---
+
+// Interface untuk data yang dikirim dari form
 interface FormData {
   carPrice: number;
   downPaymentPercent: number;
@@ -19,15 +24,37 @@ interface FormData {
   interestRate: number;
 }
 
-export default function CarLoanSimplePage() {
-  const [loanDetails, setLoanDetails] = useState<SimpleLoanDetails | null>(
-    null
-  );
-  const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
-  const [showResults, setShowResults] = useState<boolean>(false);
+// Interface untuk setiap baris dalam tabel amortisasi
+interface AmortizationItem {
+  period: number;
+  payment: number;
+  principal: number;
+  interest: number;
+  remainingBalance: number;
+}
 
-  // Handle form calculation
-  const handleCalculate = (formData: FormData): void => {
+// Interface lengkap untuk detail hasil kalkulasi pinjaman.
+interface LoanDetails {
+  carPrice: number;
+  downPaymentPercent: number;
+  downPaymentAmount: number;
+  loanTerm: number;
+  interestRate: number;
+  monthlyInterestRate: number;
+  loanAmount: number;
+  monthlyPayment: number;
+  monthlyPrincipal: number;
+  monthlyInterest: number;
+  totalPayment: number;
+  totalInterest: number;
+  firstPayment: number;
+  amortizationSchedule: AmortizationItem[];
+}
+
+// --- Komponen Halaman ---
+
+export default function CarLoanSimplePage() {
+  const performSimpleCalculation = (formData: FormData): LoanDetails => {
     const calculationResult = calculateSimpleLoan(
       formData.carPrice,
       formData.downPaymentPercent,
@@ -35,58 +62,40 @@ export default function CarLoanSimplePage() {
       formData.interestRate
     );
 
-    setLoanDetails({
+    return {
       carPrice: formData.carPrice,
       downPaymentPercent: formData.downPaymentPercent,
-      downPaymentAmount:
-        formData.carPrice * (formData.downPaymentPercent / 100),
       loanTerm: formData.loanTerm,
       interestRate: formData.interestRate,
+      downPaymentAmount: formData.carPrice * (formData.downPaymentPercent / 100),
       monthlyInterestRate: formData.interestRate / 12,
-      loanAmount: calculationResult.loanAmount,
-      monthlyPayment: calculationResult.monthlyPayment,
-      monthlyPrincipal: calculationResult.monthlyPrincipal,
-      monthlyInterest: calculationResult.monthlyInterest,
-      totalPayment: calculationResult.totalPayment,
-      totalInterest: calculationResult.totalInterest,
-      firstPayment: calculationResult.firstPayment,
-      amortizationSchedule: calculationResult.amortizationSchedule,
-    });
-
-    setSchedule(calculationResult.amortizationSchedule);
-    setShowResults(true);
+      ...calculationResult,
+    };
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-
-      <div className="container mx-auto py-8 px-4 flex-grow">
-        <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
-          Simulasi Kredit Mobil Sederhana
-        </h1>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
-            <CarLoanSimpleForm onCalculate={handleCalculate} />
-          </div>
-
-          <div className="lg:col-span-2">
-            {showResults && loanDetails && (
-              <div className="space-y-6">
-                <CarLoanSimpleResult loanDetails={loanDetails} />
-                <CarLoanSimpleSchedule
-                  schedule={schedule}
-                  totalInterest={loanDetails.totalInterest}
-                  totalPrincipal={loanDetails.loanAmount}
-                  totalPayment={loanDetails.totalPayment}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
+      <main className="container mx-auto py-10 px-4 flex-grow">
+        <LoanCalculatorController<FormData, LoanDetails>
+          pageTitle="Simulasi Kredit Mobil Sederhana"
+          pageDescription="Hitung estimasi cicilan bulanan untuk kredit mobil Anda dengan cepat dan mudah."
+          FormComponent={CarLoanSimpleForm}
+          performCalculation={performSimpleCalculation}
+        >
+          {(loanDetails) => (
+            <>
+              <CarLoanSimpleResult loanDetails={loanDetails} />
+              
+              {/* --- PERBAIKAN DI SINI --- */}
+              {/* Berikan hanya prop 'schedule' sesuai dengan definisi CarLoanSimpleScheduleProps */}
+              <CarLoanSimpleSchedule
+                schedule={loanDetails.amortizationSchedule}
+              />
+            </>
+          )}
+        </LoanCalculatorController>
+      </main>
       <Footer />
     </div>
   );

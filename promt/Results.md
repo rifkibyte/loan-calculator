@@ -1,4 +1,4 @@
-Tolong refactor code saya gunakan Result seperti ini
+Tolong refactor code saya gunakan Result seperti refernsi
 code saya:
 "use client";
 
@@ -6,7 +6,7 @@ import { useState } from "react";
 import { formatCurrency } from "@/utils/formatters";
 import { jsPDF } from "jspdf";
 
-interface LoanResultProps {
+interface SimpleLoanResultProps {
   loanDetails: {
     carPrice: number;
     downPaymentPercent: number;
@@ -20,43 +20,30 @@ interface LoanResultProps {
     monthlyInterest: number;
     totalPayment: number;
     totalInterest: number;
-    insurancePercent: number;
-    insuranceAmount: number;
-    provisionPercent: number;
-    provisionAmount: number;
-    policyFee: number;
-    adminFee: number;
     firstPayment: number;
   };
 }
 
-export default function LoanResult({ loanDetails }: LoanResultProps) {
+export default function CarLoanSimpleResult({ loanDetails }: SimpleLoanResultProps) {
   const [activeTab, setActiveTab] = useState("info");
 
-  // Helper function to safely format currency and handle NaN values
+  // Helper functions to safely format values
   const safeFormatCurrency = (value: number) => {
-    if (isNaN(value) || !isFinite(value)) {
-      return "Rp 0";
-    }
+    if (isNaN(value) || !isFinite(value)) return "Rp 0";
     return formatCurrency(value);
   };
 
-  // Helper function to safely format percentage
   const safeFormatPercent = (value: number) => {
-    if (isNaN(value) || !isFinite(value)) {
-      return "0";
-    }
+    if (isNaN(value) || !isFinite(value)) return "0";
     return value.toString();
   };
 
   const handleExportPDF = () => {
     const doc = new jsPDF();
     
-    // Add title
     doc.setFontSize(18);
     doc.text("Simulasi Kredit Mobil", 105, 15, { align: "center" });
     
-    // Add loan details
     doc.setFontSize(12);
     doc.text("Informasi Pinjaman", 14, 30);
     
@@ -64,7 +51,7 @@ export default function LoanResult({ loanDetails }: LoanResultProps) {
       ["Harga Mobil OTR", safeFormatCurrency(loanDetails.carPrice)],
       ["Uang Muka (DP)", `${safeFormatCurrency(loanDetails.downPaymentAmount)} (${safeFormatPercent(loanDetails.downPaymentPercent)}%)`],
       ["Tenor", `${loanDetails.loanTerm} tahun (${loanDetails.loanTerm * 12} bulan)`],
-      ["Bunga (Flat)", `${safeFormatPercent(loanDetails.interestRate)}% / tahun (${(loanDetails.interestRate / 12).toFixed(2)}% / bulan)`],
+      ["Bunga (Flat)", `${safeFormatPercent(loanDetails.interestRate)}% / tahun (${loanDetails.monthlyInterestRate.toFixed(2)}% / bulan)`],
       ["Plafon Pinjaman", safeFormatCurrency(loanDetails.loanAmount)],
       ["Angsuran per Bulan", safeFormatCurrency(loanDetails.monthlyPayment)],
       ["Total Pembayaran", safeFormatCurrency(loanDetails.totalPayment)]
@@ -83,10 +70,13 @@ export default function LoanResult({ loanDetails }: LoanResultProps) {
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      {/* Tab Navigation */}
       <div className="flex border-b">
         <button
           className={`flex-1 py-3 px-4 text-center font-medium ${
-            activeTab === "info" ? "bg-blue-50 text-blue-600 border-b-2 border-blue-600" : "text-gray-600"
+            activeTab === "info" 
+              ? "bg-blue-50 text-blue-600 border-b-2 border-blue-600" 
+              : "text-gray-600 hover:text-gray-900"
           }`}
           onClick={() => setActiveTab("info")}
         >
@@ -94,14 +84,17 @@ export default function LoanResult({ loanDetails }: LoanResultProps) {
         </button>
         <button
           className={`flex-1 py-3 px-4 text-center font-medium ${
-            activeTab === "payment" ? "bg-blue-50 text-blue-600 border-b-2 border-blue-600" : "text-gray-600"
+            activeTab === "payment" 
+              ? "bg-blue-50 text-blue-600 border-b-2 border-blue-600" 
+              : "text-gray-600 hover:text-gray-900"
           }`}
           onClick={() => setActiveTab("payment")}
         >
           Pembayaran
         </button>
       </div>
-        
+      
+      {/* Tab Content */}
       <div className="p-6">
         {activeTab === "info" && (
           <div className="space-y-6">
@@ -138,7 +131,7 @@ export default function LoanResult({ loanDetails }: LoanResultProps) {
                 <p className="text-lg font-bold text-gray-900">
                   {safeFormatPercent(loanDetails.interestRate)}% / tahun
                   <span className="text-sm font-normal text-gray-500 ml-1">
-                    ({(loanDetails.interestRate / 12).toFixed(2)}% / bulan)
+                    ({loanDetails.monthlyInterestRate.toFixed(2)}% / bulan)
                   </span>
                 </p>
               </div>
@@ -158,37 +151,6 @@ export default function LoanResult({ loanDetails }: LoanResultProps) {
                 <div className="border-t border-blue-200 my-2 pt-2 flex justify-between">
                   <span className="font-medium text-gray-900">Plafon Pinjaman Anda:</span>
                   <span className="font-bold text-blue-700">{safeFormatCurrency(loanDetails.loanAmount)}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-gray-900 mb-3">Biaya Lain</h3>
-              <div className="space-y-3">
-                <div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-900">Asuransi:</span>
-                    <span className="font-medium text-gray-900">{safeFormatCurrency(loanDetails.insuranceAmount)}</span>
-                  </div>
-                  <p className="text-xs text-gray-500">({safeFormatPercent(loanDetails.insurancePercent)}% dari harga OTR)</p>
-                </div>
-                
-                <div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-900">Provisi:</span>
-                    <span className="font-medium text-gray-900">{safeFormatCurrency(loanDetails.provisionAmount)}</span>
-                  </div>
-                  <p className="text-xs text-gray-500">({safeFormatPercent(loanDetails.provisionPercent)}% dari plafon)</p>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-900">Polis Asuransi:</span>
-                  <span className="font-medium text-gray-900">{safeFormatCurrency(loanDetails.policyFee)}</span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-900">Administrasi:</span>
-                  <span className="font-medium text-gray-900">{safeFormatCurrency(loanDetails.adminFee)}</span>
                 </div>
               </div>
             </div>
@@ -230,22 +192,6 @@ export default function LoanResult({ loanDetails }: LoanResultProps) {
                   <span className="text-gray-900">Angsuran Pertama:</span>
                   <span className="font-medium text-gray-900">{safeFormatCurrency(loanDetails.monthlyPayment)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-900">Asuransi:</span>
-                  <span className="font-medium text-gray-900">{safeFormatCurrency(loanDetails.insuranceAmount)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-900">Provisi:</span>
-                  <span className="font-medium text-gray-900">{safeFormatCurrency(loanDetails.provisionAmount)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-900">Polis Asuransi:</span>
-                  <span className="font-medium text-gray-900">{safeFormatCurrency(loanDetails.policyFee)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-900">Administrasi:</span>
-                  <span className="font-medium text-gray-900">{safeFormatCurrency(loanDetails.adminFee)}</span>
-                </div>
                 <div className="border-t border-purple-200 my-2 pt-2">
                   <div className="flex justify-between">
                     <span className="font-medium text-gray-900">Total Pembayaran Pertama:</span>
@@ -277,6 +223,7 @@ export default function LoanResult({ loanDetails }: LoanResultProps) {
           </div>
         )}
         
+        {/* Export PDF Button */}
         <div className="mt-6">
           <button
             onClick={handleExportPDF}
@@ -293,8 +240,7 @@ export default function LoanResult({ loanDetails }: LoanResultProps) {
   );
 }
 
-
-formatter.ts
+formatters.ts
 // file: utils/formatters.ts
 
 /**
@@ -354,10 +300,18 @@ export function formatPercent(
   options?: { minimumFractionDigits?: number; maximumFractionDigits?: number }
 ): string {
   const numValue = getValidNumber(value, 0);
+
+  // --- PERBAIKAN LOGIKA ---
+  // Tentukan digit min/max untuk mencegah error.
+  const minDigits = options?.minimumFractionDigits ?? 1;
+  // Pastikan maxDigits tidak pernah lebih kecil dari minDigits.
+  // Jika maxDigits tidak diset, gunakan nilai yang lebih besar antara minDigits atau default (2).
+  const maxDigits = options?.maximumFractionDigits ?? Math.max(minDigits, 2);
+
   return new Intl.NumberFormat("id-ID", {
     style: "percent",
-    minimumFractionDigits: options?.minimumFractionDigits ?? 1,
-    maximumFractionDigits: options?.maximumFractionDigits ?? 2,
+    minimumFractionDigits: minDigits,
+    maximumFractionDigits: maxDigits,
   }).format(numValue / 100);
 }
 
@@ -387,13 +341,13 @@ export function parseToNumericString(value: string): string {
 }
 
 
-
 referensi
 "use client";
 
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
-import { LoanResultDisplay } from "@/features/common/LoanResultDisplay";
+// BARU: Impor versi LoanResultDisplay yang sudah di-refactor
+import { LoanResultDisplay } from "@/components/ui/loan/"
 import { formatCurrency, formatPercent } from "@/utils/formatters";
 import { CarLoanBudgetResult as LoanDetailsType } from "@/types/car-loan";
 
@@ -401,43 +355,65 @@ interface CarLoanBudgetResultProps {
   loanDetails: LoanDetailsType;
 }
 
-export default function CarLoanBudgetResult({ loanDetails }: CarLoanBudgetResultProps) {
-  
+export default function CarLoanBudgetResult({
+  loanDetails,
+}: CarLoanBudgetResultProps) {
   const handleExportPDF = () => {
+    // ... fungsi export PDF tetap sama ...
     const doc = new jsPDF();
     doc.text("Simulasi Kredit Mobil (Berdasarkan Budget)", 14, 20);
-    
+
     (doc as any).autoTable({
       startY: 30,
-      head: [['Keterangan', 'Nilai']],
+      head: [["Keterangan", "Nilai"]],
       body: [
-        ['Harga Mobil OTR', formatCurrency(loanDetails.carPrice)],
-        ['Uang Muka (DP)', `${formatCurrency(loanDetails.downPaymentAmount)} (${formatPercent(loanDetails.downPaymentPercent)}%)`],
-        ['Tenor Pinjaman', `${loanDetails.loanTerm} tahun`],
-        ['Plafon Pinjaman', formatCurrency(loanDetails.loanAmount)],
-        ['Angsuran per Bulan', formatCurrency(loanDetails.monthlyPayment)],
-        ['Total Pembayaran', formatCurrency(loanDetails.totalPayment)], // Data ini sekarang ada
-        ['Pembayaran Pertama', formatCurrency(loanDetails.firstPayment)],
+        ["Harga Mobil OTR", formatCurrency(loanDetails.carPrice)],
+        [
+          "Uang Muka (DP)",
+          `${formatCurrency(loanDetails.downPaymentAmount)} (${formatPercent(
+            loanDetails.downPaymentPercent
+          )}%)`,
+        ],
+        ["Tenor Pinjaman", `${loanDetails.loanTerm} tahun`],
+        ["Plafon Pinjaman", formatCurrency(loanDetails.loanAmount)],
+        ["Angsuran per Bulan", formatCurrency(loanDetails.monthlyPayment)],
+        ["Total Pembayaran", formatCurrency(loanDetails.totalPayment)],
+        ["Pembayaran Pertama", formatCurrency(loanDetails.firstPayment)],
       ],
-      theme: 'grid',
+      theme: "grid",
       headStyles: { fillColor: [66, 133, 244] },
     });
-    
-    doc.save('simulasi-kredit-mobil-budget.pdf');
+
+    doc.save("simulasi-kredit-mobil-budget.pdf");
   };
 
   return (
     <LoanResultDisplay
-      data={loanDetails}
+      // BARU: Mapping data spesifik (carPrice) ke data generik (mainAssetPrice)
+      data={{
+        ...loanDetails,
+        mainAssetPrice: loanDetails.carPrice,
+      }}
+      // BARU: Konfigurasi yang lebih detail untuk memberitahu komponen cara render
       config={{
-        showOtherFees: false,
-        showTotalPaymentSimple: true, 
         onExport: handleExportPDF,
+        showOtherFees: false, // Sesuai kebutuhan 'budget'
+        showTotalPaymentSimple: true,
+
+        // --- Konfigurasi Tampilan Baru ---
+        showPrincipalCalculation: true, // Tampilkan bagian (Harga - DP = Plafon)
+        showDownPayment: true, // Tampilkan semua yang berhubungan dengan DP
+
+        // --- Konfigurasi Label Baru ---
+        labels: {
+          mainAssetLabel: "Harga Mobil OTR",
+          downPaymentLabel: "Uang Muka (DP)",
+          loanPrincipalLabel: "Plafon Pinjaman Anda",
+        },
       }}
     />
   );
 }
-
 
 
 Tentu, saya akan membuat serangkaian komponen `Result` yang dapat digunakan kembali (reusable) berdasarkan file-file yang Anda berikan. Ini adalah praktik yang sangat baik untuk menjaga konsistensi UI dan mengurangi duplikasi kode.

@@ -1,195 +1,157 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, FormEvent, ChangeEvent } from "react";
+import {
+  CurrencyInput,
+  PercentInput,
+  YearInput,
+  Input,
+  Button,
+} from "@/components/ui/form"; // Asumsi path komponen UI Anda
 
+// --- Interface & Tipe Data ---
+
+// Menyimpan semua data form dalam bentuk string, sesuai input dari user
 interface FormData {
-  carPrice: number;
-  downPaymentPercent: number;
-  loanTerm: number;
-  interestRate: number;
+  carPrice: string;
+  downPaymentPercent: string;
+  loanTerm: string;
+  interestRate: string;
 }
 
+// Tipe untuk menampung pesan error per-field
 interface FormErrors {
-  [key: string]: string;
+  [key: string]: string | undefined;
 }
 
+// Tipe untuk prop, onCalculate akan menerima data yang sudah diubah menjadi angka
 interface CarLoanSimpleFormProps {
-  onCalculate: (formData: FormData) => void;
+  onCalculate: (formData: { [K in keyof FormData]: number }) => void;
 }
 
-export default function CarLoanSimpleForm({ onCalculate }: CarLoanSimpleFormProps) {
-  // Form state with default values
-  const [carPrice, setCarPrice] = useState<string>("250000000");
-  const [downPaymentPercent, setDownPaymentPercent] = useState<string>("30");
-  const [loanTerm, setLoanTerm] = useState<string>("5");
-  const [interestRate, setInterestRate] = useState<string>("4.8");
+// --- Komponen Form Utama ---
+
+export default function CarLoanSimpleForm({
+  onCalculate,
+}: CarLoanSimpleFormProps) {
+  // 1. State terpusat untuk semua data form
+  const [formData, setFormData] = useState<FormData>({
+    carPrice: "250000000",
+    downPaymentPercent: "30",
+    loanTerm: "5",
+    interestRate: "4.8",
+  });
   const [errors, setErrors] = useState<FormErrors>({});
 
-  // Derived values
-  const loanTermMonths: number = Number(loanTerm) * 12;
-  const monthlyInterestRate: number = Number(interestRate) / 12;
+  // 2. Handler generik untuk input standar (teks, angka, persen)
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-  // Validation function
+  // Handler khusus untuk CurrencyInput yang mengembalikan nilai string numerik
+  const handleCurrencyChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, carPrice: value }));
+  };
+
+  // 3. Kalkulasi turunan menggunakan useMemo untuk efisiensi
+  const { loanTermMonths, monthlyInterestRate } = useMemo(() => {
+    const term = Number(formData.loanTerm) || 0;
+    // Mengganti koma dengan titik untuk parsing desimal yang benar
+    const rate = parseFloat(formData.interestRate.replace(",", ".")) || 0;
+    return {
+      loanTermMonths: term * 12,
+      monthlyInterestRate: rate / 12,
+    };
+  }, [formData.loanTerm, formData.interestRate]);
+
+  // 4. Logika validasi dan submit disesuaikan dengan state terpusat
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
+    const { carPrice, downPaymentPercent, loanTerm, interestRate } = formData;
 
-    if (!carPrice || isNaN(Number(carPrice)) || Number(carPrice) <= 0) {
-      newErrors.carPrice = "Harga mobil harus berupa angka positif";
+    if (Number(carPrice) <= 0) {
+      newErrors.carPrice = "Harga mobil harus berupa angka positif.";
     }
-
-    if (
-      !downPaymentPercent ||
-      isNaN(Number(downPaymentPercent)) ||
-      Number(downPaymentPercent) <= 0 ||
-      Number(downPaymentPercent) >= 100
-    ) {
-      newErrors.downPaymentPercent = "Persentase uang muka harus antara 0 dan 100";
+    if (Number(downPaymentPercent) <= 0 || Number(downPaymentPercent) >= 100) {
+      newErrors.downPaymentPercent = "Persentase DP harus antara 1 dan 99.";
     }
-
-    if (
-      !loanTerm ||
-      isNaN(Number(loanTerm)) ||
-      Number(loanTerm) <= 0 ||
-      !Number.isInteger(Number(loanTerm))
-    ) {
-      newErrors.loanTerm = "Tenor harus berupa bilangan bulat positif";
+    if (!Number.isInteger(Number(loanTerm)) || Number(loanTerm) <= 0) {
+      newErrors.loanTerm = "Tenor harus berupa bilangan bulat positif.";
     }
-
-    if (
-      !interestRate ||
-      isNaN(Number(interestRate)) ||
-      Number(interestRate) < 0
-    ) {
-      newErrors.interestRate = "Suku bunga harus berupa angka positif atau nol";
+    if (parseFloat(interestRate.replace(",", ".")) < 0) {
+      newErrors.interestRate = "Suku bunga harus angka positif atau nol.";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (validateForm()) {
-      onCalculate({
-        carPrice: Number(carPrice),
-        downPaymentPercent: Number(downPaymentPercent),
-        loanTerm: Number(loanTerm),
-        interestRate: Number(interestRate)
-      });
+      // Ubah semua state string menjadi number sebelum dikirim
+      const numericData = {
+        carPrice: Number(formData.carPrice),
+        downPaymentPercent: Number(formData.downPaymentPercent),
+        loanTerm: Number(formData.loanTerm),
+        interestRate: parseFloat(formData.interestRate.replace(",", ".")),
+      };
+      onCalculate(numericData);
     }
   };
 
-  // Format currency input
-  const formatInputCurrency = (value: string): string => {
-    return value.replace(/[^\d]/g, "");
-  };
-
+  // 5. Render JSX menggunakan komponen UI generik
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Car Price Input */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Harga Mobil OTR:
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">Rp</span>
-          </div>
-          <input
-            type="text"
-            value={carPrice}
-            onChange={(e) => setCarPrice(formatInputCurrency(e.target.value))}
-            className="w-full pl-12 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="250000000"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">,00</span>
-          </div>
-        </div>
-        {errors.carPrice && (
-          <p className="mt-1 text-sm text-red-600">{errors.carPrice}</p>
-        )}
-      </div>
+      <CurrencyInput
+        id="carPrice"
+        name="carPrice"
+        label="Harga Mobil OTR"
+        value={formData.carPrice}
+        onValueChange={handleCurrencyChange}
+        error={errors.carPrice}
+        placeholder="250.000.000"
+      />
 
-      {/* Down Payment Input */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Uang Muka (DP):
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            value={downPaymentPercent}
-            onChange={(e) => setDownPaymentPercent(e.target.value)}
-            className="w-full pr-8 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="30"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">%</span>
-          </div>
-        </div>
-        <p className="mt-1 text-xs text-gray-900">(persen dari harga OTR)</p>
-        {errors.downPaymentPercent && (
-          <p className="mt-1 text-sm text-red-600">{errors.downPaymentPercent}</p>
-        )}
-      </div>
+      <PercentInput
+        id="downPaymentPercent"
+        name="downPaymentPercent"
+        label="Uang Muka (DP)"
+        value={formData.downPaymentPercent}
+        onChange={handleInputChange}
+        error={errors.downPaymentPercent}
+        placeholder="30"
+        info="(persen dari harga OTR)"
+      />
 
-      {/* Loan Term Input */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Tenor (jangka waktu):
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            value={loanTerm}
-            onChange={(e) => setLoanTerm(e.target.value)}
-            className="w-full pr-14 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="5"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">tahun</span>
-          </div>
-        </div>
-        <p className="mt-1 text-xs text-gray-900">= {loanTermMonths} bulan</p>
-        {errors.loanTerm && (
-          <p className="mt-1 text-sm text-red-600">{errors.loanTerm}</p>
-        )}
-      </div>
+      <YearInput
+        id="loanTerm"
+        name="loanTerm"
+        label="Tenor (jangka waktu)"
+        value={formData.loanTerm}
+        onChange={handleInputChange}
+        error={errors.loanTerm}
+        placeholder="5"
+        info={`= ${loanTermMonths} bulan`}
+      />
 
-      {/* Interest Rate Input */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Bunga Pinjaman (Flat):
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            value={interestRate}
-            onChange={(e) => setInterestRate(e.target.value)}
-            className="w-full pr-14 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="4.8"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">% / tahun</span>
-          </div>
-        </div>
-        <p className="mt-1 text-xs text-gray-900">
-          = {monthlyInterestRate.toFixed(2)}% / bulan
-        </p>
-        {errors.interestRate && (
-          <p className="mt-1 text-sm text-red-600">{errors.interestRate}</p>
-        )}
-      </div>
+      <Input
+        id="interestRate"
+        name="interestRate"
+        label="Bunga Pinjaman (Flat)"
+        value={formData.interestRate}
+        onChange={handleInputChange}
+        error={errors.interestRate}
+        unit="% / tahun"
+        placeholder="4.8"
+        inputMode="decimal"
+        info={`= ${monthlyInterestRate.toFixed(3).replace(".", ",")}% / bulan`}
+      />
 
-      {/* Submit Button */}
-      <button
-        type="submit"
-        className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium"
-      >
+      <Button type="submit" fullWidth>
         Hitung Simulasi
-      </button>
+      </Button>
     </form>
   );
 }
