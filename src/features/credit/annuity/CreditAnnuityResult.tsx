@@ -5,7 +5,7 @@ import {
   LoanResultShell,
   LoanInfoGrid,
   PaymentBreakdown,
-} from "@/components/ui/loan"; // Impor komponen baru
+} from "@/components/ui/result"; // Impor komponen baru
 import {
   formatCurrencyDisplay,
   formatDecimal,

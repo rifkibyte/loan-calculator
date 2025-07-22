@@ -6,7 +6,7 @@ import {
   LoanResultShell,
   LoanInfoGrid,
   PaymentBreakdown,
-} from "@/components/ui/loan"; // Impor komponen komposisi
+} from "@/components/ui/result"; // Impor komponen komposisi
 import { formatCurrencyDisplay, formatPercent } from "@/utils/formatters";
 
 // Definisi tipe data tidak perlu diubah

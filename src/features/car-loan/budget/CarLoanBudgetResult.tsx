@@ -8,11 +8,9 @@ import {
   LoanResultShell,
   LoanInfoGrid,
   PaymentBreakdown,
-} from "@/components/ui/loan"; // Impor komponen baru yang bisa disusun
-import {
-  formatCurrencyDisplay,
-  formatPercent,
-} from "@/utils/formatters";
+} from "@/components/ui/result"; // Impor komponen baru
+// Impor komponen baru yang bisa disusun
+import { formatCurrencyDisplay, formatPercent } from "@/utils/formatters";
 import { CarLoanBudgetResult as LoanDetailsType } from "@/types/car-loan";
 
 interface CarLoanBudgetResultProps {

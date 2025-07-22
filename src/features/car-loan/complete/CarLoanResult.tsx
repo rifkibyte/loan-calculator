@@ -6,7 +6,7 @@ import {
   LoanResultShell,
   LoanInfoGrid,
   PaymentBreakdown,
-} from "@/components/ui/loan"; // Impor komponen baru yang bisa disusun
+} from "@/components/ui/result"; // Impor komponen baru yang bisa disusun
 import { formatCurrencyDisplay, formatPercent } from "@/utils/formatters";
 
 // Interface lokal bisa tetap digunakan, tidak ada perubahan
