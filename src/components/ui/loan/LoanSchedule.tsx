@@ -1,11 +1,11 @@
-// features/common/LoanSchedule.tsx (New Reusable Component)
+// file: features/common/LoanSchedule.tsx
+
 "use client";
 
 import { useState, useMemo, FC } from "react";
-import { formatCurrency } from "@/utils/formatters"; // Menggunakan formatCurrency yang lebih umum
+import { formatCurrency } from "@/utils/formatters";
 
-// 1. Tipe Data (Interface)
-// Tipe ini bersifat generik dan bisa digunakan oleh semua jenis pinjaman.
+// --- Tipe Data Generik ---
 interface ScheduleItem {
   period: number;
   payment: number;
@@ -16,10 +16,10 @@ interface ScheduleItem {
 
 interface LoanScheduleProps {
   schedule: ScheduleItem[];
-  itemsPerPage?: number; // Jadikan opsional dengan nilai default
+  itemsPerPage?: number; // Opsional, dengan nilai default
 }
 
-// 2. Sub-komponen untuk UI yang Terisolasi
+// --- Sub-komponen UI ---
 
 // Komponen untuk Ringkasan Total
 const ScheduleSummary: FC<{
@@ -77,14 +77,12 @@ const ScheduleTable: FC<{ items: ScheduleItem[] }> = ({ items }) => (
   </div>
 );
 
-// Komponen untuk Pagination
+// Komponen untuk Paginasi (dibuat lebih sederhana dan jelas)
 const Pagination: FC<{
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
 }> = ({ currentPage, totalPages, onPageChange }) => {
-    // Logika untuk membuat tombol halaman, dll. bisa disederhanakan atau dibuat kompleks
-    // Di sini kita ambil versi yang lebih sederhana dan fungsional
     const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
     return (
@@ -121,8 +119,7 @@ const Pagination: FC<{
 export default function LoanSchedule({ schedule, itemsPerPage = 12 }: LoanScheduleProps) {
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Kalkulasi total di-memoize dan dilakukan di dalam komponen,
-  // sehingga komponen induk tidak perlu menyediakannya.
+  // Kalkulasi total di-memoize untuk performa
   const totals = useMemo(() => {
     return schedule.reduce(
       (acc, item) => ({
@@ -134,7 +131,7 @@ export default function LoanSchedule({ schedule, itemsPerPage = 12 }: LoanSchedu
     );
   }, [schedule]);
 
-  // Item yang ditampilkan per halaman juga di-memoize.
+  // Item yang ditampilkan per halaman juga di-memoize
   const currentItems = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return schedule.slice(startIndex, startIndex + itemsPerPage);
@@ -142,6 +139,7 @@ export default function LoanSchedule({ schedule, itemsPerPage = 12 }: LoanSchedu
 
   const totalPages = Math.ceil(schedule.length / itemsPerPage);
 
+  // Guard clause jika tidak ada data
   if (!schedule || schedule.length === 0) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-md text-center">

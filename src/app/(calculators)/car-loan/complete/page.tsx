@@ -4,14 +4,23 @@ import { useState } from "react";
 import {
   CarLoanForm,
   CarLoanResult,
-  CarLoanSchedule,
+  CarLoanSchedule, // Menggunakan CarLoanSchedule seperti permintaan Anda
 } from "@/features/car-loan/complete";
 import { Header, Footer } from "@/features/common";
 import { calculateLoan } from "@/utils/calculators/car-loan/completeCalculator";
-import { AmortizationItem } from "@/types/common";
-import { CarLoanCompleteResult as LoanDetails } from "@/types/car-loan";
 
-// Interface for form data
+// --- Definisi Tipe Data Langsung di File ---
+
+// Interface untuk setiap baris dalam tabel amortisasi
+interface AmortizationItem {
+  period: number;
+  payment: number;
+  principal: number;
+  interest: number;
+  remainingBalance: number;
+}
+
+// Interface untuk data yang dikirim dari form
 interface FormData {
   carPrice: number;
   downPaymentPercent: number;
@@ -23,12 +32,38 @@ interface FormData {
   adminFee: number;
 }
 
+// Interface lengkap untuk detail hasil kalkulasi pinjaman
+// Ini menggantikan import dari "@/types/car-loan"
+interface LoanDetails {
+  carPrice: number;
+  downPaymentPercent: number;
+  downPaymentAmount: number;
+  loanTerm: number;
+  interestRate: number;
+  monthlyInterestRate: number;
+  loanAmount: number;
+  monthlyPayment: number;
+  monthlyPrincipal: number;
+  monthlyInterest: number;
+  totalPayment: number;
+  totalInterest: number;
+  insurancePercent: number;
+  insuranceAmount: number;
+  provisionPercent: number;
+  provisionAmount: number;
+  policyFee: number;
+  adminFee: number;
+  firstPayment: number;
+  amortizationSchedule: AmortizationItem[];
+}
+
+// --- Komponen Halaman ---
+
 export default function CarLoanCompletePage() {
   const [loanDetails, setLoanDetails] = useState<LoanDetails | null>(null);
-  const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
   const [showResults, setShowResults] = useState<boolean>(false);
 
-  // Handle form calculation
+  // Fungsi untuk menangani kalkulasi dari form
   const handleCalculate = (formData: FormData): void => {
     const calculationResult = calculateLoan(
       formData.carPrice,
@@ -41,13 +76,20 @@ export default function CarLoanCompletePage() {
       formData.adminFee
     );
 
+    // Set state dengan data yang lengkap untuk ditampilkan
     setLoanDetails({
+      // Data dari form
       carPrice: formData.carPrice,
       downPaymentPercent: formData.downPaymentPercent,
-      downPaymentAmount:
-        formData.carPrice * (formData.downPaymentPercent / 100),
       loanTerm: formData.loanTerm,
       interestRate: formData.interestRate,
+      insurancePercent: formData.insurancePercent,
+      provisionPercent: formData.provisionPercent,
+      policyFee: formData.policyFee,
+      adminFee: formData.adminFee,
+      
+      // Data dari hasil kalkulasi
+      downPaymentAmount: formData.carPrice * (formData.downPaymentPercent / 100),
       monthlyInterestRate: formData.interestRate / 12,
       loanAmount: calculationResult.loanAmount,
       monthlyPayment: calculationResult.monthlyPayment,
@@ -55,17 +97,12 @@ export default function CarLoanCompletePage() {
       monthlyInterest: calculationResult.monthlyInterest,
       totalPayment: calculationResult.totalPayment,
       totalInterest: calculationResult.totalInterest,
-      insurancePercent: formData.insurancePercent,
       insuranceAmount: calculationResult.insuranceAmount,
-      provisionPercent: formData.provisionPercent,
       provisionAmount: calculationResult.provisionAmount,
-      policyFee: formData.policyFee,
-      adminFee: formData.adminFee,
       firstPayment: calculationResult.firstPayment,
       amortizationSchedule: calculationResult.amortizationSchedule,
     });
 
-    setSchedule(calculationResult.amortizationSchedule);
     setShowResults(true);
   };
 
@@ -73,7 +110,7 @@ export default function CarLoanCompletePage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
 
-      <div className="container mx-auto py-8 px-4 flex-grow">
+      <main className="container mx-auto py-8 px-4 flex-grow">
         <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
           Simulasi Kredit Mobil Lengkap
         </h1>
@@ -87,12 +124,13 @@ export default function CarLoanCompletePage() {
             {showResults && loanDetails && (
               <div className="space-y-6">
                 <CarLoanResult loanDetails={loanDetails} />
-                <CarLoanSchedule schedule={schedule} />
+                {/* Memanggil komponen tabel dengan prop yang benar */}
+                <CarLoanSchedule loanDetails={loanDetails} />
               </div>
             )}
           </div>
         </div>
-      </div>
+      </main>
 
       <Footer />
     </div>

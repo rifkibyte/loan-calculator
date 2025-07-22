@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Header from "@/features/common/Header";
-import Footer from "@/features/common/Footer";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
 
 // Calculator card component for displaying different loan calculators
 interface CalculatorCardProps {
