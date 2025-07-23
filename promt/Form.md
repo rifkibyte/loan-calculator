@@ -1,72 +1,68 @@
 Tolong refactor code saya gunakan form seperti ini seperti refernsi, untuk formatter juga banyak yang salah tolong update karena sya ubah formattternya
 
-code saya:// src/components/mortgage/budget/MortgageBudgetForm.tsx
+
 "use client";
 
-import { useState } from "react";
+import  { useState } from "react";
+import { formatCurrency, formatCurrencyDisplay } from "@/utils/formatters";
 
+// Interface for form data
 interface FormData {
-  monthlyBudget: number;
-  downPaymentPercent: number;
+  housePrice: number;
   loanTerm: number;
   annualInterestRate: number;
-  installmentPercent: number;
+  downPaymentPercent: number;
   provisionPercent: number;
-  adminPercent: number;
+  appraisalFee: number;
+  adminFee: number;
+  notaryFee: number;
+  insuranceFee: number;
+  njoptkp: number;
 }
 
+// Interface for form validation errors
 interface FormErrors {
   [key: string]: string;
 }
 
-interface MortgageBudgetFormProps {
+// Interface for component props
+interface MortgageFormProps {
   onCalculate: (formData: FormData) => void;
 }
 
-export default function MortgageBudgetForm({
+export default function MortgageCompleteForm({
   onCalculate,
-}: MortgageBudgetFormProps) {
-  const [monthlyBudget, setMonthlyBudget] = useState<string>("5000000");
-  const [downPaymentPercent, setDownPaymentPercent] = useState<string>("20");
-  const [loanTerm, setLoanTerm] = useState<string>("15");
+}: MortgageFormProps) {
+  // Form state variables
+  const [housePrice, setHousePrice] = useState<string>("500000000");
+  const [loanTerm, setLoanTerm] = useState<string>("10");
   const [annualInterestRate, setAnnualInterestRate] = useState<string>("14.6");
-  const [installmentPercent, setInstallmentPercent] = useState<string>("30");
-  const [provisionPercent, setProvisionPercent] = useState<string>("1");
-  const [adminPercent, setAdminPercent] = useState<string>("0.1");
+  const [downPaymentPercent, setDownPaymentPercent] = useState<string>("20");
+  const [provisionPercent, setProvisionPercent] = useState<string>("1.5");
+  const [appraisalFee, setAppraisalFee] = useState<string>("500000");
+  const [adminFee, setAdminFee] = useState<string>("450000");
+  const [notaryFee, setNotaryFee] = useState<string>("12000000");
+  const [insuranceFee, setInsuranceFee] = useState<string>("7500000");
+  const [njoptkp, setNjoptkp] = useState<string>("60000000");
   const [errors, setErrors] = useState<FormErrors>({});
 
   // Derived values for display
-  const loanTermMonths = Number(loanTerm) * 12;
-  const monthlyInterestRate = Number(annualInterestRate) / 12;
+  const loanTermMonths: number = Number(loanTerm) * 12;
+  const monthlyInterestRate: number = Number(annualInterestRate) / 12;
 
+  /**
+   * Validate form inputs
+   * @returns boolean indicating if form is valid
+   */
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (
-      !monthlyBudget ||
-      isNaN(Number(monthlyBudget)) ||
-      Number(monthlyBudget) <= 0
-    ) {
-      newErrors.monthlyBudget = "Budget angsuran harus berupa angka positif";
+    if (!housePrice || isNaN(Number(housePrice)) || Number(housePrice) <= 0) {
+      newErrors.housePrice = "Harga rumah harus berupa angka positif";
     }
 
-    if (
-      !downPaymentPercent ||
-      isNaN(Number(downPaymentPercent)) ||
-      Number(downPaymentPercent) <= 0 ||
-      Number(downPaymentPercent) >= 100
-    ) {
-      newErrors.downPaymentPercent =
-        "Persentase uang muka harus antara 0 dan 100";
-    }
-
-    if (
-      !loanTerm ||
-      isNaN(Number(loanTerm)) ||
-      Number(loanTerm) <= 0 ||
-      !Number.isInteger(Number(loanTerm))
-    ) {
-      newErrors.loanTerm = "Tenor harus berupa bilangan bulat positif";
+    if (!loanTerm || isNaN(Number(loanTerm)) || Number(loanTerm) <= 0) {
+      newErrors.loanTerm = "Tenor harus berupa angka positif";
     }
 
     if (
@@ -75,17 +71,16 @@ export default function MortgageBudgetForm({
       Number(annualInterestRate) < 0
     ) {
       newErrors.annualInterestRate =
-        "Suku bunga harus berupa angka positif atau nol";
+        "Bunga pinjaman harus berupa angka positif atau nol";
     }
 
     if (
-      !installmentPercent ||
-      isNaN(Number(installmentPercent)) ||
-      Number(installmentPercent) <= 0 ||
-      Number(installmentPercent) > 100
+      !downPaymentPercent ||
+      isNaN(Number(downPaymentPercent)) ||
+      Number(downPaymentPercent) <= 0 ||
+      Number(downPaymentPercent) >= 100
     ) {
-      newErrors.installmentPercent =
-        "Persentase angsuran harus antara 0 dan 100";
+      newErrors.downPaymentPercent = "Uang muka harus antara 0 dan 100 persen";
     }
 
     if (
@@ -94,78 +89,150 @@ export default function MortgageBudgetForm({
       Number(provisionPercent) < 0
     ) {
       newErrors.provisionPercent =
-        "Persentase provisi harus berupa angka positif atau nol";
-    }
-
-    if (
-      !adminPercent ||
-      isNaN(Number(adminPercent)) ||
-      Number(adminPercent) < 0
-    ) {
-      newErrors.adminPercent =
-        "Persentase administrasi harus berupa angka positif atau nol";
+        "Biaya provisi harus berupa angka positif atau nol";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Handle form submission
+   * @param e - Form event
+   */
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (validateForm()) {
       onCalculate({
-        monthlyBudget: Number(monthlyBudget),
-        downPaymentPercent: Number(downPaymentPercent),
+        housePrice: Number(housePrice),
         loanTerm: Number(loanTerm),
         annualInterestRate: Number(annualInterestRate),
-        installmentPercent: Number(installmentPercent),
+        downPaymentPercent: Number(downPaymentPercent),
         provisionPercent: Number(provisionPercent),
-        adminPercent: Number(adminPercent),
+        appraisalFee: Number(appraisalFee),
+        adminFee: Number(adminFee),
+        notaryFee: Number(notaryFee),
+        insuranceFee: Number(insuranceFee),
+        njoptkp: Number(njoptkp),
       });
     }
   };
 
+  /**
+   * Format input to remove non-numeric characters
+   * @param value - Input value
+   * @returns Formatted numeric string
+   */
   const formatInputCurrency = (value: string): string => {
     return value.replace(/[^\d]/g, "");
+  };
+
+  /**
+   * Handle currency input change
+   */
+  const handleCurrencyChange = (
+    value: string,
+    setter: (value: string) => void
+  ): void => {
+    const cleanValue = formatInputCurrency(value);
+    setter(cleanValue);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <h2 className="text-xl font-semibold text-gray-900 mb-4">
-        Simulasi KPR - berdasar budget
+        Simulasi KPR Lengkap
       </h2>
 
-      {/* Monthly Budget Input */}
+      {/* House Price Input */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">
-          Budget Angsuran (per bulan):
+          Harga Rumah:
         </label>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">Rp</span>
-          </div>
           <input
             type="text"
-            value={monthlyBudget}
+            value={formatCurrency(housePrice)}
             onChange={(e) =>
-              setMonthlyBudget(formatInputCurrency(e.target.value))
+              handleCurrencyChange(e.target.value, setHousePrice)
             }
-            className="w-full pl-12 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="5000000"
+            className="w-full pl-3 pr-16 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="500,000,000"
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">,00</span>
+            <span className="text-gray-500 sm:text-sm">rupiah</span>
           </div>
         </div>
         <p className="mt-1 text-xs text-gray-600">
           masukkan angka, tidak boleh pakai koma atau titik
         </p>
-        {errors.monthlyBudget && (
-          <p className="mt-1 text-sm text-red-600">{errors.monthlyBudget}</p>
+        <p className="mt-1 text-sm font-medium text-gray-900">
+          {formatCurrencyDisplay(housePrice)}
+        </p>
+        {errors.housePrice && (
+          <p className="mt-1 text-sm text-red-600">{errors.housePrice}</p>
         )}
       </div>
 
-      {/* Down Payment Percentage */}
+      {/* Loan Term Input */}
+      <div>
+        <label className="block text-sm font-medium text-gray-900 mb-1">
+          Tenor (jangka waktu):
+        </label>
+        <div className="relative">
+          <input
+            type="text"
+            value={loanTerm}
+            onChange={(e) => setLoanTerm(e.target.value.replace(/[^\d]/g, ""))}
+            className="w-full pr-14 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="10"
+          />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <span className="text-gray-500 sm:text-sm">tahun</span>
+          </div>
+        </div>
+        <p className="mt-1 text-xs text-gray-600">
+          masukkan angka, tidak boleh pakai koma atau titik
+        </p>
+        <p className="mt-1 text-sm font-medium text-gray-900">
+          = {loanTermMonths} bulan
+        </p>
+        {errors.loanTerm && (
+          <p className="mt-1 text-sm text-red-600">{errors.loanTerm}</p>
+        )}
+      </div>
+
+      {/* Interest Rate Input */}
+      <div>
+        <label className="block text-sm font-medium text-gray-900 mb-1">
+          Bunga Pinjaman:
+        </label>
+        <div className="relative">
+          <input
+            type="text"
+            value={annualInterestRate}
+            onChange={(e) =>
+              setAnnualInterestRate(e.target.value.replace(/[^\d.]/g, ""))
+            }
+            className="w-full pr-20 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="14.6"
+          />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <span className="text-gray-500 sm:text-sm">% / tahun</span>
+          </div>
+        </div>
+        <p className="mt-1 text-xs text-gray-600">masukkan angka, misal 6.5</p>
+        <p className="mt-1 text-sm font-medium text-gray-900">
+          = {monthlyInterestRate.toFixed(2)} % / bulan
+        </p>
+        {errors.annualInterestRate && (
+          <p className="mt-1 text-sm text-red-600">
+            {errors.annualInterestRate}
+          </p>
+        )}
+      </div>
+
+      {/* Down Payment Percentage Input */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">
           Uang Muka (DP):
@@ -174,7 +241,9 @@ export default function MortgageBudgetForm({
           <input
             type="text"
             value={downPaymentPercent}
-            onChange={(e) => setDownPaymentPercent(e.target.value)}
+            onChange={(e) =>
+              setDownPaymentPercent(e.target.value.replace(/[^\d.]/g, ""))
+            }
             className="w-full pr-8 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="20"
           />
@@ -190,99 +259,12 @@ export default function MortgageBudgetForm({
         )}
       </div>
 
-      {/* Loan Term */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Tenor (jangka waktu):
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            value={loanTerm}
-            onChange={(e) => setLoanTerm(e.target.value)}
-            className="w-full pr-14 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="15"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">tahun</span>
-          </div>
-        </div>
-        <p className="mt-1 text-xs text-gray-600">= {loanTermMonths} bulan</p>
-        {errors.loanTerm && (
-          <p className="mt-1 text-sm text-red-600">{errors.loanTerm}</p>
-        )}
-      </div>
-
-      {/* Interest Rate */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Bunga Pinjaman:
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            value={annualInterestRate}
-            onChange={(e) => setAnnualInterestRate(e.target.value)}
-            className="w-full pr-16 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="14.6"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">% / tahun</span>
-          </div>
-        </div>
-        <p className="mt-1 text-xs text-gray-600">
-          = {monthlyInterestRate.toFixed(2)}% / bulan
-        </p>
-        {errors.annualInterestRate && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.annualInterestRate}
-          </p>
-        )}
-      </div>
-
-      {/* Installment Percentage */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Besar Angsuran (per bulan):
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            value={installmentPercent}
-            onChange={(e) => setInstallmentPercent(e.target.value)}
-            className="w-full pr-8 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="30"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">%</span>
-          </div>
-        </div>
-        <p className="mt-1 text-xs text-gray-600">
-          (persen dari penghasilan bersih)
-        </p>
-        {errors.installmentPercent && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.installmentPercent}
-          </p>
-        )}
-      </div>
-
-      {/* Calculation Method */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Perhitungan Bunga:
-        </label>
-        <div className="bg-gray-50 p-2 rounded-md">
-          <span className="text-gray-700">Anuitas</span>
-        </div>
-      </div>
-
-      {/* Additional Fees */}
+      {/* Bank Fees Section */}
       <div className="border-t border-gray-200 pt-4">
         <h3 className="font-medium text-gray-900 mb-3">Biaya Bank</h3>
 
         <div className="space-y-4">
-          {/* Provision Percentage */}
+          {/* Provision Fee */}
           <div>
             <label className="block text-sm font-medium text-gray-900 mb-1">
               Biaya Provisi:
@@ -291,9 +273,11 @@ export default function MortgageBudgetForm({
               <input
                 type="text"
                 value={provisionPercent}
-                onChange={(e) => setProvisionPercent(e.target.value)}
+                onChange={(e) =>
+                  setProvisionPercent(e.target.value.replace(/[^\d.]/g, ""))
+                }
                 className="w-full pr-8 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="1"
+                placeholder="1.5"
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                 <span className="text-gray-500 sm:text-sm">%</span>
@@ -307,7 +291,34 @@ export default function MortgageBudgetForm({
             )}
           </div>
 
-          {/* Admin Percentage */}
+          {/* Appraisal Fee */}
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-1">
+              Biaya Appraisal:
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={formatCurrency(appraisalFee)}
+                onChange={(e) =>
+                  handleCurrencyChange(e.target.value, setAppraisalFee)
+                }
+                className="w-full pl-3 pr-16 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="500,000"
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <span className="text-gray-500 sm:text-sm">rupiah</span>
+              </div>
+            </div>
+            <p className="mt-1 text-xs text-gray-600">
+              masukkan angka, tidak boleh pakai koma atau titik
+            </p>
+            <p className="mt-1 text-sm font-medium text-gray-900">
+              {formatCurrencyDisplay(appraisalFee)}
+            </p>
+          </div>
+
+          {/* Admin Fee */}
           <div>
             <label className="block text-sm font-medium text-gray-900 mb-1">
               Biaya Administrasi:
@@ -315,20 +326,119 @@ export default function MortgageBudgetForm({
             <div className="relative">
               <input
                 type="text"
-                value={adminPercent}
-                onChange={(e) => setAdminPercent(e.target.value)}
-                className="w-full pr-8 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="0.1"
+                value={formatCurrency(adminFee)}
+                onChange={(e) =>
+                  handleCurrencyChange(e.target.value, setAdminFee)
+                }
+                className="w-full pl-3 pr-16 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="450,000"
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">%</span>
+                <span className="text-gray-500 sm:text-sm">rupiah</span>
               </div>
             </div>
-            <p className="mt-1 text-xs text-gray-600">(persen dari plafon)</p>
-            {errors.adminPercent && (
-              <p className="mt-1 text-sm text-red-600">{errors.adminPercent}</p>
-            )}
+            <p className="mt-1 text-xs text-gray-600">
+              masukkan angka, tidak boleh pakai koma atau titik
+            </p>
+            <p className="mt-1 text-sm font-medium text-gray-900">
+              {formatCurrencyDisplay(adminFee)}
+            </p>
           </div>
+        </div>
+      </div>
+
+      {/* Other Fees Section */}
+      <div className="border-t border-gray-200 pt-4">
+        <h3 className="font-medium text-gray-900 mb-3">Biaya Lain</h3>
+
+        <div className="space-y-4">
+          {/* Notary Fee */}
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-1">
+              Biaya Notaris:
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={formatCurrency(notaryFee)}
+                onChange={(e) =>
+                  handleCurrencyChange(e.target.value, setNotaryFee)
+                }
+                className="w-full pl-3 pr-16 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="12,000,000"
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <span className="text-gray-500 sm:text-sm">rupiah</span>
+              </div>
+            </div>
+            <p className="mt-1 text-xs text-gray-600">
+              masukkan angka, tidak boleh pakai koma atau titik
+            </p>
+            <p className="mt-1 text-sm font-medium text-gray-900">
+              {formatCurrencyDisplay(notaryFee)}
+            </p>
+          </div>
+
+          {/* Insurance Fee */}
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-1">
+              Biaya Asuransi:
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={formatCurrency(insuranceFee)}
+                onChange={(e) =>
+                  handleCurrencyChange(e.target.value, setInsuranceFee)
+                }
+                className="w-full pl-3 pr-16 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="7,500,000"
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <span className="text-gray-500 sm:text-sm">rupiah</span>
+              </div>
+            </div>
+            <p className="mt-1 text-xs text-gray-600">
+              masukkan angka, tidak boleh pakai koma atau titik
+            </p>
+            <p className="mt-1 text-sm font-medium text-gray-900">
+              {formatCurrencyDisplay(insuranceFee)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Tax Section */}
+      <div className="border-t border-gray-200 pt-4">
+        <h3 className="font-medium text-gray-900 mb-3">Pajak</h3>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-900 mb-1">
+            NJOPTKP/NPTKP*:
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              value={formatCurrency(njoptkp)}
+              onChange={(e) => handleCurrencyChange(e.target.value, setNjoptkp)}
+              className="w-full pl-3 pr-16 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="60,000,000"
+            />
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <span className="text-gray-500 sm:text-sm">rupiah</span>
+            </div>
+          </div>
+          <p className="mt-1 text-xs text-gray-600">
+            masukkan angka, tidak boleh pakai koma atau titik
+          </p>
+          <p className="mt-1 text-sm font-medium text-gray-900">
+            {formatCurrencyDisplay(njoptkp)}
+          </p>
+          <p className="mt-1 text-xs text-gray-600">
+            *Nilai yang tidak kena pajak; tiap daerah berbeda dan berubah
+            sejalan waktu; contoh untuk DKI Rp 60juta, Bekasi & Tangerang Rp
+            30juta, Depok Rp 20juta
+          </p>
         </div>
       </div>
 
@@ -337,7 +447,7 @@ export default function MortgageBudgetForm({
         type="submit"
         className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium"
       >
-        Hitung Simulasi
+        Hitung
       </button>
     </form>
   );

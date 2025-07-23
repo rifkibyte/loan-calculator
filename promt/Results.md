@@ -1,19 +1,18 @@
 Tolong refactor code saya gunakan Result seperti refernsi, di referensi ini untuk car loan, kode saya beda konteks
-// src/components/mortgage/budget/MortgageBudgetResult.tsx
 "use client";
 
-import { useState } from "react";
+import  { useState } from "react";
 import { jsPDF } from "jspdf";
-import type { MortgageBudgetResult as BudgetDetails } from "@/types/mortgage-budget";
+import type { MortgageResult as MortgageDetails } from "@/types/mortgage";
 
-interface MortgageBudgetResultProps {
-  budgetDetails: BudgetDetails;
+interface MortgageResultProps {
+  mortgageDetails: MortgageDetails;
 }
 
-export default function MortgageBudgetResult({
-  budgetDetails,
-}: MortgageBudgetResultProps) {
-  const [activeTab, setActiveTab] = useState<string>("data");
+export default function MortgageCompleteResult({
+  mortgageDetails,
+}: MortgageResultProps) {
+  const [activeTab, setActiveTab] = useState<string>("summary");
 
   const formatCurrency = (value: number): string => {
     if (isNaN(value) || !isFinite(value)) {
@@ -41,196 +40,324 @@ export default function MortgageBudgetResult({
   const handleExportPDF = (): void => {
     const doc = new jsPDF();
 
+    // Add title
     doc.setFontSize(18);
-    doc.text("Simulasi KPR - Berdasar Budget", 105, 15, { align: "center" });
+    doc.text("Simulasi Kredit Rumah", 105, 15, { align: "center" });
 
+    // Add summary
     doc.setFontSize(12);
-    doc.text("Data Anda", 14, 30);
+    doc.text("Ringkasan KPR", 14, 30);
 
-    const dataInfo = [
+    const summaryInfo = [
+      ["Harga Rumah", formatCurrency(mortgageDetails.housePrice)],
       [
-        "Budget Angsuran (per bulan)",
-        formatCurrency(budgetDetails.monthlyBudget),
+        "Uang Muka (DP)",
+        `${formatCurrency(mortgageDetails.downPaymentAmount)} (${formatPercent(
+          mortgageDetails.downPaymentPercent
+        )}%)`,
       ],
+      ["Plafon Pinjaman", formatCurrency(mortgageDetails.loanAmount)],
       [
         "Tenor",
-        `${budgetDetails.loanTerm} tahun (${budgetDetails.loanTermMonths} bulan)`,
+        `${mortgageDetails.loanTerm} tahun (${mortgageDetails.loanTermMonths} bulan)`,
       ],
       [
-        "Bunga Pinjaman",
-        `${formatPercent(
-          budgetDetails.annualInterestRate
-        )}% / tahun (${formatPercent(
-          budgetDetails.monthlyInterestRate
-        )}% / bulan)`,
+        "Bunga",
+        `${formatPercent(mortgageDetails.annualInterestRate)}% / tahun`,
       ],
-      ["Perhitungan Bunga", "Anuitas"],
+      ["Angsuran per Bulan", formatCurrency(mortgageDetails.monthlyPayment)],
+      ["Total Biaya & Pajak", formatCurrency(mortgageDetails.totalCosts)],
+      [
+        "Total Pembayaran Pertama",
+        formatCurrency(mortgageDetails.firstPayment),
+      ],
     ];
 
     (doc as any).autoTable({
       startY: 35,
-      body: dataInfo,
+      body: summaryInfo,
       theme: "grid",
       styles: { fontSize: 10 },
     });
 
-    doc.save("simulasi-kpr-budget.pdf");
+    doc.save("simulasi-kpr.pdf");
   };
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      {/* Tab Navigation - Only 2 tabs */}
+      {/* Tab Navigation */}
       <div className="flex border-b">
         <button
           className={`flex-1 py-3 px-4 text-center font-medium ${
-            activeTab === "data"
+            activeTab === "summary"
               ? "bg-blue-50 text-blue-600 border-b-2 border-blue-600"
               : "text-gray-600 hover:text-gray-800"
           }`}
-          onClick={() => setActiveTab("data")}
+          onClick={() => setActiveTab("summary")}
         >
-          Data Anda
+          Ringkasan KPR
         </button>
         <button
           className={`flex-1 py-3 px-4 text-center font-medium ${
-            activeTab === "results"
+            activeTab === "details"
               ? "bg-blue-50 text-blue-600 border-b-2 border-blue-600"
               : "text-gray-600 hover:text-gray-800"
           }`}
-          onClick={() => setActiveTab("results")}
+          onClick={() => setActiveTab("details")}
         >
-          Hasil KPR
+          Detail Biaya
         </button>
       </div>
 
       <div className="p-6">
-        {/* Tab 1: Data Anda */}
-        {activeTab === "data" && (
-          <div className="space-y-4">
+        {/* Tab 1: Ringkasan KPR */}
+        {activeTab === "summary" && (
+          <div className="space-y-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Data Anda
+              Ringkasan KPR Anda
             </h2>
 
-            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">
-                  Budget Angsuran (per bulan):
-                </span>
-                <span className="font-medium text-gray-900">
-                  {formatCurrency(budgetDetails.monthlyBudget)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Tenor:</span>
-                <span className="font-medium text-gray-900">
-                  {budgetDetails.loanTerm} tahun ({budgetDetails.loanTermMonths}{" "}
-                  bulan)
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Bunga Pinjaman:</span>
-                <span className="font-medium text-gray-900">
-                  {formatPercent(budgetDetails.annualInterestRate)}% / tahun
-                  <br />
-                  <span className="text-sm text-gray-500">
-                    ({formatPercent(budgetDetails.monthlyInterestRate)}% /
-                    bulan)
+            {/* Data Properti */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-3">
+                Data Properti
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Harga Rumah:</span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(mortgageDetails.housePrice)}
                   </span>
-                </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Uang Muka (DP):</span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(mortgageDetails.downPaymentAmount)}
+                    <br />
+                    <span className="text-sm text-gray-500">
+                      ({formatPercent(mortgageDetails.downPaymentPercent)}%)
+                    </span>
+                  </span>
+                </div>
+                <div className="flex justify-between border-t pt-2">
+                  <span className="text-gray-600 font-medium">
+                    Plafon Pinjaman:
+                  </span>
+                  <span className="font-semibold text-gray-900">
+                    {formatCurrency(mortgageDetails.loanAmount)}
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Perhitungan Bunga:</span>
-                <span className="font-medium text-gray-900">Anuitas</span>
+            </div>
+
+            {/* Data KPR - Moved below Data Properti */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-3">Data KPR</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Tenor:</span>
+                  <span className="font-medium text-gray-900">
+                    {mortgageDetails.loanTerm} tahun
+                    <br />
+                    <span className="text-sm text-gray-500">
+                      ({mortgageDetails.loanTermMonths} bulan)
+                    </span>
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Bunga:</span>
+                  <span className="font-medium text-gray-900">
+                    {formatPercent(mortgageDetails.annualInterestRate)}% / tahun
+                    <br />
+                    <span className="text-sm text-gray-500">
+                      ({formatPercent(mortgageDetails.monthlyInterestRate)}% /
+                      bulan)
+                    </span>
+                  </span>
+                </div>
+                <div className="flex justify-between border-t pt-2">
+                  <span className="text-gray-600 font-medium">
+                    Angsuran per Bulan:
+                  </span>
+                  <span className="font-semibold text-gray-900">
+                    {formatCurrency(mortgageDetails.monthlyPayment)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Pembayaran Pertama */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-3">
+                Pembayaran Pertama Kali
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Uang Muka:</span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(mortgageDetails.downPaymentAmount)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Total Biaya & Pajak:</span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(mortgageDetails.totalCosts)}
+                  </span>
+                </div>
+                <div className="border-t border-gray-200 pt-3">
+                  <div className="flex justify-between">
+                    <span className="font-semibold text-gray-900">
+                      Total Pembayaran Pertama:
+                    </span>
+                    <span className="font-bold text-gray-900 text-lg">
+                      {formatCurrency(mortgageDetails.firstPayment)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Informasi Tambahan */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-2">
+                Informasi Penting:
+              </h3>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p>
+                  • Perhitungan menggunakan metode bunga{" "}
+                  {mortgageDetails.calculationMethod}
+                </p>
+                <p>• Angsuran bulanan sudah termasuk bunga dan pokok</p>
+                <p>
+                  • Total pembayaran selama {mortgageDetails.loanTerm} tahun:{" "}
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(mortgageDetails.totalPayment)}
+                  </span>
+                </p>
+                <p>
+                  • Total bunga yang dibayar:{" "}
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(mortgageDetails.totalInterest)}
+                  </span>
+                </p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Tab 2: Hasil KPR (Combined KPR Anda + Syarat Bank) */}
-        {activeTab === "results" && (
+        {/* Tab 2: Detail Biaya */}
+        {activeTab === "details" && (
           <div className="space-y-6">
-            {/* KPR Anda Section */}
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                KPR Anda
-              </h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Detail Biaya & Pajak
+            </h2>
 
-              <div className="bg-blue-50 p-4 rounded-lg space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Max. Harga Rumah:</span>
-                  <span className="font-bold text-blue-700">
-                    {formatCurrency(budgetDetails.maxHousePrice)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Min. Uang Muka:</span>
-                  <span className="font-medium text-gray-900">
-                    {formatCurrency(budgetDetails.minDownPayment)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Max. Plafon Pinjaman:</span>
-                  <span className="font-medium text-gray-900">
-                    {formatCurrency(budgetDetails.maxLoanAmount)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
+            {/* Biaya Bank */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-3">Biaya Bank</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b border-gray-200">
                   <span className="text-gray-600">
-                    Max. Angsuran per Periode:
+                    Biaya Provisi
+                    <br />
+                    <span className="text-sm">
+                      ({formatPercent(mortgageDetails.provisionPercent)}% dari
+                      plafon)
+                    </span>
                   </span>
                   <span className="font-medium text-gray-900">
-                    {formatCurrency(budgetDetails.maxMonthlyPayment)}
+                    {formatCurrency(mortgageDetails.provisionAmount)}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Total Periode:</span>
+                <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                  <span className="text-gray-600">Biaya Appraisal</span>
                   <span className="font-medium text-gray-900">
-                    {budgetDetails.loanTermMonths} bulan
+                    {formatCurrency(mortgageDetails.appraisalFee)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-600">Biaya Administrasi</span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(mortgageDetails.adminFee)}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Syarat Bank Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Syarat Bank*
+            {/* Biaya Lain */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-3">
+                Biaya Lainnya
               </h3>
-
-              <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">
-                    Min. Penghasilan Bersih (per bulan):
-                  </span>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                  <span className="text-gray-600">Biaya Notaris</span>
                   <span className="font-medium text-gray-900">
-                    {formatCurrency(budgetDetails.minMonthlyIncome)}
+                    {formatCurrency(mortgageDetails.notaryFee)}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">
-                    Biaya Provisi (
-                    {formatPercent(budgetDetails.provisionPercent)}% plafon):
-                  </span>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-600">Biaya Asuransi</span>
                   <span className="font-medium text-gray-900">
-                    {formatCurrency(budgetDetails.provisionAmount)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">
-                    Biaya Administrasi (
-                    {formatPercent(budgetDetails.adminPercent)}% plafon):
-                  </span>
-                  <span className="font-medium text-gray-900">
-                    {formatCurrency(budgetDetails.adminAmount)}
+                    {formatCurrency(mortgageDetails.insuranceFee)}
                   </span>
                 </div>
               </div>
+            </div>
 
-              <div className="bg-yellow-50 p-4 rounded-lg mt-4">
-                <p className="text-sm text-gray-600">
-                  * Syarat dan ketentuan dapat berbeda untuk setiap bank.
-                  Silakan konsultasikan dengan bank pilihan Anda untuk informasi
-                  yang lebih akurat.
+            {/* Pajak */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-3">Pajak</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-600">
+                    Pajak Pembeli / BPHTB
+                    <br />
+                    <span className="text-sm">
+                      5% × ({formatCurrency(mortgageDetails.housePrice)} -{" "}
+                      {formatCurrency(mortgageDetails.njoptkp)})
+                    </span>
+                  </span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(mortgageDetails.bphtbTax)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Total */}
+            <div className="bg-gray-800 text-white p-4 rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-lg">Total Biaya & Pajak:</span>
+                <span className="font-bold text-xl">
+                  {formatCurrency(mortgageDetails.totalCosts)}
+                </span>
+              </div>
+            </div>
+
+            {/* Breakdown Detail */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-900 mb-2">
+                Catatan NJOPTKP/NPTKP:
+              </h3>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p>
+                  • NJOPTKP/NPTKP yang digunakan:{" "}
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(mortgageDetails.njoptkp)}
+                  </span>
+                </p>
+                <p>
+                  • Nilai ini berbeda-beda tiap daerah dan dapat berubah
+                  sewaktu-waktu
+                </p>
+                <p>
+                  • Contoh: DKI Jakarta Rp 60 juta, Bekasi & Tangerang Rp 30
+                  juta, Depok Rp 20 juta
+                </p>
+                <p>
+                  • Pastikan menggunakan nilai NJOPTKP terbaru sesuai lokasi
+                  properti
                 </p>
               </div>
             </div>
@@ -256,6 +383,8 @@ export default function MortgageBudgetResult({
     </div>
   );
 }
+
+
 
 
 

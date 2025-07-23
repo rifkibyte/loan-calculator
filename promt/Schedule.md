@@ -1,39 +1,26 @@
 Refactor code ini supaya bisa menggunakan <LoanSchedule />, supaya seperti di refernsi
 
 code saya:
-// src/components/mortgage/budget/MortgageBudgetSchedule.tsx
 "use client";
 
-import { useState, useMemo } from "react";
+import  { useState, useMemo } from "react";
 import { AmortizationItem } from "@/types/common";
 
-interface MortgageBudgetScheduleProps {
+interface MortgageScheduleProps {
   schedule: AmortizationItem[];
 }
 
-export default function MortgageBudgetSchedule({
+export default function MortgageCompleteSchedule({
   schedule,
-}: MortgageBudgetScheduleProps) {
+}: MortgageScheduleProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
-
-  const formatCurrency = (value: number): string => {
-    if (isNaN(value) || !isFinite(value)) {
-      return "Rp 0,00";
-    }
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
 
   const totalPages = Math.ceil(schedule.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = schedule.slice(startIndex, startIndex + itemsPerPage);
 
-  // Hitung total akumulasi
+  // Calculate totals
   const { totalInterest, totalPrincipal, totalPayment } = useMemo(() => {
     return schedule.reduce(
       (acc, item) => ({
@@ -49,9 +36,36 @@ export default function MortgageBudgetSchedule({
     );
   }, [schedule]);
 
+  const formatCurrency = (value: number): string => {
+    if (isNaN(value) || !isFinite(value)) {
+      return "Rp 0,00";
+    }
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
   const goToPage = (page: number) => {
     setCurrentPage(page);
   };
+
+  // Add row 0 (initial state) to display
+  const displayItems = [
+    {
+      period: 0,
+      payment: 0,
+      principal: 0,
+      interest: 0,
+      remainingBalance:
+        schedule.length > 0
+          ? schedule[0].remainingBalance + schedule[0].principal
+          : 0,
+    },
+    ...currentItems,
+  ];
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
@@ -63,52 +77,49 @@ export default function MortgageBudgetSchedule({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Bulan
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Angsuran Bunga
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Angsuran Pokok
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Total Angsuran
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Sisa Pinjaman
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Sisa pinjaman
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {/* Initial row showing starting balance */}
-            {currentPage === 1 && (
-              <tr className="bg-blue-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                  0
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  0
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  0
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
-                  0
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {schedule.length > 0
-                    ? formatCurrency(
-                        schedule[0].remainingBalance + schedule[0].principal
-                      )
-                    : formatCurrency(0)}
-                </td>
-              </tr>
-            )}
-            {currentItems.map((item) => (
+            {displayItems.map((item, index) => (
               <tr
                 key={item.period}
-                className={item.period % 2 === 0 ? "bg-gray-50" : ""}
+                className={
+                  item.period === 0
+                    ? "bg-blue-50 font-medium"
+                    : item.period % 2 === 0
+                    ? "bg-gray-50"
+                    : ""
+                }
               >
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                   {item.period}
@@ -131,7 +142,6 @@ export default function MortgageBudgetSchedule({
         </table>
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6 mt-4">
           <div className="flex flex-1 justify-between sm:hidden">
@@ -170,7 +180,10 @@ export default function MortgageBudgetSchedule({
               </p>
             </div>
             <div>
-              <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm">
+              <nav
+                className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+                aria-label="Pagination"
+              >
                 <button
                   onClick={() => goToPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
@@ -185,6 +198,7 @@ export default function MortgageBudgetSchedule({
                     className="h-5 w-5"
                     viewBox="0 0 20 20"
                     fill="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       fillRule="evenodd"
@@ -237,6 +251,7 @@ export default function MortgageBudgetSchedule({
                     className="h-5 w-5"
                     viewBox="0 0 20 20"
                     fill="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       fillRule="evenodd"
@@ -251,30 +266,55 @@ export default function MortgageBudgetSchedule({
         </div>
       )}
 
-      {/* Summary Section */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-md">
-        <div>
-          <p className="text-sm text-gray-600">Total Bunga:</p>
-          <p className="text-lg font-semibold text-gray-900">
-            {formatCurrency(totalInterest)}
-          </p>
+      {/* Summary Section - Updated with proper labels and ratio info */}
+      <div className="mt-6 bg-gray-50 p-4 rounded-lg">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Ringkasan Total Pembayaran
+        </h3>
+
+        {/* Main Summary - Simple Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+          <div>
+            <p className="text-sm text-gray-600 mb-1">Total Bunga:</p>
+            <p className="text-xl font-bold text-gray-900">
+              {formatCurrency(totalInterest)}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600 mb-1">Total Pokok:</p>
+            <p className="text-xl font-bold text-gray-900">
+              {formatCurrency(totalPrincipal)}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600 mb-1">Total Angsuran:</p>
+            <p className="text-xl font-bold text-gray-900">
+              {formatCurrency(totalPayment)}
+            </p>
+          </div>
         </div>
-        <div>
-          <p className="text-sm text-gray-600">Total Pokok:</p>
-          <p className="text-lg font-semibold text-gray-900">
-            {formatCurrency(totalPrincipal)}
-          </p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-600">Total Angsuran:</p>
-          <p className="text-lg font-semibold text-gray-900">
-            {formatCurrency(totalPayment)}
-          </p>
+
+        {/* Additional Info - Ratio */}
+        <div className="pt-3 border-t border-gray-200">
+          <div className="flex justify-between items-center text-sm text-gray-600">
+            <span>Periode Pinjaman:</span>
+            <span className="font-medium">{schedule.length} bulan</span>
+          </div>
+          <div className="flex justify-between items-center text-sm text-gray-600 mt-1">
+            <span>Rasio Bunga terhadap Total:</span>
+            <span className="font-medium">
+              {totalPayment > 0
+                ? ((totalInterest / totalPayment) * 100).toFixed(1)
+                : 0}
+              %
+            </span>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
 
 
 referensi:

@@ -10,7 +10,7 @@ import {
   LoanInfoGrid,
   PaymentBreakdown,
   ResultSection, // Diperlukan untuk info tambahan
-  ResultRow,      // Diperlukan untuk info tambahan
+  ResultRow, // Diperlukan untuk info tambahan
 } from "@/components/ui/result";
 
 // 2. Impor semua formatter yang dibutuhkan dari satu tempat
@@ -40,19 +40,34 @@ export default function MortgageBudgetResult({
       startY: 25,
       head: [["Keterangan", "Nilai"]],
       body: [
-        ["Max. Harga Rumah", formatCurrencyDisplay(budgetDetails.maxHousePrice)],
+        [
+          "Max. Harga Rumah",
+          formatCurrencyDisplay(budgetDetails.maxHousePrice),
+        ],
         [
           "Min. Uang Muka",
           `${formatCurrencyDisplay(
             budgetDetails.minDownPayment
           )} (${formatPercent(budgetDetails.downPaymentPercent)})`,
         ],
-        ["Max. Plafon Pinjaman", formatCurrencyDisplay(budgetDetails.maxLoanAmount)],
-        ["Max. Angsuran / Bulan", formatCurrencyDisplay(budgetDetails.maxMonthlyPayment)],
+        [
+          "Max. Plafon Pinjaman",
+          formatCurrencyDisplay(budgetDetails.maxLoanAmount),
+        ],
+        [
+          "Max. Angsuran / Bulan",
+          formatCurrencyDisplay(budgetDetails.maxMonthlyPayment),
+        ],
         ["Tenor Pinjaman", `${budgetDetails.loanTerm} tahun`],
         ["Total Pembayaran", formatCurrencyDisplay(budgetDetails.totalPayment)],
-        ["Pembayaran Pertama", formatCurrencyDisplay(budgetDetails.firstPayment)],
-        ["Min. Penghasilan / Bulan", formatCurrencyDisplay(budgetDetails.minMonthlyIncome)],
+        [
+          "Pembayaran Pertama",
+          formatCurrencyDisplay(budgetDetails.firstPayment),
+        ],
+        [
+          "Min. Penghasilan / Bulan",
+          formatCurrencyDisplay(budgetDetails.minMonthlyIncome),
+        ],
       ],
       theme: "grid",
       headStyles: { fillColor: [66, 133, 244] }, // Warna biru untuk header
@@ -94,6 +109,7 @@ export default function MortgageBudgetResult({
       />
       <LoanInfoGrid
         title="Data Simulasi Anda"
+        variant="rounded"
         items={[
           {
             label: "Budget Angsuran / Bulan",
@@ -109,7 +125,8 @@ export default function MortgageBudgetResult({
               <>
                 {formatDecimal(budgetDetails.annualInterestRate, 2)}% / tahun
                 <span className="block text-sm font-normal text-gray-500">
-                  (Efektif {formatDecimal(budgetDetails.monthlyInterestRate, 3)}% / bulan)
+                  (Efektif {formatDecimal(budgetDetails.monthlyInterestRate, 3)}
+                  % / bulan)
                 </span>
               </>
             ),
@@ -138,7 +155,10 @@ export default function MortgageBudgetResult({
         variant="purple"
         rows={[
           { label: "Min. Uang Muka:", value: budgetDetails.minDownPayment },
-          { label: "Angsuran Pertama:", value: budgetDetails.maxMonthlyPayment },
+          {
+            label: "Angsuran Pertama:",
+            value: budgetDetails.maxMonthlyPayment,
+          },
           { label: "Biaya Provisi:", value: budgetDetails.provisionAmount },
           { label: "Biaya Administrasi:", value: budgetDetails.adminAmount },
           {
@@ -152,7 +172,10 @@ export default function MortgageBudgetResult({
         title="Total Pembayaran Pinjaman"
         variant="indigo"
         rows={[
-          { label: "Total Pokok Pinjaman:", value: budgetDetails.maxLoanAmount },
+          {
+            label: "Total Pokok Pinjaman:",
+            value: budgetDetails.maxLoanAmount,
+          },
           { label: "Total Bunga:", value: budgetDetails.totalInterest },
           {
             label: "Total Keseluruhan:",
@@ -161,17 +184,22 @@ export default function MortgageBudgetResult({
           },
         ]}
       />
-       <ResultSection title="*Catatan Tambahan" variant="gray">
-          <ResultRow
-            label="Rasio Angsuran:"
-            value={`${formatDecimal(budgetDetails.installmentPercent, 0)}% dari penghasilan`}
-            info="Rasio ini digunakan untuk menghitung minimal penghasilan bersih bulanan."
-          />
-           <ResultRow
-            label="Biaya Bank:"
-            value={`${formatPercent(budgetDetails.provisionPercent)} (provisi) + ${formatPercent(budgetDetails.adminPercent)} (admin)`}
-            info="Biaya ini hanya dibayar sekali di awal dari plafon pinjaman."
-          />
+      <ResultSection title="*Catatan Tambahan" variant="gray">
+        <ResultRow
+          label="Rasio Angsuran:"
+          value={`${formatDecimal(
+            budgetDetails.installmentPercent,
+            0
+          )}% dari penghasilan`}
+          info="Rasio ini digunakan untuk menghitung minimal penghasilan bersih bulanan."
+        />
+        <ResultRow
+          label="Biaya Bank:"
+          value={`${formatPercent(
+            budgetDetails.provisionPercent
+          )} (provisi) + ${formatPercent(budgetDetails.adminPercent)} (admin)`}
+          info="Biaya ini hanya dibayar sekali di awal dari plafon pinjaman."
+        />
       </ResultSection>
     </div>
   );
