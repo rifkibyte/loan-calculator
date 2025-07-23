@@ -23,6 +23,7 @@ export interface MortgageBudgetFormData {
 }
 
 export interface MortgageBudgetResult extends CommonLoanResult {
+  // Properti yang sudah ada
   monthlyBudget: number;
   maxHousePrice: number;
   minDownPayment: number;
@@ -34,4 +35,9 @@ export interface MortgageBudgetResult extends CommonLoanResult {
   adminPercent: number;
   adminAmount: number;
   amortizationSchedule: AmortizationItem[];
+
+  // ✅ Properti yang ditambahkan untuk memperbaiki error
+  downPaymentPercent: number;
+  firstPayment: number;
+  installmentPercent: number;
 }

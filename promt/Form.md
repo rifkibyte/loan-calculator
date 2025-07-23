@@ -1,76 +1,72 @@
 Tolong refactor code saya gunakan form seperti ini seperti refernsi, untuk formatter juga banyak yang salah tolong update karena sya ubah formattternya
 
-code saya:
+code saya:// src/components/mortgage/budget/MortgageBudgetForm.tsx
 "use client";
 
 import { useState } from "react";
-// Mengimpor fungsi-fungsi utilitas
-import {
-  formatCurrency,
-  parseCurrency,
-  formatDecimal,
-} from "@/utils/formatters";
 
-// Interface for form data
 interface FormData {
-  loanAmount: number;
-  loanTermMonths: number;
+  monthlyBudget: number;
+  downPaymentPercent: number;
+  loanTerm: number;
   annualInterestRate: number;
+  installmentPercent: number;
+  provisionPercent: number;
+  adminPercent: number;
 }
 
-// Interface for form validation errors
 interface FormErrors {
   [key: string]: string;
 }
 
-// Interface for component props
-interface CreditAnnuityFormProps {
+interface MortgageBudgetFormProps {
   onCalculate: (formData: FormData) => void;
 }
 
-export default function CreditAnnuityForm({
+export default function MortgageBudgetForm({
   onCalculate,
-}: CreditAnnuityFormProps) {
-  // Form state variables
-  const [loanAmount, setLoanAmount] = useState<string>("500000000");
-  const [loanTermMonths, setLoanTermMonths] = useState<string>("120");
+}: MortgageBudgetFormProps) {
+  const [monthlyBudget, setMonthlyBudget] = useState<string>("5000000");
+  const [downPaymentPercent, setDownPaymentPercent] = useState<string>("20");
+  const [loanTerm, setLoanTerm] = useState<string>("15");
   const [annualInterestRate, setAnnualInterestRate] = useState<string>("14.6");
+  const [installmentPercent, setInstallmentPercent] = useState<string>("30");
+  const [provisionPercent, setProvisionPercent] = useState<string>("1");
+  const [adminPercent, setAdminPercent] = useState<string>("0.1");
   const [errors, setErrors] = useState<FormErrors>({});
 
   // Derived values for display
-  const loanTermYears: number = Number(loanTermMonths) / 12;
-  const monthlyInterestRate: number = Number(annualInterestRate) / 12;
+  const loanTermMonths = Number(loanTerm) * 12;
+  const monthlyInterestRate = Number(annualInterestRate) / 12;
 
-  /**
-   * Handles changes in the loan amount input using the parseCurrency utility.
-   * @param e - The input change event
-   */
-  const handleLoanAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Menggunakan parseCurrency untuk membersihkan input dan mengubahnya menjadi angka
-    const numericValue = parseCurrency(e.target.value);
-    // Menyimpan nilai mentah sebagai string di dalam state
-    setLoanAmount(String(numericValue));
-  };
-
-  /**
-   * Validate form inputs
-   * @returns boolean indicating if form is valid
-   */
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!loanAmount || isNaN(Number(loanAmount)) || Number(loanAmount) <= 0) {
-      newErrors.loanAmount = "Jumlah pinjaman harus berupa angka positif";
+    if (
+      !monthlyBudget ||
+      isNaN(Number(monthlyBudget)) ||
+      Number(monthlyBudget) <= 0
+    ) {
+      newErrors.monthlyBudget = "Budget angsuran harus berupa angka positif";
     }
 
     if (
-      !loanTermMonths ||
-      isNaN(Number(loanTermMonths)) ||
-      Number(loanTermMonths) <= 0 ||
-      !Number.isInteger(Number(loanTermMonths))
+      !downPaymentPercent ||
+      isNaN(Number(downPaymentPercent)) ||
+      Number(downPaymentPercent) <= 0 ||
+      Number(downPaymentPercent) >= 100
     ) {
-      newErrors.loanTermMonths =
-        "Lama pinjaman harus berupa bilangan bulat positif";
+      newErrors.downPaymentPercent =
+        "Persentase uang muka harus antara 0 dan 100";
+    }
+
+    if (
+      !loanTerm ||
+      isNaN(Number(loanTerm)) ||
+      Number(loanTerm) <= 0 ||
+      !Number.isInteger(Number(loanTerm))
+    ) {
+      newErrors.loanTerm = "Tenor harus berupa bilangan bulat positif";
     }
 
     if (
@@ -79,34 +75,70 @@ export default function CreditAnnuityForm({
       Number(annualInterestRate) < 0
     ) {
       newErrors.annualInterestRate =
-        "Bunga pinjaman harus berupa angka positif atau nol";
+        "Suku bunga harus berupa angka positif atau nol";
+    }
+
+    if (
+      !installmentPercent ||
+      isNaN(Number(installmentPercent)) ||
+      Number(installmentPercent) <= 0 ||
+      Number(installmentPercent) > 100
+    ) {
+      newErrors.installmentPercent =
+        "Persentase angsuran harus antara 0 dan 100";
+    }
+
+    if (
+      !provisionPercent ||
+      isNaN(Number(provisionPercent)) ||
+      Number(provisionPercent) < 0
+    ) {
+      newErrors.provisionPercent =
+        "Persentase provisi harus berupa angka positif atau nol";
+    }
+
+    if (
+      !adminPercent ||
+      isNaN(Number(adminPercent)) ||
+      Number(adminPercent) < 0
+    ) {
+      newErrors.adminPercent =
+        "Persentase administrasi harus berupa angka positif atau nol";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  /**
-   * Handle form submission
-   * @param e - Form event
-   */
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (validateForm()) {
       onCalculate({
-        loanAmount: Number(loanAmount),
-        loanTermMonths: Number(loanTermMonths),
+        monthlyBudget: Number(monthlyBudget),
+        downPaymentPercent: Number(downPaymentPercent),
+        loanTerm: Number(loanTerm),
         annualInterestRate: Number(annualInterestRate),
+        installmentPercent: Number(installmentPercent),
+        provisionPercent: Number(provisionPercent),
+        adminPercent: Number(adminPercent),
       });
     }
   };
 
+  const formatInputCurrency = (value: string): string => {
+    return value.replace(/[^\d]/g, "");
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Loan Amount Input */}
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        Simulasi KPR - berdasar budget
+      </h2>
+
+      {/* Monthly Budget Input */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">
-          Jumlah Pinjaman:
+          Budget Angsuran (per bulan):
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -114,26 +146,51 @@ export default function CreditAnnuityForm({
           </div>
           <input
             type="text"
-            // Menggunakan formatCurrency dari utils untuk menampilkan nilai
-            value={formatCurrency(loanAmount)}
-            onChange={handleLoanAmountChange}
+            value={monthlyBudget}
+            onChange={(e) =>
+              setMonthlyBudget(formatInputCurrency(e.target.value))
+            }
             className="w-full pl-12 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="500.000.000"
-            inputMode="numeric"
+            placeholder="5000000"
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
             <span className="text-gray-500 sm:text-sm">,00</span>
           </div>
         </div>
         <p className="mt-1 text-xs text-gray-600">
-          Pemisah ribuan (titik) akan ditambahkan secara otomatis.
+          masukkan angka, tidak boleh pakai koma atau titik
         </p>
-        {errors.loanAmount && (
-          <p className="mt-1 text-sm text-red-600">{errors.loanAmount}</p>
+        {errors.monthlyBudget && (
+          <p className="mt-1 text-sm text-red-600">{errors.monthlyBudget}</p>
         )}
       </div>
 
-      {/* Loan Term Input */}
+      {/* Down Payment Percentage */}
+      <div>
+        <label className="block text-sm font-medium text-gray-900 mb-1">
+          Uang Muka (DP):
+        </label>
+        <div className="relative">
+          <input
+            type="text"
+            value={downPaymentPercent}
+            onChange={(e) => setDownPaymentPercent(e.target.value)}
+            className="w-full pr-8 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="20"
+          />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <span className="text-gray-500 sm:text-sm">%</span>
+          </div>
+        </div>
+        <p className="mt-1 text-xs text-gray-600">(persen dari harga rumah)</p>
+        {errors.downPaymentPercent && (
+          <p className="mt-1 text-sm text-red-600">
+            {errors.downPaymentPercent}
+          </p>
+        )}
+      </div>
+
+      {/* Loan Term */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">
           Tenor (jangka waktu):
@@ -141,49 +198,40 @@ export default function CreditAnnuityForm({
         <div className="relative">
           <input
             type="text"
-            value={loanTermMonths}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setLoanTermMonths(e.target.value.replace(/[^\d]/g, ""))
-            }
+            value={loanTerm}
+            onChange={(e) => setLoanTerm(e.target.value)}
             className="w-full pr-14 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="120"
-            inputMode="numeric"
+            placeholder="15"
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">bulan</span>
+            <span className="text-gray-500 sm:text-sm">tahun</span>
           </div>
         </div>
-        {/* Menggunakan formatDecimal untuk konsistensi */}
-        <p className="mt-1 text-xs text-gray-900">
-          = {formatDecimal(loanTermYears, 2)} tahun
-        </p>
-        {errors.loanTermMonths && (
-          <p className="mt-1 text-sm text-red-600">{errors.loanTermMonths}</p>
+        <p className="mt-1 text-xs text-gray-600">= {loanTermMonths} bulan</p>
+        {errors.loanTerm && (
+          <p className="mt-1 text-sm text-red-600">{errors.loanTerm}</p>
         )}
       </div>
 
-      {/* Interest Rate Input */}
+      {/* Interest Rate */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">
-          Suku Bunga Pinjaman:
+          Bunga Pinjaman:
         </label>
         <div className="relative">
           <input
             type="text"
             value={annualInterestRate}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setAnnualInterestRate(e.target.value)
-            }
-            className="w-full pr-20 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) => setAnnualInterestRate(e.target.value)}
+            className="w-full pr-16 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="14.6"
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
             <span className="text-gray-500 sm:text-sm">% / tahun</span>
           </div>
         </div>
-        {/* Menggunakan formatDecimal untuk konsistensi */}
-        <p className="mt-1 text-xs text-gray-900">
-          = {formatDecimal(monthlyInterestRate, 2)} % / bulan
+        <p className="mt-1 text-xs text-gray-600">
+          = {monthlyInterestRate.toFixed(2)}% / bulan
         </p>
         {errors.annualInterestRate && (
           <p className="mt-1 text-sm text-red-600">
@@ -192,13 +240,95 @@ export default function CreditAnnuityForm({
         )}
       </div>
 
-      {/* Calculation Method Display */}
+      {/* Installment Percentage */}
+      <div>
+        <label className="block text-sm font-medium text-gray-900 mb-1">
+          Besar Angsuran (per bulan):
+        </label>
+        <div className="relative">
+          <input
+            type="text"
+            value={installmentPercent}
+            onChange={(e) => setInstallmentPercent(e.target.value)}
+            className="w-full pr-8 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="30"
+          />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <span className="text-gray-500 sm:text-sm">%</span>
+          </div>
+        </div>
+        <p className="mt-1 text-xs text-gray-600">
+          (persen dari penghasilan bersih)
+        </p>
+        {errors.installmentPercent && (
+          <p className="mt-1 text-sm text-red-600">
+            {errors.installmentPercent}
+          </p>
+        )}
+      </div>
+
+      {/* Calculation Method */}
+      <div>
+        <label className="block text-sm font-medium text-gray-900 mb-1">
+          Perhitungan Bunga:
+        </label>
+        <div className="bg-gray-50 p-2 rounded-md">
+          <span className="text-gray-700">Anuitas</span>
+        </div>
+      </div>
+
+      {/* Additional Fees */}
       <div className="border-t border-gray-200 pt-4">
-        <h3 className="font-medium text-gray-900 mb-3">
-          Metode Perhitungan Bunga
-        </h3>
-        <div className="bg-gray-50 p-3 rounded-md">
-          <span className="text-gray-900 font-medium">Anuitas</span>
+        <h3 className="font-medium text-gray-900 mb-3">Biaya Bank</h3>
+
+        <div className="space-y-4">
+          {/* Provision Percentage */}
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-1">
+              Biaya Provisi:
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={provisionPercent}
+                onChange={(e) => setProvisionPercent(e.target.value)}
+                className="w-full pr-8 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="1"
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <span className="text-gray-500 sm:text-sm">%</span>
+              </div>
+            </div>
+            <p className="mt-1 text-xs text-gray-600">(persen dari plafon)</p>
+            {errors.provisionPercent && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.provisionPercent}
+              </p>
+            )}
+          </div>
+
+          {/* Admin Percentage */}
+          <div>
+            <label className="block text-sm font-medium text-gray-900 mb-1">
+              Biaya Administrasi:
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={adminPercent}
+                onChange={(e) => setAdminPercent(e.target.value)}
+                className="w-full pr-8 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="0.1"
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <span className="text-gray-500 sm:text-sm">%</span>
+              </div>
+            </div>
+            <p className="mt-1 text-xs text-gray-600">(persen dari plafon)</p>
+            {errors.adminPercent && (
+              <p className="mt-1 text-sm text-red-600">{errors.adminPercent}</p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -212,7 +342,6 @@ export default function CreditAnnuityForm({
     </form>
   );
 }
-
 
 
 refernsi
@@ -362,6 +491,7 @@ export default function CarLoanBudgetForm({ onCalculate }: LoanFormProps) {
   );
 }
 
+
 ----
 
 // file: utils/formatters.ts
@@ -464,16 +594,54 @@ export function parseToNumericString(value: string): string {
 }
 
 ---
+~/workspace/side-hustle/loan-calculator/src/components/ui/form on  main! ⌚ 10:12:05
+$ ls
+Button.tsx        Input.tsx         YearInput.tsx
+CurrencyInput.tsx PercentInput.tsx  index.ts
 
-#### **`components/ui/form/Input.tsx`**
-Ini adalah komponen input dasar yang paling fleksibel, dilengkapi dengan label, error, unit, dan prefix.
+~/workspace/side-hustle/loan-calculator/src/components/ui/form on  main! ⌚ 10:12:07
+$ cat Button.tsx        Input.tsx         YearInput.tsx CurrencyInput.tsx PercentInput.tsx  index.ts
+// components/ui/form/Button.tsx
+import { FC, ReactNode } from "react";
 
-```typescript
+interface ButtonProps {
+  children: ReactNode;
+  onClick?: () => void;
+  type?: "button" | "submit" | "reset";
+  disabled?: boolean;
+  fullWidth?: boolean;
+}
+
+export const Button: FC<ButtonProps> = ({
+  children,
+  onClick,
+  type = "submit",
+  disabled = false,
+  fullWidth = true,
+}) => (
+  <button
+    type={type}
+    onClick={onClick}
+    disabled={disabled}
+    className={`
+      ${fullWidth ? "w-full" : ""}
+      bg-blue-600 text-white py-3 px-4 rounded-md
+      hover:bg-blue-700
+      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+      font-medium
+      transition-colors
+      disabled:bg-gray-400 disabled:cursor-not-allowed
+    `}
+  >
+    {children}
+  </button>
+);
 // components/ui/form/Input.tsx
 import { FC, ChangeEvent } from "react";
 
 interface FormInputProps {
   id: string;
+  name: string;
   label: string;
   value: string | number;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
@@ -489,6 +657,7 @@ interface FormInputProps {
 
 export const Input: FC<FormInputProps> = ({
   id,
+  name,
   label,
   value,
   onChange,
@@ -539,113 +708,13 @@ export const Input: FC<FormInputProps> = ({
     {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
   </div>
 );
-```
-
----
-
-#### **`components/ui/form/CurrencyInput.tsx`**
-Komponen khusus untuk input mata uang (Rupiah).
-
-```typescript
-// components/ui/form/CurrencyInput.tsx
-import { FC, ChangeEvent, useCallback } from "react";
-import { Input } from "./Input";
-
-// Asumsikan fungsi ini ada di utils/formatters.ts
-const formatToCurrency = (value: string | number) => {
-  const numericValue = String(value).replace(/[^\d]/g, "");
-  return new Intl.NumberFormat("id-ID").format(Number(numericValue));
-};
-const parseFromCurrency = (value: string) => {
-  return value.replace(/[^\d]/g, "");
-};
-
-interface CurrencyInputProps {
-  id: string;
-  label: string;
-  value: string;
-  onValueChange: (value: string) => void; // Mengirim nilai numerik string
-  error?: string;
-  placeholder?: string;
-  info?: string;
-}
-
-export const CurrencyInput: FC<CurrencyInputProps> = ({
-  id,
-  label,
-  value,
-  onValueChange,
-  error,
-  placeholder,
-  info,
-}) => {
-  const handleChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      onValueChange(parseFromCurrency(e.target.value));
-    },
-    [onValueChange]
-  );
-
-  return (
-    <Input
-      id={id}
-      label={label}
-      value={formatToCurrency(value)}
-      onChange={handleChange}
-      error={error}
-      prefix="Rp"
-      placeholder={placeholder}
-      info={info}
-      inputMode="numeric"
-    />
-  );
-};
-```
-
----
-
-#### **`components/ui/form/PercentInput.tsx`**
-Komponen khusus untuk input persentase.
-
-```typescript
-// components/ui/form/PercentInput.tsx
-import { FC, ChangeEvent } from "react";
-import { Input } from "./Input";
-
-interface PercentInputProps {
-  id: string;
-  label: string;
-  value: string | number;
-  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  error?: string;
-  placeholder?: string;
-  info?: string;
-}
-
-export const PercentInput: FC<PercentInputProps> = (props) => {
-  return (
-    <Input
-      {...props}
-      unit="%"
-      type="text"
-      inputMode="decimal"
-    />
-  );
-};
-```
-
----
-
-#### **`components/ui/form/YearInput.tsx`**
-Komponen khusus untuk input tahun.
-
-```typescript
 // components/ui/form/YearInput.tsx
 import { FC, ChangeEvent } from "react";
 import { Input } from "./Input";
 
 interface YearInputProps {
   id: string;
+  name: string;
   label: string;
   value: string | number;
   onChange: (e: ChangeEvent<HTMLInputElement>) => void;
@@ -664,201 +733,90 @@ export const YearInput: FC<YearInputProps> = (props) => {
     />
   );
 };
-```
+// components/ui/form/CurrencyInput.tsx
+import { FC, ChangeEvent, useCallback } from "react";
+import { Input } from "./Input";
 
----
+// Asumsikan fungsi ini ada di utils/formatters.ts
+const formatToCurrency = (value: string | number) => {
+  const numericValue = String(value).replace(/[^\d]/g, "");
+  return new Intl.NumberFormat("id-ID").format(Number(numericValue));
+};
+const parseFromCurrency = (value: string) => {
+  return value.replace(/[^\d]/g, "");
+};
 
-#### **`components/ui/form/Button.tsx`**
-Komponen tombol yang bisa dikonfigurasi.
-
-```typescript
-// components/ui/form/Button.tsx
-import { FC, ReactNode } from "react";
-
-interface ButtonProps {
-  children: ReactNode;
-  onClick?: () => void;
-  type?: "button" | "submit" | "reset";
-  disabled?: boolean;
-  fullWidth?: boolean;
+interface CurrencyInputProps {
+  id: string;
+  name: string;
+  label: string;
+  value: string;
+  onValueChange: (value: string) => void; // Mengirim nilai numerik string
+  error?: string;
+  placeholder?: string;
+  info?: string;
 }
 
-export const Button: FC<ButtonProps> = ({
-  children,
-  onClick,
-  type = "submit",
-  disabled = false,
-  fullWidth = true,
-}) => (
-  <button
-    type={type}
-    onClick={onClick}
-    disabled={disabled}
-    className={`
-      ${fullWidth ? "w-full" : ""}
-      bg-blue-600 text-white py-3 px-4 rounded-md 
-      hover:bg-blue-700 
-      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 
-      font-medium
-      transition-colors
-      disabled:bg-gray-400 disabled:cursor-not-allowed
-    `}
-  >
-    {children}
-  </button>
-);
-```
+export const CurrencyInput: FC<CurrencyInputProps> = ({
+  id,
+  name,
+  label,
+  value,
+  onValueChange,
+  error,
+  placeholder,
+  info,
+}) => {
+  const handleChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      onValueChange(parseFromCurrency(e.target.value));
+    },
+    [onValueChange]
+  );
 
----
+  return (
+    <Input
+      id={id}
+      name={name}
+      label={label}
+      value={formatToCurrency(value)}
+      onChange={handleChange}
+      error={error}
+      prefix="Rp"
+      placeholder={placeholder}
+      info={info}
+      inputMode="numeric"
+    />
+  );
+};
+// components/ui/form/PercentInput.tsx
+import { FC, ChangeEvent } from "react";
+import { Input } from "./Input";
 
-#### **`components/ui/form/index.ts`**
-File ini berguna untuk mempermudah impor.
+interface PercentInputProps {
+  id: string;
+  name: string;
+  label: string;
+  value: string | number;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  error?: string;
+  placeholder?: string;
+  info?: string;
+}
 
-```typescript
+export const PercentInput: FC<PercentInputProps> = (props) => {
+  return (
+    <Input
+      {...props}
+      unit="%"
+      type="text"
+      inputMode="decimal"
+    />
+  );
+};
 // components/ui/form/index.ts
 export * from './Input';
 export * from './CurrencyInput';
 export * from './PercentInput';
 export * from './YearInput';
 export * from './Button';
-```
-
-### 2. Cara Menggunakan Komponen Baru
-
-Sekarang, mari kita refactor salah satu form Anda, misalnya `CarLoanSimpleForm.tsx`, untuk menggunakan komponen-komponen baru ini.
-
-**Sebelum Refactor (kode Anda):**
-```typescript
-// components/car-loan/simple/CarLoanSimpleForm.tsx (Lama)
-// ... (kode panjang seperti yang Anda berikan)
-```
-
-**Setelah Refactor (menggunakan komponen baru):**
-Kode menjadi jauh lebih singkat, bersih, dan mudah dibaca.
-
-```typescript
-// components/car-loan/simple/CarLoanSimpleForm.tsx (Baru)
-"use client";
-
-import { useState, FormEvent } from "react";
-import {
-  CurrencyInput,
-  PercentInput,
-  YearInput,
-  Input, // Untuk bunga
-  Button,
-} from "@/components/ui/form"; // Impor mudah dari satu tempat
-
-// Interface bisa dipindahkan ke file types/
-interface FormData {
-  carPrice: string;
-  downPaymentPercent: string;
-  loanTerm: string;
-  interestRate: string;
-}
-
-interface FormErrors {
-  [key: string]: string | undefined;
-}
-
-interface CarLoanSimpleFormProps {
-  onCalculate: (formData: { [K in keyof FormData]: number }) => void;
-}
-
-export default function CarLoanSimpleForm({ onCalculate }: CarLoanSimpleFormProps) {
-  const [formData, setFormData] = useState<FormData>({
-    carPrice: "250000000",
-    downPaymentPercent: "30",
-    loanTerm: "5",
-    interestRate: "4.8",
-  });
-  const [errors, setErrors] = useState<FormErrors>({});
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-  
-  const handleCurrencyChange = (name: keyof FormData) => (value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const validateForm = (): boolean => {
-    // ... (logika validasi tetap sama, tidak perlu diubah)
-    const newErrors: FormErrors = {};
-    if (Number(formData.carPrice) <= 0) newErrors.carPrice = "Harga mobil harus positif";
-    if (Number(formData.downPaymentPercent) <= 0 || Number(formData.downPaymentPercent) >= 100) newErrors.downPaymentPercent = "DP harus antara 1-99%";
-    if (Number(formData.loanTerm) <= 0) newErrors.loanTerm = "Tenor harus positif";
-    if (Number(formData.interestRate) < 0) newErrors.interestRate = "Bunga tidak boleh negatif";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (validateForm()) {
-      const numericData = {
-        carPrice: Number(formData.carPrice),
-        downPaymentPercent: Number(formData.downPaymentPercent),
-        loanTerm: Number(formData.loanTerm),
-        interestRate: Number(formData.interestRate.replace(",", ".")),
-      };
-      onCalculate(numericData);
-    }
-  };
-  
-  const loanTermMonths = Number(formData.loanTerm) * 12;
-  const monthlyInterestRate = (Number(formData.interestRate.replace(",", ".")) / 12).toFixed(2);
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <CurrencyInput
-        id="carPrice"
-        label="Harga Mobil OTR"
-        value={formData.carPrice}
-        onValueChange={handleCurrencyChange("carPrice")}
-        error={errors.carPrice}
-        placeholder="250.000.000"
-      />
-
-      <PercentInput
-        id="downPaymentPercent"
-        name="downPaymentPercent"
-        label="Uang Muka (DP)"
-        value={formData.downPaymentPercent}
-        onChange={handleInputChange}
-        error={errors.downPaymentPercent}
-        placeholder="30"
-        info="(persen dari harga OTR)"
-      />
-
-      <YearInput
-        id="loanTerm"
-        name="loanTerm"
-        label="Tenor (jangka waktu)"
-        value={formData.loanTerm}
-        onChange={handleInputChange}
-        error={errors.loanTerm}
-        placeholder="5"
-        info={`= ${loanTermMonths} bulan`}
-      />
-
-      <Input
-        id="interestRate"
-        name="interestRate"
-        label="Bunga Pinjaman (Flat)"
-        value={formData.interestRate}
-        onChange={handleInputChange}
-        error={errors.interestRate}
-        unit="% / tahun"
-        placeholder="4.8"
-        inputMode="decimal"
-        info={`= ${monthlyInterestRate}% / bulan`}
-      />
-
-      <Button type="submit">
-        Hitung Simulasi
-      </Button>
-    </form>
-  );
-}

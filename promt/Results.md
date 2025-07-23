@@ -1,262 +1,418 @@
 Tolong refactor code saya gunakan Result seperti refernsi, di referensi ini untuk car loan, kode saya beda konteks
-code saya:
+// src/components/mortgage/budget/MortgageBudgetResult.tsx
 "use client";
 
-import { FC, useMemo, ReactNode } from "react";
-import {
-  ResultCard,
-  ResultTabs,
-  ResultSection,
-  ResultRow,
-  ResultGrid,
-  ExportButton,
-} from "@/components/ui/result";
-import { formatCurrency, formatPercent } from "@/utils/formatters";
+import { useState } from "react";
+import { jsPDF } from "jspdf";
+import type { MortgageBudgetResult as BudgetDetails } from "@/types/mortgage-budget";
 
-// --- Tipe Data ---
-interface LoanResultData {
-  mainAssetPrice?: number;
-  downPaymentPercent?: number;
-  downPaymentAmount?: number;
-  loanTerm?: number;
-  interestRate?: number;
-  loanAmount: number;
-  monthlyPrincipal: number;
-  monthlyInterest: number;
-  monthlyPayment: number;
-  totalInterest: number;
-  totalPayment: number;
-  firstPayment: number;
-  insurancePercent?: number;
-  insuranceAmount?: number;
-  provisionPercent?: number;
-  provisionAmount?: number;
-  policyFee?: number;
-  adminFee?: number;
+interface MortgageBudgetResultProps {
+  budgetDetails: BudgetDetails;
 }
 
-// --- Tipe Konfigurasi ---
-interface LoanResultConfig {
-  onExport: () => void;
-  showOtherFees?: boolean;
-  showTotalPaymentSimple?: boolean;
-  labels?: {
-    mainAssetLabel?: string;
-    downPaymentLabel?: string;
-    loanPrincipalLabel?: string;
+export default function MortgageBudgetResult({
+  budgetDetails,
+}: MortgageBudgetResultProps) {
+  const [activeTab, setActiveTab] = useState<string>("data");
+
+  const formatCurrency = (value: number): string => {
+    if (isNaN(value) || !isFinite(value)) {
+      return "Rp 0,00";
+    }
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
   };
-  showPrincipalCalculation?: boolean;
-  showDownPayment?: boolean;
-}
 
-interface LoanResultDisplayProps {
-  data: LoanResultData;
-  config: LoanResultConfig;
-}
-
-// --- Komponen Utama ---
-export const LoanResultDisplay: FC<LoanResultDisplayProps> = ({
-  data,
-  config,
-}) => {
-  const {
-    onExport,
-    showOtherFees = false,
-    showTotalPaymentSimple = false,
-    labels = {
-      mainAssetLabel: "Harga Aset",
-      downPaymentLabel: "Uang Muka",
-      loanPrincipalLabel: "Pokok Pinjaman",
-    },
-    showPrincipalCalculation = false,
-    showDownPayment = false,
-  } = config;
-
-  const infoGridItems = useMemo(() => {
-    const items: { label: string; value: ReactNode }[] = [];
-
-    if (data.mainAssetPrice) {
-      items.push({
-        label: labels.mainAssetLabel!,
-        value: formatCurrency(data.mainAssetPrice),
-      });
+  const formatPercent = (value: number): string => {
+    if (isNaN(value) || !isFinite(value)) {
+      return "0";
     }
+    return value.toFixed(1);
+  };
 
-    if (showDownPayment && data.downPaymentAmount) {
-      items.push({
-        label: labels.downPaymentLabel!,
-        value: (
-          <>
-            {formatCurrency(data.downPaymentAmount)}
-            <span className="text-sm font-normal text-gray-500 ml-1">
-              ({formatPercent(data.downPaymentPercent ?? 0)})
-            </span>
-          </>
-        ),
-      });
-    }
+  const handlePrint = (): void => {
+    window.print();
+  };
 
-    items.push(
-      {
-        label: "Tenor",
-        value: (
-          <>
-            {data.loanTerm} tahun
-            <span className="text-sm font-normal text-gray-500 ml-1">
-              ({(data.loanTerm ?? 0) * 12} bulan)
-            </span>
-          </>
-        ),
-      },
-      {
-        label: "Bunga (Flat)",
-        value: (
-          <>
-            {/* --- PERBAIKAN 1 --- */}
-            {formatPercent(data.interestRate ?? 0, { minimumFractionDigits: 1 })} / tahun
-            <span className="text-sm font-normal text-gray-500 ml-1">
-              {/* --- PERBAIKAN 2 --- */}
-              ({formatPercent((data.interestRate ?? 0) / 12, { minimumFractionDigits: 3 })} / bulan)
-            </span>
-          </>
-        ),
-      }
-    );
+  const handleExportPDF = (): void => {
+    const doc = new jsPDF();
 
-    return items;
-  }, [data, labels, showDownPayment]);
+    doc.setFontSize(18);
+    doc.text("Simulasi KPR - Berdasar Budget", 105, 15, { align: "center" });
 
-  const infoTabContent = (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">
-        Informasi Pinjaman Anda
-      </h2>
-      <ResultGrid items={infoGridItems} />
+    doc.setFontSize(12);
+    doc.text("Data Anda", 14, 30);
 
-      {showPrincipalCalculation && (
-        // --- PERBAIKAN 3 ---
-        <ResultSection title={labels.loanPrincipalLabel!} variant="blue">
-          <ResultRow
-            label={`${labels.mainAssetLabel!}:`}
-            value={formatCurrency(data.mainAssetPrice ?? 0)}
-          />
-          <ResultRow
-            label={`${labels.downPaymentLabel!}:`}
-            value={`- ${formatCurrency(data.downPaymentAmount ?? 0)}`}
-          />
-          <ResultRow
-            label={`${labels.loanPrincipalLabel!}:`}
-            value={formatCurrency(data.loanAmount)}
-            isTotal
-          />
-        </ResultSection>
-      )}
+    const dataInfo = [
+      [
+        "Budget Angsuran (per bulan)",
+        formatCurrency(budgetDetails.monthlyBudget),
+      ],
+      [
+        "Tenor",
+        `${budgetDetails.loanTerm} tahun (${budgetDetails.loanTermMonths} bulan)`,
+      ],
+      [
+        "Bunga Pinjaman",
+        `${formatPercent(
+          budgetDetails.annualInterestRate
+        )}% / tahun (${formatPercent(
+          budgetDetails.monthlyInterestRate
+        )}% / bulan)`,
+      ],
+      ["Perhitungan Bunga", "Anuitas"],
+    ];
 
-      {showOtherFees && (
-        <ResultSection title="Biaya Lainnya (dibayar di muka)" variant="gray">
-          <ResultRow
-            label="Asuransi:"
-            value={formatCurrency(data.insuranceAmount ?? 0)}
-            info={data.mainAssetPrice ? `${formatPercent(
-              data.insurancePercent ?? 0
-            )}% dari ${labels.mainAssetLabel!}` : undefined}
-          />
-          <ResultRow
-            label="Provisi:"
-            value={formatCurrency(data.provisionAmount ?? 0)}
-            info={`${formatPercent(
-              data.provisionPercent ?? 0,
-              // --- PERBAIKAN 4 ---
-              { minimumFractionDigits: 1 }
-            )}% dari plafon pinjaman`}
-          />
-          <ResultRow
-            label="Biaya Polis Asuransi:"
-            value={formatCurrency(data.policyFee ?? 0)}
-          />
-          <ResultRow
-            label="Biaya Administrasi:"
-            value={formatCurrency(data.adminFee ?? 0)}
-          />
-        </ResultSection>
-      )}
-    </div>
-  );
+    (doc as any).autoTable({
+      startY: 35,
+      body: dataInfo,
+      theme: "grid",
+      styles: { fontSize: 10 },
+    });
 
-  const paymentTabContent = (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">
-        Informasi Pembayaran
-      </h2>
-
-      <ResultSection title="Angsuran per Bulan" variant="green">
-        <ResultRow
-          label="Angsuran Pokok:"
-          value={formatCurrency(data.monthlyPrincipal)}
-        />
-        <ResultRow
-          label="Angsuran Bunga:"
-          value={formatCurrency(data.monthlyInterest)}
-        />
-        <ResultRow
-          label="Total Angsuran per Bulan:"
-          value={formatCurrency(data.monthlyPayment)}
-          isTotal
-        />
-      </ResultSection>
-
-      <ResultSection title="Pembayaran Pertama Kali" variant="purple">
-        {showDownPayment && (
-          <ResultRow
-            label={`${labels.downPaymentLabel!}:`}
-            value={formatCurrency(data.downPaymentAmount ?? 0)}
-          />
-        )}
-        <ResultRow
-          label="Angsuran Pertama:"
-          value={formatCurrency(data.monthlyPayment)}
-        />
-        {showOtherFees && (
-          <>
-            <ResultRow label="Asuransi:" value={formatCurrency(data.insuranceAmount ?? 0)} />
-            <ResultRow label="Provisi:" value={formatCurrency(data.provisionAmount ?? 0)} />
-            <ResultRow label="Biaya Polis:" value={formatCurrency(data.policyFee ?? 0)} />
-            <ResultRow label="Administrasi:" value={formatCurrency(data.adminFee ?? 0)} />
-          </>
-        )}
-        <ResultRow
-          label="Total Pembayaran Pertama:"
-          value={formatCurrency(data.firstPayment)}
-          isTotal
-        />
-      </ResultSection>
-
-      {showTotalPaymentSimple && (
-        <ResultSection title="Total Pembayaran" variant="indigo">
-          <ResultRow label="Total Pokok Pinjaman:" value={formatCurrency(data.loanAmount)} />
-          <ResultRow label="Total Bunga:" value={formatCurrency(data.totalInterest)} />
-          <ResultRow label="Total Keseluruhan:" value={formatCurrency(data.totalPayment)} isTotal />
-        </ResultSection>
-      )}
-    </div>
-  );
-
-  const tabs = [
-    { id: "info", label: "Informasi Pinjaman", content: infoTabContent },
-    { id: "payment", label: "Pembayaran", content: paymentTabContent },
-  ];
+    doc.save("simulasi-kpr-budget.pdf");
+  };
 
   return (
-    <ResultCard>
-      <ResultTabs tabs={tabs} />
-      <ExportButton onClick={onExport} />
-    </ResultCard>
+    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      {/* Tab Navigation - Only 2 tabs */}
+      <div className="flex border-b">
+        <button
+          className={`flex-1 py-3 px-4 text-center font-medium ${
+            activeTab === "data"
+              ? "bg-blue-50 text-blue-600 border-b-2 border-blue-600"
+              : "text-gray-600 hover:text-gray-800"
+          }`}
+          onClick={() => setActiveTab("data")}
+        >
+          Data Anda
+        </button>
+        <button
+          className={`flex-1 py-3 px-4 text-center font-medium ${
+            activeTab === "results"
+              ? "bg-blue-50 text-blue-600 border-b-2 border-blue-600"
+              : "text-gray-600 hover:text-gray-800"
+          }`}
+          onClick={() => setActiveTab("results")}
+        >
+          Hasil KPR
+        </button>
+      </div>
+
+      <div className="p-6">
+        {/* Tab 1: Data Anda */}
+        {activeTab === "data" && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Data Anda
+            </h2>
+
+            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600">
+                  Budget Angsuran (per bulan):
+                </span>
+                <span className="font-medium text-gray-900">
+                  {formatCurrency(budgetDetails.monthlyBudget)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Tenor:</span>
+                <span className="font-medium text-gray-900">
+                  {budgetDetails.loanTerm} tahun ({budgetDetails.loanTermMonths}{" "}
+                  bulan)
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Bunga Pinjaman:</span>
+                <span className="font-medium text-gray-900">
+                  {formatPercent(budgetDetails.annualInterestRate)}% / tahun
+                  <br />
+                  <span className="text-sm text-gray-500">
+                    ({formatPercent(budgetDetails.monthlyInterestRate)}% /
+                    bulan)
+                  </span>
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Perhitungan Bunga:</span>
+                <span className="font-medium text-gray-900">Anuitas</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 2: Hasil KPR (Combined KPR Anda + Syarat Bank) */}
+        {activeTab === "results" && (
+          <div className="space-y-6">
+            {/* KPR Anda Section */}
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                KPR Anda
+              </h2>
+
+              <div className="bg-blue-50 p-4 rounded-lg space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Max. Harga Rumah:</span>
+                  <span className="font-bold text-blue-700">
+                    {formatCurrency(budgetDetails.maxHousePrice)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Min. Uang Muka:</span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(budgetDetails.minDownPayment)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Max. Plafon Pinjaman:</span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(budgetDetails.maxLoanAmount)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">
+                    Max. Angsuran per Periode:
+                  </span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(budgetDetails.maxMonthlyPayment)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Total Periode:</span>
+                  <span className="font-medium text-gray-900">
+                    {budgetDetails.loanTermMonths} bulan
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Syarat Bank Section */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Syarat Bank*
+              </h3>
+
+              <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">
+                    Min. Penghasilan Bersih (per bulan):
+                  </span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(budgetDetails.minMonthlyIncome)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">
+                    Biaya Provisi (
+                    {formatPercent(budgetDetails.provisionPercent)}% plafon):
+                  </span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(budgetDetails.provisionAmount)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">
+                    Biaya Administrasi (
+                    {formatPercent(budgetDetails.adminPercent)}% plafon):
+                  </span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(budgetDetails.adminAmount)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-yellow-50 p-4 rounded-lg mt-4">
+                <p className="text-sm text-gray-600">
+                  * Syarat dan ketentuan dapat berbeda untuk setiap bank.
+                  Silakan konsultasikan dengan bank pilihan Anda untuk informasi
+                  yang lebih akurat.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="mt-6 flex space-x-4">
+          <button
+            onClick={handlePrint}
+            className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          >
+            Print
+          </button>
+          <button
+            onClick={handleExportPDF}
+            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            Export PDF
+          </button>
+        </div>
+      </div>
+    </div>
   );
-};
+}
 
 
 
-formatters.ts
+Referensi
+
+// file: app/kalkulator/kredit-mobil-budget/result/page.tsx (Setelah di-refactor)
+
+"use client";
+
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
+import {
+  LoanResultShell,
+  LoanInfoGrid,
+  PaymentBreakdown,
+} from "@/components/ui/result"; // Impor komponen baru
+// Impor komponen baru yang bisa disusun
+import { formatCurrencyDisplay, formatPercent } from "@/utils/formatters";
+import { CarLoanBudgetResult as LoanDetailsType } from "@/types/car-loan";
+
+interface CarLoanBudgetResultProps {
+  loanDetails: LoanDetailsType;
+}
+
+export default function CarLoanBudgetResult({
+  loanDetails,
+}: CarLoanBudgetResultProps) {
+  const handleExportPDF = () => {
+    // Fungsi export PDF tidak perlu diubah
+    const doc = new jsPDF();
+    doc.text("Simulasi Kredit Mobil (Berdasarkan Budget)", 14, 20);
+    (doc as any).autoTable({
+      startY: 30,
+      head: [["Keterangan", "Nilai"]],
+      body: [
+        ["Harga Mobil OTR", formatCurrencyDisplay(loanDetails.carPrice)],
+        [
+          "Uang Muka (DP)",
+          `${formatCurrencyDisplay(
+            loanDetails.downPaymentAmount
+          )} (${formatPercent(loanDetails.downPaymentPercent)})`,
+        ],
+        ["Tenor Pinjaman", `${loanDetails.loanTerm} tahun`],
+        ["Plafon Pinjaman", formatCurrencyDisplay(loanDetails.loanAmount)],
+        [
+          "Angsuran per Bulan",
+          formatCurrencyDisplay(loanDetails.monthlyPayment),
+        ],
+        ["Total Pembayaran", formatCurrencyDisplay(loanDetails.totalPayment)],
+        ["Pembayaran Pertama", formatCurrencyDisplay(loanDetails.firstPayment)],
+      ],
+      theme: "grid",
+      headStyles: { fillColor: [66, 133, 244] },
+    });
+    doc.save("simulasi-kredit-mobil-budget.pdf");
+  };
+
+  // --- Bagian 1: Menyusun Konten untuk Tab "Informasi Pinjaman" ---
+  const infoTabContent = (
+    <div className="space-y-6">
+      <LoanInfoGrid
+        title="Hasil Perhitungan Budget Anda"
+        items={[
+          {
+            label: "Harga Mobil OTR",
+            value: formatCurrencyDisplay(loanDetails.carPrice),
+          },
+          {
+            label: "Uang Muka (DP)",
+            value: (
+              <>
+                {formatCurrencyDisplay(loanDetails.downPaymentAmount)}
+                <span className="text-sm font-normal text-gray-500 ml-1">
+                  ({formatPercent(loanDetails.downPaymentPercent)})
+                </span>
+              </>
+            ),
+          },
+          {
+            label: "Tenor Pinjaman",
+            value: `${loanDetails.loanTerm} tahun`,
+          },
+        ]}
+      />
+      <PaymentBreakdown
+        title="Plafon Pinjaman Anda"
+        variant="blue"
+        rows={[
+          { label: "Harga Mobil OTR:", value: loanDetails.carPrice },
+          { label: "Uang Muka (DP):", value: loanDetails.downPaymentAmount },
+          {
+            label: "Plafon Pinjaman:",
+            value: loanDetails.loanAmount,
+            isTotal: true,
+          },
+        ]}
+      />
+    </div>
+  );
+
+  // --- Bagian 2: Menyusun Konten untuk Tab "Rincian Pembayaran" ---
+  const paymentTabContent = (
+    <div className="space-y-6">
+      <PaymentBreakdown
+        title="Angsuran per Bulan"
+        variant="green"
+        rows={[
+          {
+            label: "Total Angsuran per Bulan:",
+            value: loanDetails.monthlyPayment,
+            isTotal: true,
+          },
+        ]}
+      />
+      <PaymentBreakdown
+        title="Pembayaran Pertama Kali"
+        variant="purple"
+        rows={[
+          { label: "Uang Muka (DP):", value: loanDetails.downPaymentAmount },
+          { label: "Angsuran Pertama:", value: loanDetails.monthlyPayment },
+          {
+            label: "Total Pembayaran Pertama:",
+            value: loanDetails.firstPayment,
+            isTotal: true,
+          },
+        ]}
+      />
+      <PaymentBreakdown
+        title="Total Pembayaran Keseluruhan"
+        variant="indigo"
+        rows={[
+          { label: "Total Pokok Pinjaman:", value: loanDetails.loanAmount },
+          {
+            label: "Total Bunga:",
+            value: loanDetails.totalPayment - loanDetails.loanAmount,
+          },
+          {
+            label: "Total Keseluruhan:",
+            value: loanDetails.totalPayment,
+            isTotal: true,
+          },
+        ]}
+      />
+    </div>
+  );
+
+  // --- Bagian 3: Merakit semuanya ke dalam "Cangkang" ---
+  return (
+    <LoanResultShell
+      onExport={handleExportPDF}
+      infoTabContent={infoTabContent}
+      paymentTabContent={paymentTabContent}
+    />
+  );
+}
+----
+
 // file: utils/formatters.ts
 
 /**
@@ -307,6 +463,25 @@ export function formatCurrencyDisplay(amount: number | string): string {
   }).format(numAmount);
 }
 
+// --- FUNGSI BARU DITAMBAHKAN ---
+/**
+ * Memformat angka menjadi string desimal dengan jumlah digit di belakang koma yang ditentukan.
+ * Menggunakan locale Indonesia (koma sebagai pemisah desimal).
+ * Contoh: (123.456, 2) -> "123,46"
+ * @param value Angka yang akan diformat.
+ * @param decimalPlaces Jumlah digit di belakang koma (default: 2).
+ */
+export function formatDecimal(
+  value: number | string,
+  decimalPlaces = 2
+): string {
+  const numValue = getValidNumber(value);
+  return new Intl.NumberFormat("id-ID", {
+    minimumFractionDigits: decimalPlaces,
+    maximumFractionDigits: decimalPlaces,
+  }).format(numValue);
+}
+
 /**
  * Memformat angka menjadi persentase.
  * Contoh: 4.6 -> "4,6%"
@@ -317,11 +492,7 @@ export function formatPercent(
 ): string {
   const numValue = getValidNumber(value, 0);
 
-  // --- PERBAIKAN LOGIKA ---
-  // Tentukan digit min/max untuk mencegah error.
   const minDigits = options?.minimumFractionDigits ?? 1;
-  // Pastikan maxDigits tidak pernah lebih kecil dari minDigits.
-  // Jika maxDigits tidak diset, gunakan nilai yang lebih besar antara minDigits atau default (2).
   const maxDigits = options?.maximumFractionDigits ?? Math.max(minDigits, 2);
 
   return new Intl.NumberFormat("id-ID", {
@@ -355,366 +526,140 @@ export function parseToNumericString(value: string): string {
   // Hanya simpan angka dari string
   return String(value).replace(/[^\d]/g, "");
 }
+
 ----
-LoanResultDisplay.tsx
-"use client";
+~/workspace/side-hustle/loan-calculator/src/components/ui/result on  main! ⌚ 10:24:17
+$ cat ExportButton.tsx     PaymentBreakdown.tsx ResultRow.tsx        index.ts LoanInfoGrid.tsx     ResultCard.tsx       ResultSection.tsx LoanResultShell.tsx  ResultGrid.tsx       ResultTabs.tsx
+import { FC } from "react";
 
-import { FC, useMemo, ReactNode } from "react";
-import {
-  ResultCard,
-  ResultTabs,
-  ResultSection,
-  ResultRow,
-  ResultGrid,
-  ExportButton,
-} from "@/components/ui/result";
-import { formatCurrency, formatPercent } from "@/utils/formatters";
-
-// --- Tipe Data ---
-interface LoanResultData {
-  mainAssetPrice?: number;
-  downPaymentPercent?: number;
-  downPaymentAmount?: number;
-  loanTerm?: number;
-  interestRate?: number;
-  loanAmount: number;
-  monthlyPrincipal: number;
-  monthlyInterest: number;
-  monthlyPayment: number;
-  totalInterest: number;
-  totalPayment: number;
-  firstPayment: number;
-  insurancePercent?: number;
-  insuranceAmount?: number;
-  provisionPercent?: number;
-  provisionAmount?: number;
-  policyFee?: number;
-  adminFee?: number;
+interface ExportButtonProps {
+  onClick: () => void;
 }
 
-// --- Tipe Konfigurasi ---
-interface LoanResultConfig {
-  onExport: () => void;
-  showOtherFees?: boolean;
-  showTotalPaymentSimple?: boolean;
-  labels?: {
-    mainAssetLabel?: string;
-    downPaymentLabel?: string;
-    loanPrincipalLabel?: string;
-  };
-  showPrincipalCalculation?: boolean;
-  showDownPayment?: boolean;
+export const ExportButton: FC<ExportButtonProps> = ({ onClick }) => (
+  <div className="mt-6 px-6 pb-6">
+    <button
+      onClick={onClick}
+      className="flex items-center justify-center w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5 mr-2"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        />
+      </svg>
+      Export PDF
+    </button>
+  </div>
+);
+// file: components/ui/loan/PaymentBreakdown.tsx
+
+import { FC } from "react";
+import { ResultSection, ResultRow } from "@/components/ui/result";
+import { formatCurrencyDisplay } from "@/utils/formatters";
+
+// Tipe data untuk setiap baris dalam rincian
+export interface BreakdownRow {
+  label: string;
+  value: number;
+  isTotal?: boolean;
 }
 
-interface LoanResultDisplayProps {
-  data: LoanResultData;
-  config: LoanResultConfig;
+interface PaymentBreakdownProps {
+  title: string;
+  rows: BreakdownRow[];
+  variant?: "green" | "purple" | "indigo" | "blue" | "gray";
 }
 
-// --- Komponen Utama ---
-export const LoanResultDisplay: FC<LoanResultDisplayProps> = ({
-  data,
-  config,
+export const PaymentBreakdown: FC<PaymentBreakdownProps> = ({
+  title,
+  rows,
+  variant = "gray",
 }) => {
-  const {
-    onExport,
-    showOtherFees = false,
-    showTotalPaymentSimple = false,
-    labels = {
-      mainAssetLabel: "Harga Aset",
-      downPaymentLabel: "Uang Muka",
-      loanPrincipalLabel: "Pokok Pinjaman",
-    },
-    showPrincipalCalculation = false,
-    showDownPayment = false,
-  } = config;
-
-  const infoGridItems = useMemo(() => {
-    const items: { label: string; value: ReactNode }[] = [];
-
-    if (data.mainAssetPrice) {
-      items.push({
-        label: labels.mainAssetLabel!,
-        value: formatCurrency(data.mainAssetPrice),
-      });
-    }
-
-    if (showDownPayment && data.downPaymentAmount) {
-      items.push({
-        label: labels.downPaymentLabel!,
-        value: (
-          <>
-            {formatCurrency(data.downPaymentAmount)}
-            <span className="text-sm font-normal text-gray-500 ml-1">
-              ({formatPercent(data.downPaymentPercent ?? 0)})
-            </span>
-          </>
-        ),
-      });
-    }
-
-    items.push(
-      {
-        label: "Tenor",
-        value: (
-          <>
-            {data.loanTerm} tahun
-            <span className="text-sm font-normal text-gray-500 ml-1">
-              ({(data.loanTerm ?? 0) * 12} bulan)
-            </span>
-          </>
-        ),
-      },
-      {
-        label: "Bunga (Flat)",
-        value: (
-          <>
-            {/* --- PERBAIKAN 1 --- */}
-            {formatPercent(data.interestRate ?? 0, { minimumFractionDigits: 1 })} / tahun
-            <span className="text-sm font-normal text-gray-500 ml-1">
-              {/* --- PERBAIKAN 2 --- */}
-              ({formatPercent((data.interestRate ?? 0) / 12, { minimumFractionDigits: 3 })} / bulan)
-            </span>
-          </>
-        ),
-      }
-    );
-
-    return items;
-  }, [data, labels, showDownPayment]);
-
-  const infoTabContent = (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">
-        Informasi Pinjaman Anda
-      </h2>
-      <ResultGrid items={infoGridItems} />
-
-      {showPrincipalCalculation && (
-        // --- PERBAIKAN 3 ---
-        <ResultSection title={labels.loanPrincipalLabel!} variant="blue">
-          <ResultRow
-            label={`${labels.mainAssetLabel!}:`}
-            value={formatCurrency(data.mainAssetPrice ?? 0)}
-          />
-          <ResultRow
-            label={`${labels.downPaymentLabel!}:`}
-            value={`- ${formatCurrency(data.downPaymentAmount ?? 0)}`}
-          />
-          <ResultRow
-            label={`${labels.loanPrincipalLabel!}:`}
-            value={formatCurrency(data.loanAmount)}
-            isTotal
-          />
-        </ResultSection>
-      )}
-
-      {showOtherFees && (
-        <ResultSection title="Biaya Lainnya (dibayar di muka)" variant="gray">
-          <ResultRow
-            label="Asuransi:"
-            value={formatCurrency(data.insuranceAmount ?? 0)}
-            info={data.mainAssetPrice ? `${formatPercent(
-              data.insurancePercent ?? 0
-            )}% dari ${labels.mainAssetLabel!}` : undefined}
-          />
-          <ResultRow
-            label="Provisi:"
-            value={formatCurrency(data.provisionAmount ?? 0)}
-            info={`${formatPercent(
-              data.provisionPercent ?? 0,
-              // --- PERBAIKAN 4 ---
-              { minimumFractionDigits: 1 }
-            )}% dari plafon pinjaman`}
-          />
-          <ResultRow
-            label="Biaya Polis Asuransi:"
-            value={formatCurrency(data.policyFee ?? 0)}
-          />
-          <ResultRow
-            label="Biaya Administrasi:"
-            value={formatCurrency(data.adminFee ?? 0)}
-          />
-        </ResultSection>
-      )}
-    </div>
-  );
-
-  const paymentTabContent = (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">
-        Informasi Pembayaran
-      </h2>
-
-      <ResultSection title="Angsuran per Bulan" variant="green">
-        <ResultRow
-          label="Angsuran Pokok:"
-          value={formatCurrency(data.monthlyPrincipal)}
-        />
-        <ResultRow
-          label="Angsuran Bunga:"
-          value={formatCurrency(data.monthlyInterest)}
-        />
-        <ResultRow
-          label="Total Angsuran per Bulan:"
-          value={formatCurrency(data.monthlyPayment)}
-          isTotal
-        />
-      </ResultSection>
-
-      <ResultSection title="Pembayaran Pertama Kali" variant="purple">
-        {showDownPayment && (
-          <ResultRow
-            label={`${labels.downPaymentLabel!}:`}
-            value={formatCurrency(data.downPaymentAmount ?? 0)}
-          />
-        )}
-        <ResultRow
-          label="Angsuran Pertama:"
-          value={formatCurrency(data.monthlyPayment)}
-        />
-        {showOtherFees && (
-          <>
-            <ResultRow label="Asuransi:" value={formatCurrency(data.insuranceAmount ?? 0)} />
-            <ResultRow label="Provisi:" value={formatCurrency(data.provisionAmount ?? 0)} />
-            <ResultRow label="Biaya Polis:" value={formatCurrency(data.policyFee ?? 0)} />
-            <ResultRow label="Administrasi:" value={formatCurrency(data.adminFee ?? 0)} />
-          </>
-        )}
-        <ResultRow
-          label="Total Pembayaran Pertama:"
-          value={formatCurrency(data.firstPayment)}
-          isTotal
-        />
-      </ResultSection>
-
-      {showTotalPaymentSimple && (
-        <ResultSection title="Total Pembayaran" variant="indigo">
-          <ResultRow label="Total Pokok Pinjaman:" value={formatCurrency(data.loanAmount)} />
-          <ResultRow label="Total Bunga:" value={formatCurrency(data.totalInterest)} />
-          <ResultRow label="Total Keseluruhan:" value={formatCurrency(data.totalPayment)} isTotal />
-        </ResultSection>
-      )}
-    </div>
-  );
-
-  const tabs = [
-    { id: "info", label: "Informasi Pinjaman", content: infoTabContent },
-    { id: "payment", label: "Pembayaran", content: paymentTabContent },
-  ];
+  if (rows.length === 0) {
+    return null;
+  }
 
   return (
-    <ResultCard>
-      <ResultTabs tabs={tabs} />
-      <ExportButton onClick={onExport} />
-    </ResultCard>
+    <ResultSection title={title} variant={variant}>
+      {rows.map((row) => (
+        <ResultRow
+          key={row.label}
+          label={row.label}
+          value={formatCurrencyDisplay(row.value)}
+          isTotal={row.isTotal}
+        />
+      ))}
+    </ResultSection>
   );
 };
+import { FC, ReactNode } from "react";
 
-
-----
-
-referensi
-"use client";
-
-import { jsPDF } from "jspdf";
-import "jspdf-autotable";
-// BARU: Impor versi LoanResultDisplay yang sudah di-refactor
-import { LoanResultDisplay } from "@/components/ui/loan/"
-import { formatCurrency, formatPercent } from "@/utils/formatters";
-import { CarLoanBudgetResult as LoanDetailsType } from "@/types/car-loan";
-
-interface CarLoanBudgetResultProps {
-  loanDetails: LoanDetailsType;
+interface ResultRowProps {
+  label: ReactNode;
+  value: ReactNode;
+  isTotal?: boolean;
+  info?: string;
 }
 
-export default function CarLoanBudgetResult({
-  loanDetails,
-}: CarLoanBudgetResultProps) {
-  const handleExportPDF = () => {
-    // ... fungsi export PDF tetap sama ...
-    const doc = new jsPDF();
-    doc.text("Simulasi Kredit Mobil (Berdasarkan Budget)", 14, 20);
-
-    (doc as any).autoTable({
-      startY: 30,
-      head: [["Keterangan", "Nilai"]],
-      body: [
-        ["Harga Mobil OTR", formatCurrency(loanDetails.carPrice)],
-        [
-          "Uang Muka (DP)",
-          `${formatCurrency(loanDetails.downPaymentAmount)} (${formatPercent(
-            loanDetails.downPaymentPercent
-          )}%)`,
-        ],
-        ["Tenor Pinjaman", `${loanDetails.loanTerm} tahun`],
-        ["Plafon Pinjaman", formatCurrency(loanDetails.loanAmount)],
-        ["Angsuran per Bulan", formatCurrency(loanDetails.monthlyPayment)],
-        ["Total Pembayaran", formatCurrency(loanDetails.totalPayment)],
-        ["Pembayaran Pertama", formatCurrency(loanDetails.firstPayment)],
-      ],
-      theme: "grid",
-      headStyles: { fillColor: [66, 133, 244] },
-    });
-
-    doc.save("simulasi-kredit-mobil-budget.pdf");
-  };
+export const ResultRow: FC<ResultRowProps> = ({ label, value, isTotal = false, info }) => {
+  const totalClasses = isTotal ? "font-bold" : "font-medium";
+  const labelClasses = isTotal ? "font-medium" : "";
 
   return (
-    <LoanResultDisplay
-      // BARU: Mapping data spesifik (carPrice) ke data generik (mainAssetPrice)
-      data={{
-        ...loanDetails,
-        mainAssetPrice: loanDetails.carPrice,
-      }}
-      // BARU: Konfigurasi yang lebih detail untuk memberitahu komponen cara render
-      config={{
-        onExport: handleExportPDF,
-        showOtherFees: false, // Sesuai kebutuhan 'budget'
-        showTotalPaymentSimple: true,
-
-        // --- Konfigurasi Tampilan Baru ---
-        showPrincipalCalculation: true, // Tampilkan bagian (Harga - DP = Plafon)
-        showDownPayment: true, // Tampilkan semua yang berhubungan dengan DP
-
-        // --- Konfigurasi Label Baru ---
-        labels: {
-          mainAssetLabel: "Harga Mobil OTR",
-          downPaymentLabel: "Uang Muka (DP)",
-          loanPrincipalLabel: "Plafon Pinjaman Anda",
-        },
-      }}
-    />
+    <div>
+        <div className={`flex justify-between items-center ${isTotal ? "border-t pt-2 mt-2" : ""}`}>
+            <span className={labelClasses}>{label}</span>
+            <span className={totalClasses}>{value}</span>
+        </div>
+        {info && <p className="text-xs text-gray-500 text-left mt-0.5">{info}</p>}
+    </div>
   );
+};
+export * from "./ResultCard";
+export * from "./ResultTabs";
+export * from "./ResultSection";
+export * from "./ResultRow";
+export * from "./ResultGrid";
+export * from "./ExportButton";
+export * from "./LoanInfoGrid";
+export * from "./LoanResultShell";
+export * from "./PaymentBreakdown";
+// file: components/ui/loan/LoanInfoGrid.tsx
+
+import { FC, ReactNode } from "react";
+import { ResultGrid } from "@/components/ui/result";
+
+export interface InfoGridItem {
+  label: string;
+  value: ReactNode; // value bisa berupa string atau JSX
 }
 
+interface LoanInfoGridProps {
+  title: string;
+  items: InfoGridItem[];
+}
 
-Tentu, saya akan membuat serangkaian komponen `Result` yang dapat digunakan kembali (reusable) berdasarkan file-file yang Anda berikan. Ini adalah praktik yang sangat baik untuk menjaga konsistensi UI dan mengurangi duplikasi kode.
+export const LoanInfoGrid: FC<LoanInfoGridProps> = ({ title, items }) => {
+  if (items.length === 0) {
+    return null;
+  }
 
-Struktur yang akan kita buat adalah sebagai berikut:
-
-1.  **Komponen UI Dasar (`components/ui/result/`)**: Ini adalah blok bangunan visual untuk menampilkan hasil.
-    *   `ResultCard.tsx`: Wadah utama dengan bayangan dan sudut membulat.
-    *   `ResultTabs.tsx`: Mengelola navigasi tab ("Informasi Pinjaman", "Pembayaran").
-    *   `ResultSection.tsx`: Kotak berwarna untuk mengelompokkan detail (misalnya, "Plafon Pinjaman").
-    *   `ResultRow.tsx`: Baris untuk menampilkan pasangan label dan nilai.
-    *   `ResultGrid.tsx`: Grid 2x2 untuk info utama (Harga, DP, Tenor, Bunga).
-    *   `ExportButton.tsx`: Tombol untuk fungsionalitas ekspor.
-    *   `index.ts`: Mengekspor semua komponen di atas.
-
-2.  **Komponen Fitur (`features/common/`)**:
-    *   `LoanResultDisplay.tsx`: Komponen cerdas yang menggunakan semua blok bangunan di atas untuk merender hasil kalkulasi pinjaman secara dinamis berdasarkan data yang diberikan.
-
-Mari kita mulai dengan membuat file-file tersebut.
-
----
-
-### 1. Buat Komponen UI Dasar di `components/ui/result/`
-
-#### `components/ui/result/ResultCard.tsx`
-Wadah utama untuk semua konten hasil.
-
-```typescript
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+      <ResultGrid items={items} />
+    </div>
+  );
+};
 import { FC, ReactNode } from "react";
 
 interface ResultCardProps {
@@ -728,12 +673,91 @@ export const ResultCard: FC<ResultCardProps> = ({ children }) => {
     </div>
   );
 };
-```
+import { FC, ReactNode } from "react";
 
-#### `components/ui/result/ResultTabs.tsx`
-Mengelola logika dan tampilan tab.
+const variants = {
+  blue: "bg-blue-50 border-blue-200 text-blue-800",
+  green: "bg-green-50 border-green-200 text-green-800",
+  purple: "bg-purple-50 border-purple-200 text-purple-800",
+  indigo: "bg-indigo-50 border-indigo-200 text-indigo-800",
+  gray: "bg-gray-50 border-gray-200 text-gray-800",
+};
 
-```typescript
+interface ResultSectionProps {
+  title: string;
+  children: ReactNode;
+  variant?: keyof typeof variants;
+}
+
+export const ResultSection: FC<ResultSectionProps> = ({
+  title,
+  children,
+  variant = "gray",
+}) => {
+  return (
+    <div className={`p-4 rounded-lg border ${variants[variant]}`}>
+      <h3 className="font-semibold text-gray-900 mb-3">{title}</h3>
+      <div className="space-y-2">{children}</div>
+    </div>
+  );
+};
+// file: components/ui/loan/LoanResultShell.tsx
+
+"use client";
+
+import { FC, ReactNode } from "react";
+import {
+  ResultCard,
+  ResultTabs,
+  ExportButton,
+} from "@/components/ui/result";
+
+interface LoanResultShellProps {
+  onExport: () => void;
+  infoTabContent: ReactNode;
+  paymentTabContent: ReactNode;
+}
+
+export const LoanResultShell: FC<LoanResultShellProps> = ({
+  onExport,
+  infoTabContent,
+  paymentTabContent,
+}) => {
+  const tabs = [
+    { id: "info", label: "Informasi Pinjaman", content: infoTabContent },
+    { id: "payment", label: "Rincian Pembayaran", content: paymentTabContent },
+  ];
+
+  return (
+    <ResultCard>
+      <ResultTabs tabs={tabs} />
+      <ExportButton onClick={onExport} />
+    </ResultCard>
+  );
+};
+import { FC, ReactNode } from "react";
+
+interface GridItem {
+    label: string;
+    value: ReactNode;
+}
+
+interface ResultGridProps {
+  items: GridItem[];
+}
+
+export const ResultGrid: FC<ResultGridProps> = ({ items }) => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {items.map((item, index) => (
+        <div key={index}>
+          <p className="text-sm text-gray-600">{item.label}:</p>
+          <p className="text-lg font-bold text-gray-900">{item.value}</p>
+        </div>
+      ))}
+    </div>
+  );
+};
 import { FC, useState, ReactNode } from "react";
 
 interface Tab {
@@ -776,12 +800,155 @@ export const ResultTabs: FC<ResultTabsProps> = ({ tabs }) => {
     </div>
   );
 };
-```
 
-#### `components/ui/result/ResultSection.tsx`
-Kotak berwarna untuk setiap bagian detail.
+~/workspace/side-hustle/loan-calculator/src/components/ui/result on  main! ⌚ 10:24:38
+$ clear
 
-```typescript
+~/workspace/side-hustle/loan-calculator/src/components/ui/result on  main! ⌚ 10:24:47
+$ cat ExportButton.tsx     PaymentBreakdown.tsx ResultRow.tsx        index.ts LoanInfoGrid.tsx     ResultCard.tsx       ResultSection.tsx LoanResultShell.tsx  ResultGrid.tsx       ResultTabs.tsx
+import { FC } from "react";
+
+interface ExportButtonProps {
+  onClick: () => void;
+}
+
+export const ExportButton: FC<ExportButtonProps> = ({ onClick }) => (
+  <div className="mt-6 px-6 pb-6">
+    <button
+      onClick={onClick}
+      className="flex items-center justify-center w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5 mr-2"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        />
+      </svg>
+      Export PDF
+    </button>
+  </div>
+);
+// file: components/ui/loan/PaymentBreakdown.tsx
+
+import { FC } from "react";
+import { ResultSection, ResultRow } from "@/components/ui/result";
+import { formatCurrencyDisplay } from "@/utils/formatters";
+
+// Tipe data untuk setiap baris dalam rincian
+export interface BreakdownRow {
+  label: string;
+  value: number;
+  isTotal?: boolean;
+}
+
+interface PaymentBreakdownProps {
+  title: string;
+  rows: BreakdownRow[];
+  variant?: "green" | "purple" | "indigo" | "blue" | "gray";
+}
+
+export const PaymentBreakdown: FC<PaymentBreakdownProps> = ({
+  title,
+  rows,
+  variant = "gray",
+}) => {
+  if (rows.length === 0) {
+    return null;
+  }
+
+  return (
+    <ResultSection title={title} variant={variant}>
+      {rows.map((row) => (
+        <ResultRow
+          key={row.label}
+          label={row.label}
+          value={formatCurrencyDisplay(row.value)}
+          isTotal={row.isTotal}
+        />
+      ))}
+    </ResultSection>
+  );
+};
+import { FC, ReactNode } from "react";
+
+interface ResultRowProps {
+  label: ReactNode;
+  value: ReactNode;
+  isTotal?: boolean;
+  info?: string;
+}
+
+export const ResultRow: FC<ResultRowProps> = ({ label, value, isTotal = false, info }) => {
+  const totalClasses = isTotal ? "font-bold" : "font-medium";
+  const labelClasses = isTotal ? "font-medium" : "";
+
+  return (
+    <div>
+        <div className={`flex justify-between items-center ${isTotal ? "border-t pt-2 mt-2" : ""}`}>
+            <span className={labelClasses}>{label}</span>
+            <span className={totalClasses}>{value}</span>
+        </div>
+        {info && <p className="text-xs text-gray-500 text-left mt-0.5">{info}</p>}
+    </div>
+  );
+};
+export * from "./ResultCard";
+export * from "./ResultTabs";
+export * from "./ResultSection";
+export * from "./ResultRow";
+export * from "./ResultGrid";
+export * from "./ExportButton";
+export * from "./LoanInfoGrid";
+export * from "./LoanResultShell";
+export * from "./PaymentBreakdown";
+// file: components/ui/loan/LoanInfoGrid.tsx
+
+import { FC, ReactNode } from "react";
+import { ResultGrid } from "@/components/ui/result";
+
+export interface InfoGridItem {
+  label: string;
+  value: ReactNode; // value bisa berupa string atau JSX
+}
+
+interface LoanInfoGridProps {
+  title: string;
+  items: InfoGridItem[];
+}
+
+export const LoanInfoGrid: FC<LoanInfoGridProps> = ({ title, items }) => {
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+      <ResultGrid items={items} />
+    </div>
+  );
+};
+import { FC, ReactNode } from "react";
+
+interface ResultCardProps {
+  children: ReactNode;
+}
+
+export const ResultCard: FC<ResultCardProps> = ({ children }) => {
+  return (
+    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      {children}
+    </div>
+  );
+};
 import { FC, ReactNode } from "react";
 
 const variants = {
@@ -810,41 +977,40 @@ export const ResultSection: FC<ResultSectionProps> = ({
     </div>
   );
 };
-```
+// file: components/ui/loan/LoanResultShell.tsx
 
-#### `components/ui/result/ResultRow.tsx`
-Baris detail (label + nilai).
+"use client";
 
-```typescript
 import { FC, ReactNode } from "react";
+import {
+  ResultCard,
+  ResultTabs,
+  ExportButton,
+} from "@/components/ui/result";
 
-interface ResultRowProps {
-  label: ReactNode;
-  value: ReactNode;
-  isTotal?: boolean;
-  info?: string;
+interface LoanResultShellProps {
+  onExport: () => void;
+  infoTabContent: ReactNode;
+  paymentTabContent: ReactNode;
 }
 
-export const ResultRow: FC<ResultRowProps> = ({ label, value, isTotal = false, info }) => {
-  const totalClasses = isTotal ? "font-bold" : "font-medium";
-  const labelClasses = isTotal ? "font-medium" : "";
+export const LoanResultShell: FC<LoanResultShellProps> = ({
+  onExport,
+  infoTabContent,
+  paymentTabContent,
+}) => {
+  const tabs = [
+    { id: "info", label: "Informasi Pinjaman", content: infoTabContent },
+    { id: "payment", label: "Rincian Pembayaran", content: paymentTabContent },
+  ];
 
   return (
-    <div>
-        <div className={`flex justify-between items-center ${isTotal ? "border-t pt-2 mt-2" : ""}`}>
-            <span className={labelClasses}>{label}</span>
-            <span className={totalClasses}>{value}</span>
-        </div>
-        {info && <p className="text-xs text-gray-500 text-left mt-0.5">{info}</p>}
-    </div>
+    <ResultCard>
+      <ResultTabs tabs={tabs} />
+      <ExportButton onClick={onExport} />
+    </ResultCard>
   );
 };
-```
-
-#### `components/ui/result/ResultGrid.tsx`
-Grid untuk informasi utama.
-
-```typescript
 import { FC, ReactNode } from "react";
 
 interface GridItem {
@@ -868,292 +1034,45 @@ export const ResultGrid: FC<ResultGridProps> = ({ items }) => {
     </div>
   );
 };
-```
+import { FC, useState, ReactNode } from "react";
 
-#### `components/ui/result/ExportButton.tsx`
-Tombol ekspor.
-
-```typescript
-import { FC } from "react";
-
-interface ExportButtonProps {
-    onClick: () => void;
+interface Tab {
+  id: string;
+  label: string;
+  content: ReactNode;
 }
 
-export const ExportButton: FC<ExportButtonProps> = ({ onClick }) => (
-    <div className="mt-6 px-6 pb-6">
-        <button
-            onClick={onClick}
-            className="flex items-center justify-center w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Export PDF
-        </button>
-    </div>
-)
-```
-
-#### `components/ui/result/index.ts`
-File barrel untuk ekspor yang mudah.
-
-```typescript
-export * from "./ResultCard";
-export * from "./ResultTabs";
-export * from "./ResultSection";
-export * from "./ResultRow";
-export * from "./ResultGrid";
-export * from "./ExportButton";
-```
-
----
-
-### 2. Buat Komponen `LoanResultDisplay` yang Reusable
-
-Sekarang kita akan membuat komponen `LoanResultDisplay.tsx` di `features/common/` yang menggunakan semua komponen UI di atas. Komponen ini akan menerima `loanDetails` dan `config` untuk menentukan apa yang harus ditampilkan.
-
-#### `features/common/LoanResultDisplay.tsx`
-
-```typescript
-"use client";
-
-import { FC, useMemo } from "react";
-import {
-  ResultCard,
-  ResultTabs,
-  ResultSection,
-  ResultRow,
-  ResultGrid,
-  ExportButton,
-} from "@/components/ui/result";
-import { formatCurrency, formatPercent } from "@/utils/formatters";
-
-// --- Tipe Generik untuk Data Hasil ---
-// Ini dapat mencakup semua kemungkinan field dari semua kalkulator
-interface LoanResultData {
-  // Input & Info Dasar
-  carPrice?: number;
-  downPaymentPercent?: number;
-  downPaymentAmount?: number;
-  loanTerm?: number;
-  interestRate?: number;
-  monthlyInterestRate?: number;
-
-  // Hasil Kalkulasi
-  loanAmount: number;
-  monthlyPrincipal: number;
-  monthlyInterest: number;
-  monthlyPayment: number;
-  totalInterest: number;
-  totalPayment: number;
-  firstPayment: number;
-
-  // Biaya Tambahan (Opsional)
-  insurancePercent?: number;
-  insuranceAmount?: number;
-  provisionPercent?: number;
-  provisionAmount?: number;
-  policyFee?: number;
-  adminFee?: number;
+interface ResultTabsProps {
+  tabs: Tab[];
 }
 
-// --- Tipe untuk Konfigurasi ---
-interface LoanResultConfig {
-  showOtherFees?: boolean;
-  showTotalPaymentSimple?: boolean; // Untuk total pembayaran di tab 'payment'
-  onExport: () => void;
-}
-
-interface LoanResultDisplayProps {
-  data: LoanResultData;
-  config: LoanResultConfig;
-}
-
-// --- Komponen Utama ---
-export const LoanResultDisplay: FC<LoanResultDisplayProps> = ({ data, config }) => {
-  const { onExport, showOtherFees = false, showTotalPaymentSimple = false } = config;
-
-  // Memoize grid items untuk performa
-  const infoGridItems = useMemo(() => [
-    { label: "Harga Mobil OTR", value: formatCurrency(data.carPrice ?? 0) },
-    {
-      label: "Uang Muka (DP)",
-      value: (
-        <>
-          {formatCurrency(data.downPaymentAmount ?? 0)}
-          <span className="text-sm font-normal text-gray-500 ml-1">
-            ({formatPercent(data.downPaymentPercent ?? 0)})
-          </span>
-        </>
-      ),
-    },
-    {
-      label: "Tenor",
-      value: (
-        <>
-          {data.loanTerm} tahun
-          <span className="text-sm font-normal text-gray-500 ml-1">
-            ({(data.loanTerm ?? 0) * 12} bulan)
-          </span>
-        </>
-      ),
-    },
-    {
-      label: "Bunga (Flat)",
-      value: (
-        <>
-          {formatPercent(data.interestRate ?? 0, 1)}% / tahun
-          <span className="text-sm font-normal text-gray-500 ml-1">
-            ({formatPercent((data.interestRate ?? 0) / 12, 3)}% / bulan)
-          </span>
-        </>
-      ),
-    },
-  ], [data]);
-
-  const infoTabContent = (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">Informasi Pinjaman Anda</h2>
-      <ResultGrid items={infoGridItems} />
-
-      <ResultSection title="Plafon Pinjaman Anda" variant="blue">
-        {data.carPrice && (
-            <ResultRow label="Harga Mobil OTR:" value={formatCurrency(data.carPrice)} />
-        )}
-        <ResultRow label="Uang Muka (DP):" value={`- ${formatCurrency(data.downPaymentAmount ?? 0)}`} />
-        <ResultRow label="Plafon Pinjaman Anda:" value={formatCurrency(data.loanAmount)} isTotal />
-      </ResultSection>
-
-      {showOtherFees && (
-        <ResultSection title="Biaya Lainnya (dibayar di muka)" variant="gray">
-          <ResultRow
-            label="Asuransi:"
-            value={formatCurrency(data.insuranceAmount ?? 0)}
-            info={`${formatPercent(data.insurancePercent ?? 0)}% dari harga OTR`}
-          />
-          <ResultRow
-            label="Provisi:"
-            value={formatCurrency(data.provisionAmount ?? 0)}
-            info={`${formatPercent(data.provisionPercent ?? 0, 1)}% dari plafon pinjaman`}
-          />
-          <ResultRow label="Biaya Polis Asuransi:" value={formatCurrency(data.policyFee ?? 0)} />
-          <ResultRow label="Biaya Administrasi:" value={formatCurrency(data.adminFee ?? 0)} />
-        </ResultSection>
-      )}
-    </div>
-  );
-
-  const paymentTabContent = (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900">Informasi Pembayaran</h2>
-
-      <ResultSection title="Angsuran per Bulan" variant="green">
-        <ResultRow label="Angsuran Pokok:" value={formatCurrency(data.monthlyPrincipal)} />
-        <ResultRow label="Angsuran Bunga:" value={formatCurrency(data.monthlyInterest)} />
-        <ResultRow label="Total Angsuran per Bulan:" value={formatCurrency(data.monthlyPayment)} isTotal />
-      </ResultSection>
-
-      <ResultSection title="Pembayaran Pertama Kali" variant="purple">
-        <ResultRow label="Uang Muka (DP):" value={formatCurrency(data.downPaymentAmount ?? 0)} />
-        <ResultRow label="Angsuran Pertama:" value={formatCurrency(data.monthlyPayment)} />
-        {showOtherFees && (
-            <>
-                <ResultRow label="Asuransi:" value={formatCurrency(data.insuranceAmount ?? 0)} />
-                <ResultRow label="Provisi:" value={formatCurrency(data.provisionAmount ?? 0)} />
-                <ResultRow label="Biaya Polis:" value={formatCurrency(data.policyFee ?? 0)} />
-                <ResultRow label="Administrasi:" value={formatCurrency(data.adminFee ?? 0)} />
-            </>
-        )}
-        <ResultRow label="Total Pembayaran Pertama:" value={formatCurrency(data.firstPayment)} isTotal />
-      </ResultSection>
-
-      {showTotalPaymentSimple && (
-          <ResultSection title="Total Pembayaran" variant="indigo">
-              <ResultRow label="Total Pokok Pinjaman:" value={formatCurrency(data.loanAmount)} />
-              <ResultRow label="Total Bunga:" value={formatCurrency(data.totalInterest)} />
-              <ResultRow label="Total Keseluruhan:" value={formatCurrency(data.totalPayment)} isTotal />
-          </ResultSection>
-      )}
-    </div>
-  );
-
-  const tabs = [
-    { id: "info", label: "Informasi Pinjaman", content: infoTabContent },
-    { id: "payment", label: "Pembayaran", content: paymentTabContent },
-  ];
+export const ResultTabs: FC<ResultTabsProps> = ({ tabs }) => {
+  const [activeTabId, setActiveTabId] = useState(tabs[0]?.id);
 
   return (
-    <ResultCard>
-      <ResultTabs tabs={tabs} />
-      <ExportButton onClick={onExport} />
-    </ResultCard>
+    <div>
+      <div className="flex border-b">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            className={`flex-1 py-3 px-4 text-center font-medium transition-colors ${
+              activeTabId === tab.id
+                ? "bg-blue-50 text-blue-600 border-b-2 border-blue-600"
+                : "text-gray-600 hover:bg-gray-50"
+            }`}
+            onClick={() => setActiveTabId(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      <div className="p-6">
+        {tabs.map((tab) => (
+          <div key={tab.id} className={activeTabId === tab.id ? "block" : "hidden"}>
+            {tab.content}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
-```
-
-### 3. Cara Menggunakan Komponen Reusable
-
-Sekarang, file-file seperti `CarLoanSimpleResult.tsx` menjadi sangat sederhana. Mereka hanya perlu mengimpor `LoanResultDisplay`, menyiapkan data dan konfigurasi, lalu merendernya.
-
-#### Contoh: `features/car-loan/simple/CarLoanSimpleResult.tsx` (Setelah Refactor)
-
-```typescript
-"use client";
-
-import { jsPDF } from "jspdf";
-import "jspdf-autotable";
-import { LoanResultDisplay } from "@/features/common/LoanResultDisplay";
-import { formatCurrency, formatPercent } from "@/utils/formatters";
-
-// Tipe data spesifik untuk hasil kalkulator ini
-interface CarLoanSimpleResultData {
-    carPrice: number;
-    downPaymentPercent: number;
-    downPaymentAmount: number;
-    loanTerm: number;
-    interestRate: number;
-    monthlyInterestRate: number;
-    loanAmount: number;
-    monthlyPayment: number;
-    monthlyPrincipal: number;
-    monthlyInterest: number;
-    totalPayment: number;
-    totalInterest: number;
-    firstPayment: number;
-}
-
-interface CarLoanSimpleResultProps {
-  loanDetails: CarLoanSimpleResultData;
-}
-
-export default function CarLoanSimpleResult({ loanDetails }: CarLoanSimpleResultProps) {
-
-  const handleExportPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Simulasi Kredit Mobil (Simple)", 14, 20);
-    (doc as any).autoTable({
-      startY: 30,
-      head: [['Keterangan', 'Nilai']],
-      body: [
-        ['Harga Mobil', formatCurrency(loanDetails.carPrice)],
-        ['Uang Muka', `${formatCurrency(loanDetails.downPaymentAmount)} (${formatPercent(loanDetails.downPaymentPercent)}%)`],
-        ['Plafon Pinjaman', formatCurrency(loanDetails.loanAmount)],
-        ['Angsuran / Bulan', formatCurrency(loanDetails.monthlyPayment)],
-        ['Total Pembayaran', formatCurrency(loanDetails.totalPayment)],
-      ],
-    });
-    doc.save('simulasi-kredit-mobil-simple.pdf');
-  };
-
-  return (
-    <LoanResultDisplay
-      data={loanDetails}
-      config={{
-        showOtherFees: false, // Kalkulator simple tidak punya biaya lain
-        showTotalPaymentSimple: true, // Tampilkan total pembayaran
-        onExport: handleExportPDF,
-      }}
-    />
-  );
-}
