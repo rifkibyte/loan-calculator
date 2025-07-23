@@ -1,79 +1,81 @@
+// src/app/credit/annuity/page.tsx
 "use client";
 
-import { useState } from "react";
 import {
   CreditAnnuityForm,
   CreditAnnuityResult,
   CreditAnnuitySchedule,
 } from "@/features/credit/annuity";
-import { Header, Footer } from "@/components/layout/";
 import { calculateAnnuityLoan } from "@/utils/calculators/credit/annuityCalculator";
-import { AmortizationItem } from "@/types/common";
 import { CreditAnnuityResult as LoanDetails } from "@/types/credit-annuity";
+import { AmortizationItem } from "@/types/common";
 
-// Interface for form data
-interface FormData {
+// Impor untuk layout dan komponen reusable
+import { Header, Footer } from "@/components/layout";
+import { LoanCalculatorController } from "@/components/ui/loan";
+
+// Tipe untuk input form
+interface CreditAnnuityFormInput {
   loanAmount: number;
   loanTermMonths: number;
   annualInterestRate: number;
 }
 
-export default function CreditAnnuityPage() {
-  const [loanDetails, setLoanDetails] = useState<LoanDetails | null>(null);
-  const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
-  const [showResults, setShowResults] = useState<boolean>(false);
+// Tipe untuk hasil kalkulasi yang akan disimpan di state
+interface CalculationResult extends LoanDetails {
+  amortizationSchedule: AmortizationItem[];
+}
 
-  // Handle form calculation
-  const handleCalculate = (formData: FormData): void => {
-    const calculationResult = calculateAnnuityLoan(
-      formData.loanAmount,
-      formData.loanTermMonths,
-      formData.annualInterestRate
+export default function CreditAnnuityPage() {
+  // 1. Logika kalkulasi diekstrak ke dalam fungsi murni.
+  // Fungsi ini menerima data dari form dan mengembalikan struktur data yang dibutuhkan.
+  const performAnnuityCalculation = (
+    formData: CreditAnnuityFormInput
+  ): CalculationResult => {
+    const { loanAmount, loanTermMonths, annualInterestRate } = formData;
+    const result = calculateAnnuityLoan(
+      loanAmount,
+      loanTermMonths,
+      annualInterestRate
     );
 
-    setLoanDetails({
-      loanAmount: calculationResult.loanAmount,
-      loanTermMonths: calculationResult.loanTermMonths,
-      loanTermYears: calculationResult.loanTermYears,
-      annualInterestRate: calculationResult.annualInterestRate,
-      monthlyInterestRate: calculationResult.monthlyInterestRate,
-      monthlyPayment: calculationResult.monthlyPayment,
-      monthlyPrincipal: 0, // Will be calculated dynamically in schedule
-      monthlyInterest: 0, // Will be calculated dynamically in schedule
-      totalPayment: calculationResult.totalPayment,
-      totalInterest: calculationResult.totalInterest,
-      amortizationSchedule: calculationResult.amortizationSchedule,
-    });
-
-    setSchedule(calculationResult.amortizationSchedule);
-    setShowResults(true);
+    // Mengembalikan objek yang lengkap untuk state
+    return {
+      loanAmount: result.loanAmount,
+      loanTermMonths: result.loanTermMonths,
+      loanTermYears: result.loanTermYears,
+      annualInterestRate: result.annualInterestRate,
+      monthlyInterestRate: result.monthlyInterestRate,
+      monthlyPayment: result.monthlyPayment,
+      totalPayment: result.totalPayment,
+      totalInterest: result.totalInterest,
+      amortizationSchedule: result.amortizationSchedule,
+      // Properti dummy untuk memenuhi tipe LoanDetails, karena ini dihitung per baris di jadwal
+      monthlyPrincipal: 0,
+      monthlyInterest: 0,
+    };
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-
-      <div className="container mx-auto py-8 px-4 flex-grow">
-        <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
-          Kalkulator Kredit - Bunga Anuitas
-        </h1>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
-            <CreditAnnuityForm onCalculate={handleCalculate} />
-          </div>
-
-          <div className="lg:col-span-2">
-            {showResults && loanDetails && (
-              <div className="space-y-6">
-                <CreditAnnuityResult loanDetails={loanDetails} />
-                <CreditAnnuitySchedule schedule={schedule} />
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
+      <main className="container mx-auto py-10 px-4 flex-grow">
+        {/* 2. Gunakan controller reusable. Semua state dan layout ada di dalamnya. */}
+        <LoanCalculatorController
+          pageTitle="Kalkulator Kredit - Bunga Anuitas"
+          pageDescription="Hitung angsuran bulanan, total pembayaran, dan lihat jadwal amortisasi untuk pinjaman anuitas Anda."
+          FormComponent={CreditAnnuityForm}
+          performCalculation={performAnnuityCalculation}
+        >
+          {/* 3. Gunakan pola "render prop" untuk mendefinisikan bagaimana hasil ditampilkan */}
+          {(loanDetails) => (
+            <>
+              <CreditAnnuityResult loanDetails={loanDetails} />
+              <CreditAnnuitySchedule schedule={loanDetails.amortizationSchedule} />
+            </>
+          )}
+        </LoanCalculatorController>
+      </main>
       <Footer />
     </div>
   );
