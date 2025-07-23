@@ -1,86 +1,188 @@
 Refactor code ini ikuti referensi
+HouesPriceCalculator
+import { AmortizationItem } from "@/types/common";
+
+interface CalculationResult {
+  loanAmount: number;
+  monthlyPayment: number;
+  totalPayment: number;
+  totalInterest: number;
+  minimumIncome30: number;
+  minimumIncome33: number;
+  minimumIncome40: number;
+  provisionAmount: number;
+  adminAmount: number;
+  amortizationSchedule: AmortizationItem[];
+}
+
+/**
+ * Calculate mortgage details based on house price
+ * @param housePrice - House price
+ * @param downPaymentPercent - Down payment percentage
+ * @param loanTermYears - Loan term in years
+ * @param annualInterestRate - Annual interest rate percentage
+ * @param calculationMethod - Calculation method (anuitas or flat)
+ * @returns Calculation result with all mortgage details
+ */
+export function calculateMortgage(
+  housePrice: number,
+  downPaymentPercent: number,
+  loanTermYears: number,
+  annualInterestRate: number,
+  calculationMethod: 'anuitas' | 'flat' = 'anuitas'
+): CalculationResult {
+  // Calculate basic mortgage parameters
+  const downPaymentAmount: number = housePrice * (downPaymentPercent / 100);
+  const loanAmount: number = housePrice - downPaymentAmount;
+  const loanTermMonths: number = loanTermYears * 12;
+  const monthlyInterestRate: number = annualInterestRate / 100 / 12;
+  
+  // Calculate bank fees
+  const provisionPercent: number = 1; // 1% dari plafon
+  const adminPercent: number = 0.1; // 0.1% dari plafon
+  const provisionAmount: number = loanAmount * (provisionPercent / 100);
+  const adminAmount: number = loanAmount * (adminPercent / 100);
+  
+  let monthlyPayment: number;
+  let totalPayment: number;
+  let totalInterest: number;
+  let amortizationSchedule: AmortizationItem[] = [];
+  
+  if (calculationMethod === 'anuitas') {
+    // Anuitas calculation
+    if (monthlyInterestRate === 0) {
+      monthlyPayment = loanAmount / loanTermMonths;
+    } else {
+      const factor = Math.pow(1 + monthlyInterestRate, loanTermMonths);
+      monthlyPayment = loanAmount * (monthlyInterestRate * factor) / (factor - 1);
+    }
+    
+    totalPayment = monthlyPayment * loanTermMonths;
+    totalInterest = totalPayment - loanAmount;
+    
+    // Generate anuitas amortization schedule
+    let remainingBalance = loanAmount;
+    
+    for (let period = 1; period <= loanTermMonths; period++) {
+      const interestPayment = remainingBalance * monthlyInterestRate;
+      const principalPayment = monthlyPayment - interestPayment;
+      remainingBalance -= principalPayment;
+      
+      // Ensure the last payment eliminates any rounding errors
+      const adjustedRemainingBalance = period === loanTermMonths ? 0 : remainingBalance;
+      
+      amortizationSchedule.push({
+        period,
+        payment: monthlyPayment,
+        principal: principalPayment,
+        interest: interestPayment,
+        remainingBalance: Math.max(0, adjustedRemainingBalance)
+      });
+    }
+  } else {
+    // Flat rate calculation
+    const monthlyPrincipal = loanAmount / loanTermMonths;
+    const monthlyInterest = loanAmount * (annualInterestRate / 100) / 12;
+    monthlyPayment = monthlyPrincipal + monthlyInterest;
+    
+    totalPayment = monthlyPayment * loanTermMonths;
+    totalInterest = monthlyInterest * loanTermMonths;
+    
+    // Generate flat rate amortization schedule
+    let remainingBalance = loanAmount;
+    
+    for (let period = 1; period <= loanTermMonths; period++) {
+      remainingBalance -= monthlyPrincipal;
+      
+      const adjustedRemainingBalance = period === loanTermMonths ? 0 : remainingBalance;
+      
+      amortizationSchedule.push({
+        period,
+        payment: monthlyPayment,
+        principal: monthlyPrincipal,
+        interest: monthlyInterest,
+        remainingBalance: Math.max(0, adjustedRemainingBalance)
+      });
+    }
+  }
+  
+  // Calculate minimum income requirements
+  const minimumIncome30 = monthlyPayment / 0.30; // 30% dari penghasilan
+  const minimumIncome33 = monthlyPayment / (1/3); // 1/3 dari penghasilan
+  const minimumIncome40 = monthlyPayment / 0.40; // 40% dari penghasilan
+  
+  return {
+    loanAmount,
+    monthlyPayment,
+    totalPayment,
+    totalInterest,
+    minimumIncome30,
+    minimumIncome33,
+    minimumIncome40,
+    provisionAmount,
+    adminAmount,
+    amortizationSchedule
+  };
+}
 
 
-// src/app/(calculators)/mortgage/budget/page.tsx
 "use client";
 
 import { useState } from "react";
 import {
-  MortgageBudgetForm,
-  MortgageBudgetResult,
-  MortgageBudgetSchedule,
-} from "@/features/mortgage/budget";
+  MortgageHousePriceForm,
+  MortgageHousePriceResult,
+  MortgageHousePriceSchedule,
+} from "@/features/mortgage/house-price";
 import { Header, Footer } from "@/components/layout/";
 
-import { calculateMortgageBudget } from "@/utils/calculators/mortgage/budgetCalculator";
+import { calculateMortgage } from "@/utils/calculators/mortgage/housePriceCalculator";
 import { AmortizationItem } from "@/types/common";
-import { MortgageBudgetResult as BudgetDetails } from "@/types/mortgage-budget";
+import {
+  MortgageHousePriceResult as MortgageDetails,
+  MortgageHousePriceFormData,
+} from "@/types/mortgage-house-price";
 
-interface FormData {
-  monthlyBudget: number;
-  downPaymentPercent: number;
-  loanTerm: number;
-  annualInterestRate: number;
-  installmentPercent: number;
-  provisionPercent: number;
-  adminPercent: number;
-}
-
-export default function MortgageBudgetPage() {
-  const [budgetDetails, setBudgetDetails] = useState<BudgetDetails | null>(
-    null
-  );
+export default function MortgageHousePricePage() {
+  const [mortgageDetails, setMortgageDetails] =
+    useState<MortgageDetails | null>(null);
   const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
   const [showResults, setShowResults] = useState<boolean>(false);
 
-  const handleCalculate = (formData: FormData): void => {
-    const calculationResult = calculateMortgageBudget(
-      formData.monthlyBudget,
+  const handleCalculate = (formData: MortgageHousePriceFormData): void => {
+    const calculationResult = calculateMortgage(
+      formData.housePrice,
       formData.downPaymentPercent,
       formData.loanTerm,
       formData.annualInterestRate,
-      formData.installmentPercent,
-      formData.provisionPercent,
-      formData.adminPercent
+      formData.calculationMethod
     );
 
-    setBudgetDetails({
-      // Basic loan info
-      housePrice: calculationResult.maxHousePrice,
+    const downPaymentAmount =
+      formData.housePrice * (formData.downPaymentPercent / 100);
+    const monthlyInterestRate = formData.annualInterestRate / 12;
+
+    setMortgageDetails({
+      housePrice: formData.housePrice,
       downPaymentPercent: formData.downPaymentPercent,
-      downPaymentAmount: calculationResult.minDownPayment,
-      loanAmount: calculationResult.maxLoanAmount,
+      downPaymentAmount: downPaymentAmount,
       loanTerm: formData.loanTerm,
       loanTermMonths: formData.loanTerm * 12,
       annualInterestRate: formData.annualInterestRate,
-      monthlyInterestRate: formData.annualInterestRate / 12,
-      calculationMethod: "Anuitas",
-
-      // Budget specific fields
-      monthlyBudget: formData.monthlyBudget,
-      maxHousePrice: calculationResult.maxHousePrice,
-      minDownPayment: calculationResult.minDownPayment,
-      maxLoanAmount: calculationResult.maxLoanAmount,
-      maxMonthlyPayment: calculationResult.maxMonthlyPayment,
-      minMonthlyIncome: calculationResult.minMonthlyIncome,
-      provisionPercent: formData.provisionPercent,
+      monthlyInterestRate: monthlyInterestRate,
+      loanAmount: calculationResult.loanAmount,
+      monthlyPayment: calculationResult.monthlyPayment,
+      totalPayment: calculationResult.totalPayment,
+      totalInterest: calculationResult.totalInterest,
+      calculationMethod: formData.calculationMethod,
+      minimumIncome30: calculationResult.minimumIncome30,
+      minimumIncome33: calculationResult.minimumIncome33,
+      minimumIncome40: calculationResult.minimumIncome40,
+      provisionPercent: 1,
       provisionAmount: calculationResult.provisionAmount,
-      adminPercent: formData.adminPercent,
+      adminPercent: 0.1,
       adminAmount: calculationResult.adminAmount,
       amortizationSchedule: calculationResult.amortizationSchedule,
-
-      // Calculated totals
-      monthlyPayment: calculationResult.maxMonthlyPayment,
-      totalPayment:
-        calculationResult.maxMonthlyPayment * formData.loanTerm * 12,
-      totalInterest:
-        calculationResult.maxMonthlyPayment * formData.loanTerm * 12 -
-        calculationResult.maxLoanAmount,
-      firstPayment:
-        calculationResult.minDownPayment +
-        calculationResult.maxMonthlyPayment +
-        calculationResult.provisionAmount +
-        calculationResult.adminAmount,
     });
 
     setSchedule(calculationResult.amortizationSchedule);
@@ -93,19 +195,19 @@ export default function MortgageBudgetPage() {
 
       <div className="container mx-auto py-8 px-4 flex-grow">
         <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
-          Simulasi KPR - Berdasar Budget
+          Simulasi KPR - Berdasar Harga Rumah
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
-            <MortgageBudgetForm onCalculate={handleCalculate} />
+            <MortgageHousePriceForm onCalculate={handleCalculate} />
           </div>
 
           <div className="lg:col-span-2">
-            {showResults && budgetDetails && (
+            {showResults && mortgageDetails && (
               <div className="space-y-6">
-                <MortgageBudgetResult budgetDetails={budgetDetails} />
-                <MortgageBudgetSchedule schedule={schedule} />
+                <MortgageHousePriceResult mortgageDetails={mortgageDetails} />
+                <MortgageHousePriceSchedule schedule={schedule} />
               </div>
             )}
           </div>
@@ -116,7 +218,6 @@ export default function MortgageBudgetPage() {
     </div>
   );
 }
-
 
 
 Referensi

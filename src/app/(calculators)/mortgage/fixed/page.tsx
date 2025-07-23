@@ -1,71 +1,62 @@
 "use client";
 
-import { useState } from "react";
+// Impor untuk fitur spesifik (Mortgage Fixed)
 import {
   MortgageFixedForm,
   MortgageFixedResult,
   MortgageFixedSchedule,
 } from "@/features/mortgage/fixed";
-import { Header, Footer } from "@/components/layout/";
-
 import { calculateMortgageFixed } from "@/utils/calculators/mortgage/fixedCalculator";
-import { AmortizationItem } from "@/types/common";
 import {
   MortgageFixedResult as FixedLoanDetails,
   MortgageFixedFormData,
 } from "@/types/mortgage-fixed";
 
-export default function MortgageFixedPage() {
-  const [loanDetails, setLoanDetails] = useState<FixedLoanDetails | null>(null);
-  const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
-  const [showResults, setShowResults] = useState<boolean>(false);
+// Impor untuk layout dan komponen controller reusable
+import { Header, Footer } from "@/components/layout";
+import { LoanCalculatorController } from "@/components/ui/loan";
 
-  // Handle form calculation
-  const handleCalculate = (formData: MortgageFixedFormData): void => {
+export default function MortgageFixedPage() {
+  // 1. Logika kalkulasi diekstrak ke dalam fungsi murni.
+  // Fungsi ini akan diteruskan sebagai prop ke controller.
+  const performMortgageCalculation = (
+    formData: MortgageFixedFormData
+  ): FixedLoanDetails => {
+    const { loanAmount, loanTerm, yearlyRates, calculationMethod } = formData;
+    
+    // Fungsi kalkulator sudah mengembalikan objek dengan struktur yang kita butuhkan.
     const calculationResult = calculateMortgageFixed(
-      formData.loanAmount,
-      formData.loanTerm,
-      formData.yearlyRates,
-      formData.calculationMethod
+      loanAmount,
+      loanTerm,
+      yearlyRates,
+      calculationMethod
     );
 
-    setLoanDetails(calculationResult);
-    setSchedule(calculationResult.amortizationSchedule);
-    setShowResults(true);
+    return calculationResult;
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
 
-      <div className="container mx-auto py-8 px-4 flex-grow">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-blue-600 mb-2">
-            Simulasi KPR Bunga Fixed
-          </h1>
-          <p className="text-gray-600">
-            Simulasi kredit rumah dengan bunga fix selama beberapa tahun
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
-            <MortgageFixedForm onCalculate={handleCalculate} />
-          </div>
-
-          <div className="lg:col-span-2">
-            {showResults && loanDetails && (
-              <div className="space-y-6">
-                <MortgageFixedResult loanDetails={loanDetails} />
-                <MortgageFixedSchedule
-                  schedule={schedule}
-                  yearlyRates={loanDetails.yearlyRates}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      <main className="container mx-auto py-10 px-4 flex-grow">
+        {/* 2. Gunakan controller reusable. Semua state dan layout utama ada di dalamnya. */}
+        <LoanCalculatorController
+          pageTitle="Simulasi KPR Bunga Fixed"
+          pageDescription="Simulasi kredit rumah dengan bunga fix selama beberapa tahun"
+          FormComponent={MortgageFixedForm}
+          performCalculation={performMortgageCalculation}
+        >
+          {/* 3. Gunakan pola "render prop" untuk mendefinisikan bagaimana hasil ditampilkan. */}
+          {(loanDetails) => (
+            <>
+              <MortgageFixedResult loanDetails={loanDetails} />
+              {/* Berdasarkan refactor sebelumnya, MortgageFixedSchedule hanya butuh schedule */}
+              <MortgageFixedSchedule schedule={loanDetails.amortizationSchedule} />
+            </>
+          )}
+        </LoanCalculatorController>
+      </main>
 
       <Footer />
     </div>

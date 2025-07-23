@@ -1,92 +1,123 @@
+// file: src/features/mortgage/house-price/MortgageHousePriceForm.tsx (Perbaikan Final)
 "use client";
 
-import { useState } from "react";
+import { useState, FormEvent } from "react";
+import { MortgageHousePriceFormData } from "@/types/mortgage-house-price";
+
+// 1. Impor komponen-komponen DARI DIREKTORI ANDA
 import {
-  MortgageHousePriceForm,
-  MortgageHousePriceResult,
-  MortgageHousePriceSchedule,
-} from "@/features/mortgage/house-price";
-import { Header, Footer } from "@/components/layout/";
+  CurrencyInput,
+  PercentInput,
+  YearInput,
+  Button,
+} from "@/components/ui/form";
 
-import { calculateMortgage } from "@/utils/calculators/mortgage/housePriceCalculator";
-import { AmortizationItem } from "@/types/common";
-import {
-  MortgageHousePriceResult as MortgageDetails,
-  MortgageHousePriceFormData,
-} from "@/types/mortgage-house-price";
+// 2. Definisikan props yang benar (ini tidak berubah dan sudah tepat)
+interface MortgageHousePriceFormProps {
+  onCalculate: (data: MortgageHousePriceFormData) => void;
+}
 
-export default function MortgageHousePricePage() {
-  const [mortgageDetails, setMortgageDetails] =
-    useState<MortgageDetails | null>(null);
-  const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
-  const [showResults, setShowResults] = useState<boolean>(false);
+export function MortgageHousePriceForm({
+  onCalculate,
+}: MortgageHousePriceFormProps) {
+  // 3. Gunakan React State standar untuk mengelola data form, bukan react-hook-form
+  const [formData, setFormData] = useState<MortgageHousePriceFormData>({
+    housePrice: 500000000,
+    downPaymentPercent: 20,
+    loanTerm: 15,
+    annualInterestRate: 5.5,
+    calculationMethod: "anuitas",
+  });
 
-  const handleCalculate = (formData: MortgageHousePriceFormData): void => {
-    const calculationResult = calculateMortgage(
-      formData.housePrice,
-      formData.downPaymentPercent,
-      formData.loanTerm,
-      formData.annualInterestRate,
-      formData.calculationMethod
-    );
+  // Handler untuk memperbarui state
+  const handleValueChange = (
+    field: keyof MortgageHousePriceFormData,
+    value: string | number
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: typeof prev[field] === "number" ? Number(value) : value,
+    }));
+  };
 
-    const downPaymentAmount =
-      formData.housePrice * (formData.downPaymentPercent / 100);
-    const monthlyInterestRate = formData.annualInterestRate / 12;
-
-    setMortgageDetails({
-      housePrice: formData.housePrice,
-      downPaymentPercent: formData.downPaymentPercent,
-      downPaymentAmount: downPaymentAmount,
-      loanTerm: formData.loanTerm,
-      loanTermMonths: formData.loanTerm * 12,
-      annualInterestRate: formData.annualInterestRate,
-      monthlyInterestRate: monthlyInterestRate,
-      loanAmount: calculationResult.loanAmount,
-      monthlyPayment: calculationResult.monthlyPayment,
-      totalPayment: calculationResult.totalPayment,
-      totalInterest: calculationResult.totalInterest,
-      calculationMethod: formData.calculationMethod,
-      minimumIncome30: calculationResult.minimumIncome30,
-      minimumIncome33: calculationResult.minimumIncome33,
-      minimumIncome40: calculationResult.minimumIncome40,
-      provisionPercent: 1,
-      provisionAmount: calculationResult.provisionAmount,
-      adminPercent: 0.1,
-      adminAmount: calculationResult.adminAmount,
-      amortizationSchedule: calculationResult.amortizationSchedule,
-    });
-
-    setSchedule(calculationResult.amortizationSchedule);
-    setShowResults(true);
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault(); // Mencegah reload halaman
+    onCalculate(formData); // Mengirim data ke controller
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
+    // 4. Gunakan tag <form> biasa dan panggil handleSubmit saat di-submit
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* 
+        Gunakan komponen-komponen custom Anda.
+        Perhatikan `onValueChange` untuk CurrencyInput dan `onChange` untuk yang lain,
+        disesuaikan dengan bagaimana Anda membuat komponen tersebut.
+      */}
+      <CurrencyInput
+        id="housePrice"
+        name="housePrice"
+        label="Harga Rumah"
+        value={String(formData.housePrice)}
+        onValueChange={(value) => handleValueChange("housePrice", value)}
+        placeholder="Contoh: 500000000"
+      />
 
-      <div className="container mx-auto py-8 px-4 flex-grow">
-        <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
-          Simulasi KPR - Berdasar Harga Rumah
-        </h1>
+      <PercentInput
+        id="downPaymentPercent"
+        name="downPaymentPercent"
+        label="Uang Muka (DP)"
+        value={formData.downPaymentPercent}
+        onChange={(e) =>
+          handleValueChange("downPaymentPercent", e.target.value)
+        }
+        placeholder="Contoh: 20"
+      />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
-            <MortgageHousePriceForm onCalculate={handleCalculate} />
-          </div>
+      <YearInput
+        id="loanTerm"
+        name="loanTerm"
+        label="Jangka Waktu Pinjaman"
+        value={formData.loanTerm}
+        onChange={(e) => handleValueChange("loanTerm", e.target.value)}
+        placeholder="Contoh: 15"
+      />
 
-          <div className="lg:col-span-2">
-            {showResults && mortgageDetails && (
-              <div className="space-y-6">
-                <MortgageHousePriceResult mortgageDetails={mortgageDetails} />
-                <MortgageHousePriceSchedule schedule={schedule} />
-              </div>
-            )}
-          </div>
-        </div>
+      <PercentInput
+        id="annualInterestRate"
+        name="annualInterestRate"
+        label="Suku Bunga Tahunan"
+        value={formData.annualInterestRate}
+        onChange={(e) =>
+          handleValueChange("annualInterestRate", e.target.value)
+        }
+        placeholder="Contoh: 5.5"
+      />
+
+      {/* Karena Anda tidak punya komponen Select, kita gunakan select HTML standar */}
+      <div>
+        <label
+          htmlFor="calculationMethod"
+          className="block text-sm font-medium text-gray-900 mb-1"
+        >
+          Metode Perhitungan
+        </label>
+        <select
+          id="calculationMethod"
+          name="calculationMethod"
+          value={formData.calculationMethod}
+          onChange={(e) =>
+            handleValueChange("calculationMethod", e.target.value)
+          }
+          className="w-full py-2 pl-3 pr-10 text-gray-900 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 border-gray-300"
+        >
+          <option value="anuitas">Anuitas</option>
+          <option value="flat">Flat</option>
+        </select>
       </div>
 
-      <Footer />
-    </div>
+      <Button type="submit" fullWidth>
+        Hitung Simulasi
+      </Button>
+    </form>
   );
 }

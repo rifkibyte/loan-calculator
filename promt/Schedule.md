@@ -1,16 +1,15 @@
 Refactor code ini supaya bisa menggunakan <LoanSchedule />, supaya seperti di refernsi
-
-code saya:
 "use client";
 
-import  { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
+import { formatCurrencyDisplay } from "@/utils/formatters";
 import { AmortizationItem } from "@/types/common";
 
 interface MortgageScheduleProps {
   schedule: AmortizationItem[];
 }
 
-export default function MortgageCompleteSchedule({
+export default function MortgageHousePriceSchedule({
   schedule,
 }: MortgageScheduleProps) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -20,7 +19,6 @@ export default function MortgageCompleteSchedule({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = schedule.slice(startIndex, startIndex + itemsPerPage);
 
-  // Calculate totals
   const { totalInterest, totalPrincipal, totalPayment } = useMemo(() => {
     return schedule.reduce(
       (acc, item) => ({
@@ -36,40 +34,20 @@ export default function MortgageCompleteSchedule({
     );
   }, [schedule]);
 
-  const formatCurrency = (value: number): string => {
-    if (isNaN(value) || !isFinite(value)) {
-      return "Rp 0,00";
-    }
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
-
   const goToPage = (page: number) => {
     setCurrentPage(page);
   };
 
-  // Add row 0 (initial state) to display
-  const displayItems = [
-    {
-      period: 0,
-      payment: 0,
-      principal: 0,
-      interest: 0,
-      remainingBalance:
-        schedule.length > 0
-          ? schedule[0].remainingBalance + schedule[0].principal
-          : 0,
-    },
-    ...currentItems,
-  ];
+  const safeFormatCurrency = (value: number) => {
+    if (isNaN(value) || !isFinite(value)) {
+      return "Rp 0";
+    }
+    return formatCurrencyDisplay(value);
+  };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">
         Tabel Angsuran
       </h2>
 
@@ -77,64 +55,66 @@ export default function MortgageCompleteSchedule({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Bulan
               </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Angsuran Bunga
               </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Angsuran Pokok
               </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Total Angsuran
               </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Sisa pinjaman
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Sisa Pinjaman
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {displayItems.map((item, index) => (
+            {/* Row 0 - Initial Balance */}
+            <tr className="bg-blue-50">
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                0
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                0
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                0
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                0
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                {schedule.length > 0
+                  ? safeFormatCurrency(
+                      schedule[0].remainingBalance + schedule[0].principal
+                    )
+                  : "Rp 0"}
+              </td>
+            </tr>
+
+            {currentItems.map((item) => (
               <tr
                 key={item.period}
-                className={
-                  item.period === 0
-                    ? "bg-blue-50 font-medium"
-                    : item.period % 2 === 0
-                    ? "bg-gray-50"
-                    : ""
-                }
+                className={item.period % 2 === 0 ? "bg-gray-50" : ""}
               >
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                   {item.period}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatCurrency(item.interest)}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {safeFormatCurrency(item.interest)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatCurrency(item.principal)}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {safeFormatCurrency(item.principal)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
-                  {formatCurrency(item.payment)}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                  {safeFormatCurrency(item.payment)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatCurrency(item.remainingBalance)}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {safeFormatCurrency(item.remainingBalance)}
                 </td>
               </tr>
             ))}
@@ -142,6 +122,7 @@ export default function MortgageCompleteSchedule({
         </table>
       </div>
 
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6 mt-4">
           <div className="flex flex-1 justify-between sm:hidden">
@@ -180,17 +161,14 @@ export default function MortgageCompleteSchedule({
               </p>
             </div>
             <div>
-              <nav
-                className="isolate inline-flex -space-x-px rounded-md shadow-sm"
-                aria-label="Pagination"
-              >
+              <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm">
                 <button
                   onClick={() => goToPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
                   className={`relative inline-flex items-center rounded-l-md px-2 py-2 ${
                     currentPage === 1
                       ? "text-gray-300"
-                      : "text-gray-400 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                      : "text-gray-400 hover:bg-gray-50"
                   }`}
                 >
                   <span className="sr-only">Previous</span>
@@ -198,7 +176,6 @@ export default function MortgageCompleteSchedule({
                     className="h-5 w-5"
                     viewBox="0 0 20 20"
                     fill="currentColor"
-                    aria-hidden="true"
                   >
                     <path
                       fillRule="evenodd"
@@ -226,8 +203,8 @@ export default function MortgageCompleteSchedule({
                       onClick={() => goToPage(pageNum)}
                       className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
                         currentPage === pageNum
-                          ? "z-10 bg-blue-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                          : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                          ? "z-10 bg-blue-600 text-white"
+                          : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                       }`}
                     >
                       {pageNum}
@@ -243,7 +220,7 @@ export default function MortgageCompleteSchedule({
                   className={`relative inline-flex items-center rounded-r-md px-2 py-2 ${
                     currentPage === totalPages
                       ? "text-gray-300"
-                      : "text-gray-400 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                      : "text-gray-400 hover:bg-gray-50"
                   }`}
                 >
                   <span className="sr-only">Next</span>
@@ -251,7 +228,6 @@ export default function MortgageCompleteSchedule({
                     className="h-5 w-5"
                     viewBox="0 0 20 20"
                     fill="currentColor"
-                    aria-hidden="true"
                   >
                     <path
                       fillRule="evenodd"
@@ -266,7 +242,7 @@ export default function MortgageCompleteSchedule({
         </div>
       )}
 
-      {/* Summary Section - Updated with proper labels and ratio info */}
+      {/* Summary Section - Simplified with ratio info */}
       <div className="mt-6 bg-gray-50 p-4 rounded-lg">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Ringkasan Total Pembayaran
@@ -277,19 +253,19 @@ export default function MortgageCompleteSchedule({
           <div>
             <p className="text-sm text-gray-600 mb-1">Total Bunga:</p>
             <p className="text-xl font-bold text-gray-900">
-              {formatCurrency(totalInterest)}
+              {safeFormatCurrency(totalInterest)}
             </p>
           </div>
           <div>
             <p className="text-sm text-gray-600 mb-1">Total Pokok:</p>
             <p className="text-xl font-bold text-gray-900">
-              {formatCurrency(totalPrincipal)}
+              {safeFormatCurrency(totalPrincipal)}
             </p>
           </div>
           <div>
             <p className="text-sm text-gray-600 mb-1">Total Angsuran:</p>
             <p className="text-xl font-bold text-gray-900">
-              {formatCurrency(totalPayment)}
+              {safeFormatCurrency(totalPayment)}
             </p>
           </div>
         </div>
@@ -314,7 +290,6 @@ export default function MortgageCompleteSchedule({
     </div>
   );
 }
-
 
 
 referensi:
