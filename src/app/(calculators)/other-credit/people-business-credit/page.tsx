@@ -1,30 +1,38 @@
+// File: /app/(calculators)/other-credit/people-business-credit/page.tsx
+
 "use client";
 
-import { useState } from "react";
-import { PeopleBusinessCreditForm, PeopleBusinessCreditResult, PeopleBusinessCreditSchedule } from "@/features/other-credit/people-business-credit";
-import { Header, Footer } from "@/components/layout/";
+// Impor untuk fitur spesifik (Kredit Usaha Rakyat)
+import {
+  PeopleBusinessCreditForm,
+  PeopleBusinessCreditResult as PeopleBusinessCreditResultComponent,
+  PeopleBusinessCreditSchedule,
+} from "@/features/other-credit/people-business-credit";
 
+// Impor tipe data yang relevan (menggunakan definisi yang sudah dirapikan)
+import {
+  PeopleBusinessCreditFormData,
+  PeopleBusinessCreditResult,
+} from "@/types/peoples-business-credit";
+
+// Impor kalkulator
 import { calculatePeopleBusinessCredit } from "@/utils/calculators/other-credit/peopleBusinessCreditCalculator";
-import { AmortizationItem } from "@/types/common";
-import { PeopleBusinessCreditResult as LoanDetails } from "@/types/peoples-business-credit";
 
-// Interface for form data
-interface FormData {
-  loanAmount: number;
-  loanTerm: number;
-  interestRate: number;
-  loanPurpose: string;
-  adminFee: number;
-  insuranceFee: number;
-}
+// Impor komponen layout dan controller reusable
+import { Header, Footer } from "@/components/layout/";
+import { LoanCalculatorController } from "@/components/ui/loan";
+
+// Tipe gabungan untuk state yang lengkap, menggabungkan input dan output.
+type LoanDetails = PeopleBusinessCreditFormData & PeopleBusinessCreditResult;
 
 export default function PeopleBusinessCreditPage() {
-  const [loanDetails, setLoanDetails] = useState<LoanDetails | null>(null);
-  const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
-  const [showResults, setShowResults] = useState<boolean>(false);
-
-  // Handle form calculation
-  const handleCalculate = (formData: FormData): void => {
+  /**
+   * Fungsi murni untuk melakukan kalkulasi dan transformasi data.
+   */
+  const performPeopleBusinessCreditCalculation = (
+    formData: PeopleBusinessCreditFormData
+  ): LoanDetails => {
+    // Memanggil fungsi kalkulator inti
     const calculationResult = calculatePeopleBusinessCredit(
       formData.loanAmount,
       formData.loanTerm,
@@ -32,52 +40,40 @@ export default function PeopleBusinessCreditPage() {
       formData.adminFee,
       formData.insuranceFee
     );
-    
-    setLoanDetails({
-      loanAmount: formData.loanAmount,
-      loanTerm: formData.loanTerm,
-      interestRate: formData.interestRate,
-      loanPurpose: formData.loanPurpose,
-      monthlyPayment: calculationResult.monthlyPayment,
-      monthlyPrincipal: calculationResult.monthlyPrincipal,
-      monthlyInterest: calculationResult.monthlyInterest,
-      totalPayment: calculationResult.totalPayment,
-      totalInterest: calculationResult.totalInterest,
-      adminFee: formData.adminFee,
-      insuranceFee: formData.insuranceFee,
-      firstPayment: calculationResult.firstPayment,
-      amortizationSchedule: calculationResult.amortizationSchedule // Tambahkan ini
-    });
-    
-    setSchedule(calculationResult.amortizationSchedule);
-    setShowResults(true);
+
+    // Menggabungkan data input (formData) dengan hasil kalkulasi (calculationResult)
+    return {
+      ...formData,
+      ...calculationResult,
+    };
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-      
-      <div className="container mx-auto py-8 px-4 flex-grow">
-        <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
-          Simulasi Kredit Usaha Rakyat (KUR)
-        </h1>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
-            <PeopleBusinessCreditForm onCalculate={handleCalculate} />
-          </div>
-          
-          <div className="lg:col-span-2">
-            {showResults && loanDetails && (
-              <div className="space-y-6">
-                <PeopleBusinessCreditResult loanDetails={loanDetails} />
-                <PeopleBusinessCreditSchedule schedule={schedule} />
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      
+      <main className="container mx-auto py-10 px-4 flex-grow">
+        <LoanCalculatorController
+          pageTitle="Simulasi Kredit Usaha Rakyat (KUR)"
+          pageDescription="Gunakan kalkulator ini untuk mendapatkan estimasi cicilan bulanan dan total biaya untuk pinjaman Kredit Usaha Rakyat Anda."
+          FormComponent={PeopleBusinessCreditForm}
+          performCalculation={performPeopleBusinessCreditCalculation}
+        >
+          {(loanDetails) => (
+            <>
+              <PeopleBusinessCreditResultComponent loanDetails={loanDetails} />
+
+              {/*
+               * FIX: Kirim prop 'schedule' yang diharapkan oleh komponen,
+               * bukan seluruh objek 'loanDetails'.
+               * Data jadwal diambil dari 'loanDetails.amortizationSchedule'.
+               */}
+              <PeopleBusinessCreditSchedule
+                schedule={loanDetails.amortizationSchedule}
+              />
+            </>
+          )}
+        </LoanCalculatorController>
+      </main>
       <Footer />
     </div>
   );

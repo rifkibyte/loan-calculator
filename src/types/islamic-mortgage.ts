@@ -24,6 +24,7 @@ export interface IslamicMortgageResult extends CommonLoanResult {
 
 export interface IslamicMortgageResultProps {
   mortgageDetails: {
+    amortizationSchedule: AmortizationItem[];
     housePrice: number;
     downPaymentPercent: number;
     downPaymentAmount: number;

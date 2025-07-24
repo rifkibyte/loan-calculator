@@ -1,224 +1,155 @@
-Refactor code ini ikuti referensi
-HouesPriceCalculator
-import { AmortizationItem } from "@/types/common";
+Refactor code ini ikuti referensi, perbaiki juga typesnya
 
-interface CalculationResult {
-  loanAmount: number;
-  monthlyPayment: number;
-  totalPayment: number;
-  totalInterest: number;
-  minimumIncome30: number;
-  minimumIncome33: number;
-  minimumIncome40: number;
-  provisionAmount: number;
-  adminAmount: number;
-  amortizationSchedule: AmortizationItem[];
+typesnya
+export interface LoanAmountTableItem {
+  maxLoanAmount: number;
+  loanTerm: number;
+  maxInstallment: number;
+  minSalary: number;
 }
 
-/**
- * Calculate mortgage details based on house price
- * @param housePrice - House price
- * @param downPaymentPercent - Down payment percentage
- * @param loanTermYears - Loan term in years
- * @param annualInterestRate - Annual interest rate percentage
- * @param calculationMethod - Calculation method (anuitas or flat)
- * @returns Calculation result with all mortgage details
- */
-export function calculateMortgage(
-  housePrice: number,
-  downPaymentPercent: number,
-  loanTermYears: number,
-  annualInterestRate: number,
-  calculationMethod: 'anuitas' | 'flat' = 'anuitas'
-): CalculationResult {
-  // Calculate basic mortgage parameters
-  const downPaymentAmount: number = housePrice * (downPaymentPercent / 100);
-  const loanAmount: number = housePrice - downPaymentAmount;
-  const loanTermMonths: number = loanTermYears * 12;
-  const monthlyInterestRate: number = annualInterestRate / 100 / 12;
-  
-  // Calculate bank fees
-  const provisionPercent: number = 1; // 1% dari plafon
-  const adminPercent: number = 0.1; // 0.1% dari plafon
-  const provisionAmount: number = loanAmount * (provisionPercent / 100);
-  const adminAmount: number = loanAmount * (adminPercent / 100);
-  
-  let monthlyPayment: number;
-  let totalPayment: number;
-  let totalInterest: number;
-  let amortizationSchedule: AmortizationItem[] = [];
-  
-  if (calculationMethod === 'anuitas') {
-    // Anuitas calculation
-    if (monthlyInterestRate === 0) {
-      monthlyPayment = loanAmount / loanTermMonths;
-    } else {
-      const factor = Math.pow(1 + monthlyInterestRate, loanTermMonths);
-      monthlyPayment = loanAmount * (monthlyInterestRate * factor) / (factor - 1);
-    }
-    
-    totalPayment = monthlyPayment * loanTermMonths;
-    totalInterest = totalPayment - loanAmount;
-    
-    // Generate anuitas amortization schedule
-    let remainingBalance = loanAmount;
-    
-    for (let period = 1; period <= loanTermMonths; period++) {
-      const interestPayment = remainingBalance * monthlyInterestRate;
-      const principalPayment = monthlyPayment - interestPayment;
-      remainingBalance -= principalPayment;
-      
-      // Ensure the last payment eliminates any rounding errors
-      const adjustedRemainingBalance = period === loanTermMonths ? 0 : remainingBalance;
-      
-      amortizationSchedule.push({
-        period,
-        payment: monthlyPayment,
-        principal: principalPayment,
-        interest: interestPayment,
-        remainingBalance: Math.max(0, adjustedRemainingBalance)
-      });
-    }
-  } else {
-    // Flat rate calculation
-    const monthlyPrincipal = loanAmount / loanTermMonths;
-    const monthlyInterest = loanAmount * (annualInterestRate / 100) / 12;
-    monthlyPayment = monthlyPrincipal + monthlyInterest;
-    
-    totalPayment = monthlyPayment * loanTermMonths;
-    totalInterest = monthlyInterest * loanTermMonths;
-    
-    // Generate flat rate amortization schedule
-    let remainingBalance = loanAmount;
-    
-    for (let period = 1; period <= loanTermMonths; period++) {
-      remainingBalance -= monthlyPrincipal;
-      
-      const adjustedRemainingBalance = period === loanTermMonths ? 0 : remainingBalance;
-      
-      amortizationSchedule.push({
-        period,
-        payment: monthlyPayment,
-        principal: monthlyPrincipal,
-        interest: monthlyInterest,
-        remainingBalance: Math.max(0, adjustedRemainingBalance)
-      });
-    }
-  }
-  
-  // Calculate minimum income requirements
-  const minimumIncome30 = monthlyPayment / 0.30; // 30% dari penghasilan
-  const minimumIncome33 = monthlyPayment / (1/3); // 1/3 dari penghasilan
-  const minimumIncome40 = monthlyPayment / 0.40; // 40% dari penghasilan
-  
-  return {
-    loanAmount,
-    monthlyPayment,
-    totalPayment,
-    totalInterest,
-    minimumIncome30,
-    minimumIncome33,
-    minimumIncome40,
-    provisionAmount,
-    adminAmount,
-    amortizationSchedule
-  };
+export interface AmortizationItem {
+  period: number;
+  payment: number;
+  principal: number;
+  interest: number;
+  remainingBalance: number;
+}
+
+export interface PersonalLoanAmountResult {
+  loanAmount: number;
+  creditRatio: number;
+  monthlyInterestRate: number;
+  annualInterestRate: number;
+  calculationMethod: string;
+  loanTable: LoanAmountTableItem[];
 }
 
 
 "use client";
 
 import { useState } from "react";
-import {
-  MortgageHousePriceForm,
-  MortgageHousePriceResult,
-  MortgageHousePriceSchedule,
-} from "@/features/mortgage/house-price";
+import { PersonalLoanAmountForm, PersonalLoanAmountResult, PersonalLoanAmountSchedule } from "@/features/personal-loan/amount";
 import { Header, Footer } from "@/components/layout/";
 
-import { calculateMortgage } from "@/utils/calculators/mortgage/housePriceCalculator";
-import { AmortizationItem } from "@/types/common";
-import {
-  MortgageHousePriceResult as MortgageDetails,
-  MortgageHousePriceFormData,
-} from "@/types/mortgage-house-price";
+import { calculateLoanAmountTable, calculateLoanAmountSchedule } from "@/utils/calculators/personal-loan/personalLoanAmountCalculator";
+import { LoanAmountTableItem, AmortizationItem } from "@/types/personal-loan-amount";
 
-export default function MortgageHousePricePage() {
-  const [mortgageDetails, setMortgageDetails] =
-    useState<MortgageDetails | null>(null);
+// Interface for form data
+interface FormData {
+  loanAmount: number;
+  creditRatio: number;
+  monthlyInterestRate: number;
+  calculationMethod: string;
+  selectedTerm?: number; // Optional: for schedule calculation
+}
+
+// Interface for result data
+interface ResultData {
+  loanAmount: number;
+  creditRatio: number;
+  monthlyInterestRate: number;
+  annualInterestRate: number;
+  calculationMethod: string;
+  loanTable: LoanAmountTableItem[];
+}
+
+export default function PersonalLoanAmountPage() {
+  const [resultData, setResultData] = useState<ResultData | null>(null);
   const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
+  const [selectedTerm, setSelectedTerm] = useState<number>(12);
   const [showResults, setShowResults] = useState<boolean>(false);
 
-  const handleCalculate = (formData: MortgageHousePriceFormData): void => {
-    const calculationResult = calculateMortgage(
-      formData.housePrice,
-      formData.downPaymentPercent,
-      formData.loanTerm,
-      formData.annualInterestRate,
-      formData.calculationMethod
-    );
+  // Handle form calculation
+  const handleCalculate = (formData: FormData): void => {
+    try {
+      // Calculate loan amount table
+      const loanTable = calculateLoanAmountTable(
+        formData.loanAmount,
+        formData.creditRatio,
+        formData.monthlyInterestRate,
+        formData.calculationMethod
+      );
+      
+      // Calculate schedule for default term (12 months)
+      const scheduleData = calculateLoanAmountSchedule(
+        formData.loanAmount,
+        formData.monthlyInterestRate,
+        selectedTerm,
+        formData.calculationMethod
+      );
+      
+      const result: ResultData = {
+        loanAmount: formData.loanAmount,
+        creditRatio: formData.creditRatio,
+        monthlyInterestRate: formData.monthlyInterestRate,
+        annualInterestRate: formData.monthlyInterestRate * 12,
+        calculationMethod: formData.calculationMethod,
+        loanTable
+      };
+      
+      setResultData(result);
+      setSchedule(scheduleData);
+      setShowResults(true);
+    } catch (error) {
+      console.error("Error in calculation:", error);
+    }
+  };
 
-    const downPaymentAmount =
-      formData.housePrice * (formData.downPaymentPercent / 100);
-    const monthlyInterestRate = formData.annualInterestRate / 12;
-
-    setMortgageDetails({
-      housePrice: formData.housePrice,
-      downPaymentPercent: formData.downPaymentPercent,
-      downPaymentAmount: downPaymentAmount,
-      loanTerm: formData.loanTerm,
-      loanTermMonths: formData.loanTerm * 12,
-      annualInterestRate: formData.annualInterestRate,
-      monthlyInterestRate: monthlyInterestRate,
-      loanAmount: calculationResult.loanAmount,
-      monthlyPayment: calculationResult.monthlyPayment,
-      totalPayment: calculationResult.totalPayment,
-      totalInterest: calculationResult.totalInterest,
-      calculationMethod: formData.calculationMethod,
-      minimumIncome30: calculationResult.minimumIncome30,
-      minimumIncome33: calculationResult.minimumIncome33,
-      minimumIncome40: calculationResult.minimumIncome40,
-      provisionPercent: 1,
-      provisionAmount: calculationResult.provisionAmount,
-      adminPercent: 0.1,
-      adminAmount: calculationResult.adminAmount,
-      amortizationSchedule: calculationResult.amortizationSchedule,
-    });
-
-    setSchedule(calculationResult.amortizationSchedule);
-    setShowResults(true);
+  // Handle term change for schedule
+  const handleTermChange = (newTerm: number): void => {
+    if (resultData) {
+      try {
+        const newSchedule = calculateLoanAmountSchedule(
+          resultData.loanAmount,
+          resultData.monthlyInterestRate,
+          newTerm,
+          resultData.calculationMethod
+        );
+        setSchedule(newSchedule);
+        setSelectedTerm(newTerm);
+      } catch (error) {
+        console.error("Error recalculating schedule:", error);
+      }
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-
+      
       <div className="container mx-auto py-8 px-4 flex-grow">
         <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
-          Simulasi KPR - Berdasar Harga Rumah
+          Simulasi KTA
         </h1>
-
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
-            <MortgageHousePriceForm onCalculate={handleCalculate} />
+            <PersonalLoanAmountForm onCalculate={handleCalculate} />
           </div>
-
+          
           <div className="lg:col-span-2">
-            {showResults && mortgageDetails && (
+            {showResults && resultData && (
               <div className="space-y-6">
-                <MortgageHousePriceResult mortgageDetails={mortgageDetails} />
-                <MortgageHousePriceSchedule schedule={schedule} />
+                <PersonalLoanAmountResult resultData={resultData} />
+                <PersonalLoanAmountSchedule 
+                  schedule={schedule}
+                  loanAmount={resultData.loanAmount}
+                  monthlyInterestRate={resultData.monthlyInterestRate}
+                  calculationMethod={resultData.calculationMethod}
+                  selectedTerm={selectedTerm}
+                  onTermChange={handleTermChange}
+                />
               </div>
             )}
           </div>
         </div>
       </div>
-
+      
       <Footer />
     </div>
   );
 }
-
 
 Referensi
 "use client";

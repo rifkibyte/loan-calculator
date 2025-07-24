@@ -1,15 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { MortgageIncomeForm, MortgageIncomeResult, MortgageIncomeSchedule } from "@/features/mortgage/income";
-import { Header, Footer } from "@/components/layout/";
-
+// Impor untuk fitur spesifik (Mortgage Income)
+import {
+  MortgageIncomeForm,
+  MortgageIncomeResult,
+  MortgageIncomeSchedule,
+} from "@/features/mortgage/income";
 import { calculateMortgageIncome } from "@/utils/calculators/mortgage/incomeCalculator";
-import { AmortizationItem } from "@/types/common";
 import { MortgageIncomeResult as LoanDetails } from "@/types/mortgage-income";
 
-// Interface for form data
-interface FormData {
+// Impor untuk layout dan komponen reusable
+import { Header, Footer } from "@/components/layout";
+import { LoanCalculatorController } from "@/components/ui/loan"; // Asumsi path controller
+
+// Definisikan tipe data untuk form agar lebih jelas
+interface MortgageIncomeFormData {
   netIncome: number;
   downPaymentPercent: number;
   loanTerm: number;
@@ -18,77 +23,61 @@ interface FormData {
 }
 
 export default function MortgageIncomePage() {
-  const [loanDetails, setLoanDetails] = useState<LoanDetails | null>(null);
-  const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
-  const [showResults, setShowResults] = useState<boolean>(false);
+  /**
+   * Fungsi murni untuk melakukan kalkulasi dan transformasi data.
+   * Mengambil data dari form dan mengembalikan objek state yang lengkap.
+   */
+  const performIncomeCalculation = (
+    formData: MortgageIncomeFormData
+  ): LoanDetails => {
+    const {
+      netIncome,
+      downPaymentPercent,
+      loanTerm,
+      interestRate,
+      maxInstallmentPercent,
+    } = formData;
 
-  // Handle form calculation
-  const handleCalculate = (formData: FormData): void => {
     const calculationResult = calculateMortgageIncome(
-      formData.netIncome,
-      formData.downPaymentPercent,
-      formData.loanTerm,
-      formData.interestRate,
-      formData.maxInstallmentPercent
+      netIncome,
+      downPaymentPercent,
+      loanTerm,
+      interestRate,
+      maxInstallmentPercent
     );
-    
-    setLoanDetails({
-      netIncome: formData.netIncome,
-      downPaymentPercent: formData.downPaymentPercent,
+
+    // FIX: Gabungkan hasil dengan benar untuk memenuhi tipe LoanDetails
+    return {
+      ...formData,
+      ...calculationResult,
       downPaymentAmount: calculationResult.minDownPayment,
-      loanTerm: formData.loanTerm,
-      interestRate: formData.interestRate,
-      monthlyInterestRate: formData.interestRate / 12,
-      maxInstallmentPercent: formData.maxInstallmentPercent,
-      maxInstallmentAmount: calculationResult.maxInstallmentAmount,
-      maxHousePrice: calculationResult.maxHousePrice,
-      minDownPayment: calculationResult.minDownPayment,
-      maxLoanAmount: calculationResult.maxLoanAmount,
-      loanAmount: calculationResult.maxLoanAmount,
-      monthlyPayment: calculationResult.monthlyPayment,
-      monthlyPrincipal: calculationResult.monthlyPrincipal,
-      monthlyInterest: calculationResult.monthlyInterest,
-      totalPayment: calculationResult.totalPayment,
-      totalInterest: calculationResult.totalInterest,
-      provisionFee: calculationResult.provisionFee,
-      adminFee: calculationResult.adminFee,
-      totalFirstPayment: calculationResult.totalFirstPayment,
-      calculationMethod: 'anuitas',
-      amortizationSchedule: calculationResult.amortizationSchedule
-    });
-    
-    setSchedule(calculationResult.amortizationSchedule);
-    setShowResults(true);
+      monthlyInterestRate: interestRate / 12,
+      loanAmount: calculationResult.maxLoanAmount, // Alias untuk konsistensi
+      calculationMethod: "anuitas", // Sesuai implementasi sebelumnya
+    };
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-      
-      <div className="container mx-auto py-8 px-4 flex-grow">
-        <h1 className="text-3xl font-bold text-center text-blue-600 mb-2">
-          Perhitungan Angsuran KPR
-        </h1>
-        <p className="text-center text-gray-600 mb-8">
-          Perhitungan cicilan KPR berdasar penghasilan bersih
-        </p>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1">
-            <MortgageIncomeForm onCalculate={handleCalculate} />
-          </div>
-          
-          <div className="lg:col-span-2">
-            {showResults && loanDetails && (
-              <div className="space-y-6">
-                <MortgageIncomeResult loanDetails={loanDetails} />
-                <MortgageIncomeSchedule schedule={schedule} />
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      
+      <main className="container mx-auto py-10 px-4 flex-grow">
+        <LoanCalculatorController
+          pageTitle="Perhitungan Angsuran KPR"
+          pageDescription="Perhitungan cicilan KPR berdasar penghasilan bersih."
+          FormComponent={MortgageIncomeForm}
+          performCalculation={performIncomeCalculation}
+        >
+          {/* Gunakan pola "render prop" untuk mendefinisikan bagaimana hasil ditampilkan */}
+          {(loanDetails) => (
+            <div className="space-y-6">
+              <MortgageIncomeResult loanDetails={loanDetails} />
+              <MortgageIncomeSchedule
+                schedule={loanDetails.amortizationSchedule}
+              />
+            </div>
+          )}
+        </LoanCalculatorController>
+      </main>
       <Footer />
     </div>
   );

@@ -1,5 +1,7 @@
+// File: /types/multi-purpose-loan.ts
 import { AmortizationItem, CommonLoanResult } from './common';
 
+// Tidak ada perubahan di sini, hanya sebagai referensi
 export interface MultiPurposeLoanResult extends CommonLoanResult {
   monthlyPayment: number;
   totalPayment: number;

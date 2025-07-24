@@ -1,16 +1,27 @@
-// app/(calculators)/islamic-mortgage/page.tsx
 "use client";
 
-import { useState } from "react";
-import { IslamicMortgageForm, IslamicMortgageResult, IslamicMortgageSchedule } from "@/features/mortgage/islamic-mortgage";
-import { Header, Footer } from "@/components/layout/";
-
+// Impor untuk fitur spesifik (Islamic Mortgage)
+import {
+  IslamicMortgageForm,
+  IslamicMortgageResult,
+  IslamicMortgageSchedule,
+} from "@/features/mortgage/islamic-mortgage";
 import { calculateIslamicMortgage } from "@/utils/calculators/mortgage/islamicMortgageCalculator";
-import { AmortizationItem } from "@/types/common";
-import { IslamicMortgageResult as MortgageDetails } from "@/types/islamic-mortgage";
 
-// Interface for form data
-interface FormData {
+// FIX 1: Impor tipe Props yang sudah ada, bukan tipe baru.
+// Ini akan menjadi "sumber kebenaran" untuk bentuk data yang kita butuhkan.
+import { IslamicMortgageResultProps } from "@/types/islamic-mortgage";
+
+// Impor untuk layout dan komponen reusable
+import { Header, Footer } from "@/components/layout";
+import { LoanCalculatorController } from "@/components/ui/loan";
+
+// Definisikan tipe alias untuk objek detail pinjaman agar mudah dibaca.
+// Kita ambil tipenya langsung dari properti 'mortgageDetails' yang diharapkan komponen.
+type LoanDetails = IslamicMortgageResultProps["mortgageDetails"];
+
+// Definisikan tipe data untuk form agar lebih jelas
+interface IslamicMortgageFormData {
   housePrice: number;
   downPaymentPercent: number;
   loanTerm: number;
@@ -19,67 +30,63 @@ interface FormData {
 }
 
 export default function IslamicMortgagePage() {
-  const [mortgageDetails, setMortgageDetails] = useState<MortgageDetails | null>(null);
-  const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
-  const [showResults, setShowResults] = useState<boolean>(false);
+  /**
+   * Fungsi murni untuk melakukan kalkulasi dan transformasi data.
+   * Mengembalikan objek yang bentuknya SESUAI PERSIS dengan tipe LoanDetails.
+   */
+  const performIslamicMortgageCalculation = (
+    formData: IslamicMortgageFormData
+  ): LoanDetails => {
+    const { housePrice, downPaymentPercent, loanTerm, marginRate, calculationMethod } = formData;
 
-  // Handle form calculation
-  const handleCalculate = (formData: FormData): void => {
     const calculationResult = calculateIslamicMortgage(
-      formData.housePrice,
-      formData.downPaymentPercent,
-      formData.loanTerm,
-      formData.marginRate,
-      formData.calculationMethod
+      housePrice,
+      downPaymentPercent,
+      loanTerm,
+      marginRate,
+      calculationMethod
     );
-    
-    setMortgageDetails({
-      housePrice: formData.housePrice,
-      downPaymentPercent: formData.downPaymentPercent,
-      downPaymentAmount: formData.housePrice * (formData.downPaymentPercent / 100),
-      loanTerm: formData.loanTerm,
-      marginRate: formData.marginRate,
-      monthlyMarginRate: formData.marginRate / 12,
-      calculationMethod: formData.calculationMethod,
-      loanAmount: calculationResult.loanAmount,
-      monthlyPayment: calculationResult.monthlyPayment,
-      monthlyPrincipal: calculationResult.monthlyPrincipal,
-      monthlyInterest: calculationResult.monthlyMargin,
-      totalPayment: calculationResult.totalPayment,
-      totalInterest: calculationResult.totalMargin,
-      minimumIncomeRatios: calculationResult.minimumIncomeRatios,
-      amortizationSchedule: calculationResult.amortizationSchedule
-    });
-    
-    setSchedule(calculationResult.amortizationSchedule);
-    setShowResults(true);
+
+    // Buat objek hasil yang lengkap dan sesuai dengan tipe 'LoanDetails'
+    return {
+      // Data langsung dari form
+      ...formData,
+      
+      // Semua hasil dari fungsi kalkulator
+      ...calculationResult,
+
+      // Data turunan atau yang perlu ditambahkan agar tipe cocok
+      downPaymentAmount: housePrice * (downPaymentPercent / 100),
+      loanTermMonths: loanTerm * 12,
+      monthlyMarginRate: marginRate / 12,
+
+      // Tambahkan properti yang hilang dengan nilai default agar tipe valid.
+      // Kemungkinan properti ini akan Anda gunakan di masa depan.
+      provisionAmount: 0,
+      adminAmount: 0,
+    };
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-      
-      <div className="container mx-auto py-8 px-4 flex-grow">
-        <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
-          Simulasi KPR Syariah
-        </h1>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
-            <IslamicMortgageForm onCalculate={handleCalculate} />
-          </div>
-          
-          <div className="lg:col-span-2">
-            {showResults && mortgageDetails && (
-              <div className="space-y-6">
-                <IslamicMortgageResult mortgageDetails={mortgageDetails} />
-                <IslamicMortgageSchedule schedule={schedule} />
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      
+      <main className="container mx-auto py-10 px-4 flex-grow">
+        <LoanCalculatorController
+          pageTitle="Simulasi KPR Syariah"
+          pageDescription="Hitung estimasi cicilan bulanan untuk pembiayaan rumah dengan prinsip syariah."
+          FormComponent={IslamicMortgageForm}
+          performCalculation={performIslamicMortgageCalculation}
+        >
+          {(loanDetails) => (
+            <div className="space-y-6">
+              {/* FIX 2: Gunakan prop 'mortgageDetails' yang benar sesuai harapan komponen */}
+              <IslamicMortgageResult mortgageDetails={loanDetails} />
+              
+              <IslamicMortgageSchedule schedule={loanDetails.amortizationSchedule} />
+            </div>
+          )}
+        </LoanCalculatorController>
+      </main>
       <Footer />
     </div>
   );
