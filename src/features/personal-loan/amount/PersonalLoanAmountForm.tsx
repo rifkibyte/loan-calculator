@@ -1,10 +1,20 @@
-import  { useState } from "react";
+"use client";
 
+import { useState, useMemo, FormEvent, ChangeEvent } from "react";
+import {
+  CurrencyInput,
+  PercentInput,
+  Input,
+  Button,
+} from "@/components/ui/form";
+import { formatPercent, parseLocaleNumber } from "@/utils/formatters";
+
+// --- Interfaces & Types ---
 interface FormData {
-  loanAmount: number;
-  creditRatio: number;
-  monthlyInterestRate: number;
-  calculationMethod: string;
+  loanAmount: string;
+  creditRatio: string;
+  monthlyInterestRate: string;
+  calculationMethod: "FLAT";
 }
 
 interface FormErrors {
@@ -14,187 +24,130 @@ interface FormErrors {
 }
 
 interface PersonalLoanAmountFormProps {
-  onCalculate: (formData: FormData) => void;
+  onCalculate: (data: {
+    loanAmount: number;
+    creditRatio: number;
+    monthlyInterestRate: number;
+    calculationMethod: string;
+  }) => void;
 }
 
+// --- Main Form Component ---
 export default function PersonalLoanAmountForm({
   onCalculate,
 }: PersonalLoanAmountFormProps) {
-  const [loanAmount, setLoanAmount] = useState<string>("50000000");
-  const [creditRatio, setCreditRatio] = useState<string>("30");
-  const [monthlyInterestRate, setMonthlyInterestRate] =
-    useState<string>("1.25");
-  const [calculationMethod] = useState<string>("FLAT");
+  // --- State ---
+  const [formData, setFormData] = useState<FormData>({
+    loanAmount: "50000000",
+    creditRatio: "30",
+    monthlyInterestRate: "1.25",
+    calculationMethod: "FLAT",
+  });
   const [errors, setErrors] = useState<FormErrors>({});
 
+  // --- Derived Calculations with useMemo ---
+  const annualInterestRate = useMemo(() => {
+    const monthlyRate = parseLocaleNumber(formData.monthlyInterestRate);
+    return isNaN(monthlyRate) ? 0 : monthlyRate * 12;
+  }, [formData.monthlyInterestRate]);
+
+  // --- Event Handlers ---
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCurrencyChange = (name: keyof FormData) => (value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // --- Validation & Submit ---
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
+    const { loanAmount, creditRatio, monthlyInterestRate } = formData;
 
-    if (!loanAmount || isNaN(Number(loanAmount)) || Number(loanAmount) <= 0) {
-      newErrors.loanAmount = "Besar pinjaman harus berupa angka positif";
+    if (parseLocaleNumber(loanAmount) <= 0) {
+      newErrors.loanAmount = "Besar pinjaman harus berupa angka positif.";
     }
 
-    if (
-      !creditRatio ||
-      isNaN(Number(creditRatio)) ||
-      Number(creditRatio) <= 0 ||
-      Number(creditRatio) > 100
-    ) {
-      newErrors.creditRatio = "Baki kredit harus antara 1-100%";
+    const numCreditRatio = parseLocaleNumber(creditRatio);
+    if (numCreditRatio <= 0 || numCreditRatio > 100) {
+      newErrors.creditRatio = "Baki kredit harus antara 1-100%.";
     }
 
-    if (
-      !monthlyInterestRate ||
-      isNaN(Number(monthlyInterestRate)) ||
-      Number(monthlyInterestRate) <= 0
-    ) {
-      newErrors.monthlyInterestRate = "Bunga harus angka positif";
+    if (parseLocaleNumber(monthlyInterestRate) <= 0) {
+      newErrors.monthlyInterestRate = "Bunga harus berupa angka positif.";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validateForm()) {
       onCalculate({
-        loanAmount: Number(loanAmount),
-        creditRatio: Number(creditRatio),
-        monthlyInterestRate: Number(monthlyInterestRate),
-        calculationMethod,
+        loanAmount: parseLocaleNumber(formData.loanAmount),
+        creditRatio: parseLocaleNumber(formData.creditRatio),
+        monthlyInterestRate: parseLocaleNumber(formData.monthlyInterestRate),
+        calculationMethod: formData.calculationMethod,
       });
     }
   };
 
-  const formatInputCurrency = (value: string): string => {
-    return value.replace(/[^\d]/g, "");
-  };
-
-  const formatCurrency = (value: string): string => {
-    if (!value) return "";
-    const number = parseInt(value.replace(/[^\d]/g, ""));
-    if (isNaN(number)) return "";
-    return new Intl.NumberFormat("id-ID").format(number);
-  };
-
+  // --- JSX ---
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">Simulasi KTA</h2>
+      <h2 className="text-xl font-semibold text-gray-900 text-center">
+        Simulasi Kredit Tanpa Agunan (KTA)
+      </h2>
 
-      {/* Loan Amount */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Besar Pinjaman
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">Rp</span>
-          </div>
-          <input
-            type="text"
-            value={formatCurrency(loanAmount)}
-            onChange={(e) => setLoanAmount(formatInputCurrency(e.target.value))}
-            className="w-full pl-12 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="50.000.000"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">,00</span>
-          </div>
-        </div>
-        <p className="mt-1 text-xs text-gray-600">
-          masukkan angka, tidak boleh pakai koma atau titik
-        </p>
-        {errors.loanAmount && (
-          <p className="mt-1 text-sm text-red-600">{errors.loanAmount}</p>
-        )}
-      </div>
+      <CurrencyInput
+        id="loanAmount"
+        name="loanAmount"
+        label="Besar Pinjaman"
+        value={formData.loanAmount}
+        onValueChange={handleCurrencyChange("loanAmount")}
+        error={errors.loanAmount}
+        placeholder="50.000.000"
+      />
 
-      {/* Credit Ratio */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Baki Kredit
-          <br />
-          <span className="text-xs text-gray-600">
-            (maksimum angsuran per bulan)
-          </span>
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            value={creditRatio}
-            onChange={(e) =>
-              setCreditRatio(e.target.value.replace(/[^\d.]/g, ""))
-            }
-            className="w-full pr-8 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="30"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">%</span>
-          </div>
-        </div>
-        <p className="mt-1 text-xs text-gray-600">
-          (persen dari penghasilan bersih)
-        </p>
-        {errors.creditRatio && (
-          <p className="mt-1 text-sm text-red-600">{errors.creditRatio}</p>
-        )}
-      </div>
+      <PercentInput
+        id="creditRatio"
+        name="creditRatio"
+        label="Baki Kredit (maksimum angsuran per bulan)"
+        value={formData.creditRatio}
+        onChange={handleInputChange}
+        error={errors.creditRatio}
+        placeholder="30"
+        info="(persen dari penghasilan bersih)"
+      />
 
-      {/* Interest Rate */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Bunga KTA
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            value={monthlyInterestRate}
-            onChange={(e) =>
-              setMonthlyInterestRate(e.target.value.replace(/[^\d.]/g, ""))
-            }
-            className="w-full pr-28 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="1.25"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">% / bulan</span>
-          </div>
-        </div>
-        <p className="mt-1 text-xs text-gray-600">masukkan angka, misal 1.5</p>
-        <p className="mt-1 text-xs text-gray-600">
-          = {(Number(monthlyInterestRate) * 12).toFixed(2)}% / tahun
-        </p>
-        {errors.monthlyInterestRate && (
-          <p className="mt-1 text-sm text-red-600">
-            {errors.monthlyInterestRate}
-          </p>
-        )}
-      </div>
+      <Input
+        id="monthlyInterestRate"
+        name="monthlyInterestRate"
+        label="Bunga KTA"
+        value={formData.monthlyInterestRate}
+        onChange={handleInputChange}
+        error={errors.monthlyInterestRate}
+        unit="% / bulan"
+        placeholder="1.25"
+        inputMode="decimal"
+        info={`= ${formatPercent(annualInterestRate)} / tahun`}
+      />
 
-      {/* Calculation Method */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Perhitungan Bunga
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            value={calculationMethod}
-            readOnly
-            className="w-full pl-3 pr-3 py-2 text-gray-900 bg-gray-100 border border-gray-300 rounded-md"
-          />
-        </div>
-      </div>
+      <Input
+        id="calculationMethod"
+        name="calculationMethod"
+        label="Perhitungan Bunga"
+        value={formData.calculationMethod}
+        onChange={() => {}} // No-op untuk input read-only
+        disabled={true}
+      />
 
-      {/* Submit Button */}
-      <div className="pt-4">
-        <button
-          type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          Hitung
-        </button>
-      </div>
+      <Button type="submit" fullWidth>
+        Hitung
+      </Button>
     </form>
   );
 }

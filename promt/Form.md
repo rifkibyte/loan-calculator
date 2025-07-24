@@ -1,114 +1,82 @@
-Tolong refactor code saya gunakan form seperti ini seperti refernsi, untuk formatter juga banyak yang salah tolong update karena sya ubah formattternya
+Tolong refactor code saya gunakan form seperti ini seperti refernsi, untuk formatter juga banyak yang salah tolong update karena sya ubah formattternya.
 
-"use client";
-
-import  { useState } from "react";
-import { formatCurrency } from "@/utils/formatters";
+komponennya juga sudah saya taruh dibawah jadi tolong ikuti dengan benar
+import { useState } from "react";
 
 interface FormData {
-  loanAmount: number;
-  loanTerm: number;
-  yearlyRates: { year: number; rate: number }[];
-  calculationMethod: string;
+  netIncome: number;
+  creditRatio: number;
+  otherInstallments: number;
+  monthlyInterestRate: number;
 }
 
 interface FormErrors {
-  [key: string]: string;
+  netIncome?: string;
+  creditRatio?: string;
+  otherInstallments?: string;
+  monthlyInterestRate?: string;
 }
 
-interface MortgageFixedFormProps {
+interface PersonalLoanFormProps {
   onCalculate: (formData: FormData) => void;
 }
 
-export default function MortgageFixedForm({
-  onCalculate,
-}: MortgageFixedFormProps) {
-  const [loanAmount, setLoanAmount] = useState<string>("500000000");
-  const [loanTerm, setLoanTerm] = useState<string>("10");
-  const [yearlyRates, setYearlyRates] = useState<
-    { year: number; rate: number }[]
-  >([
-    { year: 1, rate: 5 },
-    { year: 2, rate: 5 },
-    { year: 3, rate: 5 },
-    { year: 4, rate: 10 },
-    { year: 5, rate: 9 },
-    { year: 6, rate: 10 },
-    { year: 7, rate: 12 },
-    { year: 8, rate: 13 },
-    { year: 9, rate: 9 },
-    { year: 10, rate: 8 },
-  ]);
+export default function PersonalLoanForm({ onCalculate }: PersonalLoanFormProps) {
+  const [netIncome, setNetIncome] = useState<string>("5500000");
+  const [creditRatio, setCreditRatio] = useState<string>("30");
+  const [otherInstallments, setOtherInstallments] = useState<string>("1250000");
+  const [monthlyInterestRate, setMonthlyInterestRate] = useState<string>("1.25");
   const [errors, setErrors] = useState<FormErrors>({});
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+    
+    if (!netIncome || isNaN(Number(netIncome)) || Number(netIncome) <= 0) {
+      newErrors.netIncome = "Penghasilan bersih harus berupa angka positif";
+    }
+    
+    if (!creditRatio || isNaN(Number(creditRatio)) || Number(creditRatio) <= 0 || Number(creditRatio) > 100) {
+      newErrors.creditRatio = "Baki kredit harus antara 1-100%";
+    }
+    
+    if (!otherInstallments || isNaN(Number(otherInstallments)) || Number(otherInstallments) < 0) {
+      newErrors.otherInstallments = "Angsuran lain harus angka positif";
+    }
+    
+    if (!monthlyInterestRate || isNaN(Number(monthlyInterestRate)) || Number(monthlyInterestRate) <= 0) {
+      newErrors.monthlyInterestRate = "Bunga harus angka positif";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      onCalculate({
+        netIncome: Number(netIncome),
+        creditRatio: Number(creditRatio),
+        otherInstallments: Number(otherInstallments),
+        monthlyInterestRate: Number(monthlyInterestRate)
+      });
+    }
+  };
 
   const formatInputCurrency = (value: string): string => {
     return value.replace(/[^\d]/g, "");
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!loanAmount || isNaN(Number(loanAmount)) || Number(loanAmount) <= 0) {
-      newErrors.loanAmount = "Jumlah pinjaman harus berupa angka positif";
-    }
-
-    if (!loanTerm || isNaN(Number(loanTerm)) || Number(loanTerm) <= 0) {
-      newErrors.loanTerm = "Lama pinjaman harus berupa angka positif";
-    }
-
-    // Validate yearly rates
-    yearlyRates.forEach((rate, index) => {
-      if (isNaN(rate.rate) || rate.rate < 0) {
-        newErrors[
-          `rate_${index}`
-        ] = `Bunga tahun ke-${rate.year} harus berupa angka positif`;
-      }
-    });
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
-    e.preventDefault();
-    if (validateForm()) {
-      onCalculate({
-        loanAmount: Number(loanAmount),
-        loanTerm: Number(loanTerm),
-        yearlyRates: yearlyRates,
-        calculationMethod: "Anuitas - Floating",
-      });
-    }
-  };
-
-  const handleLoanTermChange = (value: string) => {
-    const termValue = Number(value);
-    setLoanTerm(value);
-
-    // Update yearly rates array based on loan term
-    const newRates = [];
-    for (let i = 1; i <= termValue; i++) {
-      const existingRate = yearlyRates.find((r) => r.year === i);
-      newRates.push({
-        year: i,
-        rate: existingRate ? existingRate.rate : 5,
-      });
-    }
-    setYearlyRates(newRates);
-  };
-
-  const handleRateChange = (year: number, rate: string) => {
-    setYearlyRates((prev) =>
-      prev.map((r) => (r.year === year ? { ...r, rate: Number(rate) || 0 } : r))
-    );
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Loan Amount */}
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        Simulasi KTA - Limit Kredit
+      </h2>
+      
+      {/* Net Income */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">
-          Jumlah Pinjaman:
+          Penghasilan Bersih (per bulan)
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -116,115 +84,116 @@ export default function MortgageFixedForm({
           </div>
           <input
             type="text"
-            value={loanAmount}
-            onChange={(e) => setLoanAmount(formatInputCurrency(e.target.value))}
+            value={netIncome}
+            onChange={(e) => setNetIncome(formatInputCurrency(e.target.value))}
             className="w-full pl-12 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="500000000"
+            placeholder="5500000"
           />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <span className="text-gray-500 sm:text-sm">,00</span>
+          </div>
         </div>
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-xs text-gray-900">
           masukkan angka, tidak boleh pakai koma atau titik
         </p>
-        <p className="mt-1 text-sm font-medium text-gray-900">
-          {formatCurrency(Number(loanAmount) || 0)}
-        </p>
-        {errors.loanAmount && (
-          <p className="mt-1 text-sm text-red-600">{errors.loanAmount}</p>
+        {errors.netIncome && (
+          <p className="mt-1 text-sm text-red-600">{errors.netIncome}</p>
         )}
       </div>
-
-      {/* Loan Term */}
+      
+      {/* Credit Ratio */}
       <div>
         <label className="block text-sm font-medium text-gray-900 mb-1">
-          Lama Pinjaman:
+          Baki Kredit (maksimum angsuran per bulan)
         </label>
-        <div className="flex items-center space-x-2">
-          <button
-            type="button"
-            onClick={() =>
-              handleLoanTermChange(String(Math.max(1, Number(loanTerm) - 1)))
-            }
-            className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-          >
-            -
-          </button>
-          <div className="relative flex-1">
-            <input
-              type="text"
-              value={loanTerm}
-              onChange={(e) => handleLoanTermChange(e.target.value)}
-              className="w-full pr-14 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center"
-              placeholder="10"
-            />
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <span className="text-gray-500 sm:text-sm">tahun</span>
-            </div>
+        <div className="relative">
+          <input
+            type="text"
+            value={creditRatio}
+            onChange={(e) => setCreditRatio(e.target.value.replace(/[^\d.]/g, ""))}
+            className="w-full pr-8 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="30"
+          />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <span className="text-gray-500 sm:text-sm">%</span>
           </div>
-          <button
-            type="button"
-            onClick={() => handleLoanTermChange(String(Number(loanTerm) + 1))}
-            className="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-          >
-            +
-          </button>
         </div>
-        {errors.loanTerm && (
-          <p className="mt-1 text-sm text-red-600">{errors.loanTerm}</p>
+        <p className="mt-1 text-xs text-gray-900">
+          (persen dari penghasilan bersih)
+        </p>
+        {errors.creditRatio && (
+          <p className="mt-1 text-sm text-red-600">{errors.creditRatio}</p>
         )}
       </div>
-
-      {/* Yearly Interest Rates */}
+      
+      {/* Other Installments */}
       <div>
-        <label className="block text-sm font-medium text-gray-900 mb-3">
-          Bunga per Tahun:
+        <label className="block text-sm font-medium text-gray-900 mb-1">
+          Angsuran dari Pinjaman Lain (total cicilan KPR + cicilan kendaraan + dll)
         </label>
-        <div className="space-y-3 max-h-64 overflow-y-auto">
-          {yearlyRates.map((rate) => (
-            <div key={rate.year} className="flex items-center space-x-3">
-              <label className="text-sm text-gray-700 w-24">
-                Bunga tahun ke-{rate.year}:
-              </label>
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  value={rate.rate}
-                  onChange={(e) => handleRateChange(rate.year, e.target.value)}
-                  className="w-full pr-8 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="5"
-                />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <span className="text-gray-500 sm:text-sm">%</span>
-                </div>
-              </div>
-              {errors[`rate_${rate.year - 1}`] && (
-                <p className="text-sm text-red-600">
-                  {errors[`rate_${rate.year - 1}`]}
-                </p>
-              )}
-            </div>
-          ))}
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <span className="text-gray-500 sm:text-sm">Rp</span>
+          </div>
+          <input
+            type="text"
+            value={otherInstallments}
+            onChange={(e) => setOtherInstallments(formatInputCurrency(e.target.value))}
+            className="w-full pl-12 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="1250000"
+          />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <span className="text-gray-500 sm:text-sm">,00</span>
+          </div>
         </div>
+        <p className="mt-1 text-xs text-gray-900">
+          masukkan angka, tidak boleh pakai koma atau titik
+        </p>
+        {errors.otherInstallments && (
+          <p className="mt-1 text-sm text-red-600">{errors.otherInstallments}</p>
+        )}
       </div>
-
-      {/* Calculation Method */}
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-900">
-          Perhitungan Bunga:
+      
+      {/* Interest Rate */}
+      <div>
+        <label className="block text-sm font-medium text-gray-900 mb-1">
+          Bunga KTA
         </label>
-        <p className="text-sm font-medium text-gray-900">Anuitas - Floating</p>
+        <div className="relative">
+          <input
+            type="text"
+            value={monthlyInterestRate}
+            onChange={(e) => setMonthlyInterestRate(e.target.value.replace(/[^\d.]/g, ""))}
+            className="w-full pr-28 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="1.25"
+          />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <span className="text-gray-500 sm:text-sm">% / bulan</span>
+          </div>
+        </div>
+        <p className="mt-1 text-xs text-gray-900">
+          = {(Number(monthlyInterestRate) * 12).toFixed(2)}% / tahun
+        </p>
+        <p className="mt-1 text-xs text-gray-900">
+          masukkan angka, misal 1.5
+        </p>
+        {errors.monthlyInterestRate && (
+          <p className="mt-1 text-sm text-red-600">{errors.monthlyInterestRate}</p>
+        )}
       </div>
-
+      
       {/* Submit Button */}
-      <button
-        type="submit"
-        className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium"
-      >
-        Hitung Simulasi
-      </button>
+      <div className="pt-4">
+        <button
+          type="submit"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          Hitung Simulasi KTA
+        </button>
+      </div>
     </form>
   );
 }
-
 
 
 refernsi

@@ -2,16 +2,22 @@ Refactor code ini supaya bisa menggunakan <LoanSchedule />, supaya seperti di re
 "use client";
 
 import { useState, useMemo } from "react";
-import { formatCurrencyDisplay } from "@/utils/formatters";
-import { AmortizationItem } from "@/types/common";
+import { formatCurrency } from "@/utils/formatters";
 
-interface MortgageScheduleProps {
-  schedule: AmortizationItem[];
+interface ScheduleItem {
+  period: number;
+  payment: number;
+  principal: number;
+  interest: number;
+  remainingBalance: number;
 }
 
-export default function MortgageHousePriceSchedule({
-  schedule,
-}: MortgageScheduleProps) {
+interface MultiPurposeLoanScheduleProps {
+  schedule: ScheduleItem[];
+  fixedRatePeriod: number;
+}
+
+export default function MultiPurposeLoanSchedule({ schedule, fixedRatePeriod }: MultiPurposeLoanScheduleProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -19,110 +25,124 @@ export default function MortgageHousePriceSchedule({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = schedule.slice(startIndex, startIndex + itemsPerPage);
 
+  // Hitung total akumulasi
   const { totalInterest, totalPrincipal, totalPayment } = useMemo(() => {
-    return schedule.reduce(
-      (acc, item) => ({
-        totalInterest: acc.totalInterest + item.interest,
-        totalPrincipal: acc.totalPrincipal + item.principal,
-        totalPayment: acc.totalPayment + item.payment,
-      }),
-      {
-        totalInterest: 0,
-        totalPrincipal: 0,
-        totalPayment: 0,
-      }
-    );
+    return schedule.reduce((acc, item) => ({
+      totalInterest: acc.totalInterest + item.interest,
+      totalPrincipal: acc.totalPrincipal + item.principal,
+      totalPayment: acc.totalPayment + item.payment,
+    }), {
+      totalInterest: 0,
+      totalPrincipal: 0,
+      totalPayment: 0
+    });
   }, [schedule]);
 
   const goToPage = (page: number) => {
     setCurrentPage(page);
   };
 
-  const safeFormatCurrency = (value: number) => {
-    if (isNaN(value) || !isFinite(value)) {
-      return "Rp 0";
-    }
-    return formatCurrencyDisplay(value);
+  // Determine if period is in fixed rate period
+  const isFixedRatePeriod = (period: number): boolean => {
+    return period <= (fixedRatePeriod * 12);
   };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">
-        Tabel Angsuran
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">
+        Tabel Angsuran Kredit Multi Guna
       </h2>
+
+      <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+        <p className="text-sm text-blue-700">
+          <span className="font-semibold">Keterangan:</span> 
+          Bulan 1-{fixedRatePeriod * 12} menggunakan bunga tetap, 
+          bulan {(fixedRatePeriod * 12) + 1}-{schedule.length} menggunakan bunga mengambang.
+        </p>
+      </div>
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Bulan
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Periode Bunga
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Angsuran Bunga
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Angsuran Pokok
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Total Angsuran
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 Sisa Pinjaman
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {/* Row 0 - Initial Balance */}
-            <tr className="bg-blue-50">
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                0
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                0
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                0
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                0
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                {schedule.length > 0
-                  ? safeFormatCurrency(
-                      schedule[0].remainingBalance + schedule[0].principal
-                    )
-                  : "Rp 0"}
-              </td>
-            </tr>
-
-            {currentItems.map((item) => (
-              <tr
-                key={item.period}
-                className={item.period % 2 === 0 ? "bg-gray-50" : ""}
-              >
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                  {item.period}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {safeFormatCurrency(item.interest)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {safeFormatCurrency(item.principal)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                  {safeFormatCurrency(item.payment)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {safeFormatCurrency(item.remainingBalance)}
-                </td>
-              </tr>
-            ))}
+            {currentItems.map((item) => {
+              const isFixed = isFixedRatePeriod(item.period);
+              const rowBgColor = isFixed ? "bg-blue-25" : "bg-orange-25";
+              const evenRowBgColor = isFixed ? "bg-blue-50" : "bg-orange-50";
+              
+              return (
+                <tr
+                  key={item.period}
+                  className={item.period % 2 === 0 ? evenRowBgColor : rowBgColor}
+                >
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                    {item.period}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-xs">
+                    <span className={`px-2 py-1 rounded-full text-white ${
+                      isFixed ? 'bg-blue-500' : 'bg-orange-500'
+                    }`}>
+                      {isFixed ? 'Tetap' : 'Mengambang'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatCurrency(item.interest)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatCurrency(item.principal)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
+                    {formatCurrency(item.payment)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatCurrency(item.remainingBalance)}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3 sm:px-6 mt-4">
           <div className="flex flex-1 justify-between sm:hidden">
@@ -161,14 +181,17 @@ export default function MortgageHousePriceSchedule({
               </p>
             </div>
             <div>
-              <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm">
+              <nav
+                className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+                aria-label="Pagination"
+              >
                 <button
                   onClick={() => goToPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
                   className={`relative inline-flex items-center rounded-l-md px-2 py-2 ${
                     currentPage === 1
                       ? "text-gray-300"
-                      : "text-gray-400 hover:bg-gray-50"
+                      : "text-gray-400 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                   }`}
                 >
                   <span className="sr-only">Previous</span>
@@ -176,6 +199,7 @@ export default function MortgageHousePriceSchedule({
                     className="h-5 w-5"
                     viewBox="0 0 20 20"
                     fill="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       fillRule="evenodd"
@@ -203,8 +227,8 @@ export default function MortgageHousePriceSchedule({
                       onClick={() => goToPage(pageNum)}
                       className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
                         currentPage === pageNum
-                          ? "z-10 bg-blue-600 text-white"
-                          : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                          ? "z-10 bg-blue-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                          : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                       }`}
                     >
                       {pageNum}
@@ -213,14 +237,12 @@ export default function MortgageHousePriceSchedule({
                 })}
 
                 <button
-                  onClick={() =>
-                    goToPage(Math.min(totalPages, currentPage + 1))
-                  }
+                  onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
                   className={`relative inline-flex items-center rounded-r-md px-2 py-2 ${
                     currentPage === totalPages
                       ? "text-gray-300"
-                      : "text-gray-400 hover:bg-gray-50"
+                      : "text-gray-400 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                   }`}
                 >
                   <span className="sr-only">Next</span>
@@ -228,6 +250,7 @@ export default function MortgageHousePriceSchedule({
                     className="h-5 w-5"
                     viewBox="0 0 20 20"
                     fill="currentColor"
+                    aria-hidden="true"
                   >
                     <path
                       fillRule="evenodd"
@@ -242,49 +265,41 @@ export default function MortgageHousePriceSchedule({
         </div>
       )}
 
-      {/* Summary Section - Simplified with ratio info */}
-      <div className="mt-6 bg-gray-50 p-4 rounded-lg">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Ringkasan Total Pembayaran
-        </h3>
-
-        {/* Main Summary - Simple Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-          <div>
-            <p className="text-sm text-gray-600 mb-1">Total Bunga:</p>
-            <p className="text-xl font-bold text-gray-900">
-              {safeFormatCurrency(totalInterest)}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600 mb-1">Total Pokok:</p>
-            <p className="text-xl font-bold text-gray-900">
-              {safeFormatCurrency(totalPrincipal)}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600 mb-1">Total Angsuran:</p>
-            <p className="text-xl font-bold text-gray-900">
-              {safeFormatCurrency(totalPayment)}
-            </p>
-          </div>
+      {/* Summary Section */}
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-md">
+        <div>
+          <p className="text-sm text-gray-600">Total Bunga:</p>
+          <p className="text-lg font-semibold text-gray-900">
+            {formatCurrency(totalInterest)}
+          </p>
         </div>
+        <div>
+          <p className="text-sm text-gray-600">Total Pokok:</p>
+          <p className="text-lg font-semibold text-gray-900">
+            {formatCurrency(totalPrincipal)}
+          </p>
+        </div>
+        <div>
+          <p className="text-sm text-gray-600">Total Angsuran:</p>
+          <p className="text-lg font-semibold text-gray-900">
+            {formatCurrency(totalPayment)}
+          </p>
+        </div>
+      </div>
 
-        {/* Additional Info - Ratio */}
-        <div className="pt-3 border-t border-gray-200">
-          <div className="flex justify-between items-center text-sm text-gray-600">
-            <span>Periode Pinjaman:</span>
-            <span className="font-medium">{schedule.length} bulan</span>
-          </div>
-          <div className="flex justify-between items-center text-sm text-gray-600 mt-1">
-            <span>Rasio Bunga terhadap Total:</span>
-            <span className="font-medium">
-              {totalPayment > 0
-                ? ((totalInterest / totalPayment) * 100).toFixed(1)
-                : 0}
-              %
-            </span>
-          </div>
+      {/* Rate Period Summary */}
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-4 bg-blue-50 rounded-md">
+          <h4 className="font-semibold text-blue-800 mb-2">Periode Bunga Tetap</h4>
+          <p className="text-sm text-blue-700">
+            Bulan 1 - {fixedRatePeriod * 12} ({fixedRatePeriod} tahun)
+          </p>
+        </div>
+        <div className="p-4 bg-orange-50 rounded-md">
+          <h4 className="font-semibold text-orange-800 mb-2">Periode Bunga Mengambang</h4>
+          <p className="text-sm text-orange-700">
+            Bulan {(fixedRatePeriod * 12) + 1} - {schedule.length} ({Math.ceil((schedule.length - (fixedRatePeriod * 12)) / 12)} tahun)
+          </p>
         </div>
       </div>
     </div>
@@ -293,32 +308,215 @@ export default function MortgageHousePriceSchedule({
 
 
 referensi:
+// components/islamic-mortgage/IslamicMortgageSchedule.tsx
 "use client";
-import { LoanSchedule } from "@/components/ui/loan";
-import { CarLoanBudgetResult } from "@/types/car-loan";
 
-interface CarLoanBudgetScheduleProps {
-  // Terima seluruh objek, yang bisa jadi null atau undefined
-  loanDetails?: CarLoanBudgetResult | null;
+// Impor komponen reusable LoanSchedule yang baru dibuat
+import { LoanSchedule } from "@/components/ui/loan";
+
+interface ScheduleItem {
+  period: number;
+  payment: number;
+  principal: number;
+  interest: number;
+  remainingBalance: number;
 }
 
-export default function CarLoanBudgetSchedule({
-  loanDetails,
-}: CarLoanBudgetScheduleProps) {
-  // Guard Clause: Pastikan data ada sebelum mencoba merendernya
-  if (!loanDetails || !loanDetails.amortizationSchedule) {
-    // Tampilkan pesan jika data tidak ada, ini mencegah error
+interface IslamicMortgageScheduleProps {
+  schedule: ScheduleItem[];
+}
+
+export default function IslamicMortgageSchedule({
+  schedule,
+}: IslamicMortgageScheduleProps) {
+  // Guard Clause: Menangani kasus jika data jadwal tidak tersedia.
+  // Ini mencegah error dan memberikan feedback yang jelas kepada pengguna.
+  if (!schedule || schedule.length === 0) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-md text-center">
         <h2 className="text-xl font-semibold text-gray-800 mb-4">
           Tabel Angsuran
         </h2>
+        <p className="text-gray-500">
+          Data angsuran tidak tersedia. Silakan lengkapi dan hitung simulasi
+          terlebih dahulu.
+        </p>
+      </div>
+    );
+  }
+
+  // Render komponen reusable LoanSchedule dengan data yang diterima.
+  // Semua logika kompleks (tabel, paginasi, ringkasan) sudah ditangani di dalamnya.
+  return <LoanSchedule schedule={schedule} />;
+}
+
+
+
+---
+LoanSchedule
+// file: features/common/LoanSchedule.tsx
+
+"use client";
+
+import { useState, useMemo, FC } from "react";
+import { formatCurrency } from "@/utils/formatters";
+
+// --- Tipe Data Generik ---
+interface ScheduleItem {
+  period: number;
+  payment: number;
+  principal: number;
+  interest: number;
+  remainingBalance: number;
+}
+
+interface LoanScheduleProps {
+  schedule: ScheduleItem[];
+  itemsPerPage?: number; // Opsional, dengan nilai default
+}
+
+// --- Sub-komponen UI ---
+
+// Komponen untuk Ringkasan Total
+const ScheduleSummary: FC<{
+  totals: { interest: number; principal: number; payment: number };
+}> = ({ totals }) => (
+  <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-md">
+    <div>
+      <p className="text-sm text-gray-600">Total Bunga:</p>
+      <p className="text-lg font-semibold text-gray-900">
+        {formatCurrency(totals.interest)}
+      </p>
+    </div>
+    <div>
+      <p className="text-sm text-gray-600">Total Pokok:</p>
+      <p className="text-lg font-semibold text-gray-900">
+        {formatCurrency(totals.principal)}
+      </p>
+    </div>
+    <div>
+      <p className="text-sm text-gray-600">Total Angsuran:</p>
+      <p className="text-lg font-semibold text-gray-900">
+        {formatCurrency(totals.payment)}
+      </p>
+    </div>
+  </div>
+);
+
+// Komponen untuk Tabel Jadwal Angsuran
+const ScheduleTable: FC<{ items: ScheduleItem[] }> = ({ items }) => (
+  <div className="overflow-x-auto">
+    <table className="min-w-full divide-y divide-gray-200">
+      <thead className="bg-gray-50">
+        <tr>
+          {["Bulan", "Angsuran Bunga", "Angsuran Pokok", "Total Angsuran", "Sisa Pinjaman"].map(
+            (header) => (
+              <th key={header} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {header}
+              </th>
+            )
+          )}
+        </tr>
+      </thead>
+      <tbody className="bg-white divide-y divide-gray-200">
+        {items.map((item) => (
+          <tr key={item.period} className={item.period % 2 === 0 ? "bg-gray-50" : ""}>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{item.period}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(item.interest)}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(item.principal)}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">{formatCurrency(item.payment)}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(item.remainingBalance)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
+
+// Komponen untuk Paginasi (dibuat lebih sederhana dan jelas)
+const Pagination: FC<{
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}> = ({ currentPage, totalPages, onPageChange }) => {
+    const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+    return (
+        <div className="flex items-center justify-center space-x-1 mt-4">
+             <button
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded-md bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+            >
+                {"<"}
+            </button>
+            {pageNumbers.map(num => (
+                 <button
+                    key={num}
+                    onClick={() => onPageChange(num)}
+                    className={`px-3 py-1 rounded-md ${currentPage === num ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+                >
+                    {num}
+                </button>
+            ))}
+             <button
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 rounded-md bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+            >
+                {">"}
+            </button>
+        </div>
+    );
+};
+
+
+// --- Komponen Utama (Reusable) ---
+export default function LoanSchedule({ schedule, itemsPerPage = 12 }: LoanScheduleProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Kalkulasi total di-memoize untuk performa
+  const totals = useMemo(() => {
+    return schedule.reduce(
+      (acc, item) => ({
+        interest: acc.interest + item.interest,
+        principal: acc.principal + item.principal,
+        payment: acc.payment + item.payment,
+      }),
+      { interest: 0, principal: 0, payment: 0 }
+    );
+  }, [schedule]);
+
+  // Item yang ditampilkan per halaman juga di-memoize
+  const currentItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return schedule.slice(startIndex, startIndex + itemsPerPage);
+  }, [currentPage, schedule, itemsPerPage]);
+
+  const totalPages = Math.ceil(schedule.length / itemsPerPage);
+
+  // Guard clause jika tidak ada data
+  if (!schedule || schedule.length === 0) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-md text-center">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">Tabel Angsuran</h2>
         <p className="text-gray-500">Data angsuran tidak tersedia.</p>
       </div>
     );
   }
 
-  // Jika data valid, render komponen reusable LoanSchedule
-  // dan teruskan HANYA data yang dibutuhkannya (yaitu, array jadwal).
-  return <LoanSchedule schedule={loanDetails.amortizationSchedule} />;
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">Tabel Angsuran</h2>
+      <ScheduleTable items={currentItems} />
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
+      <ScheduleSummary totals={totals} />
+    </div>
+  );
 }

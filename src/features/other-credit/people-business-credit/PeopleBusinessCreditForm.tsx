@@ -1,292 +1,228 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, FormEvent, ChangeEvent } from "react";
+import { CurrencyInput, YearInput, Input, Button } from "@/components/ui/form";
+import { formatPercent } from "@/utils/formatters"; // Impor formatter
 
-// Interface for form data
+// --- Interfaces & Types ---
 interface FormData {
-  loanAmount: number;
-  loanTerm: number;
-  interestRate: number;
-  loanPurpose: string;
-  adminFee: number;
-  insuranceFee: number;
+  loanAmount: string;
+  loanTerm: string;
+  interestRate: string;
+  loanPurpose: "working-capital" | "investment" | "consumptive" | "";
+  adminFee: string;
+  insuranceFee: string;
 }
 
-// Interface for form validation errors
 interface FormErrors {
-  [key: string]: string;
+  [key: string]: string | undefined;
 }
 
-// Interface for component props
 interface PeopleBusinessCreditFormProps {
-  onCalculate: (formData: FormData) => void;
+  onCalculate: (data: {
+    loanAmount: number;
+    loanTerm: number;
+    interestRate: number;
+    loanPurpose: string;
+    adminFee: number;
+    insuranceFee: number;
+  }) => void;
 }
 
-export default function PeopleBusinessCreditForm({ onCalculate }: PeopleBusinessCreditFormProps) {
-  // Form state variables
-  const [loanAmount, setLoanAmount] = useState<string>("50000000");
-  const [loanTerm, setLoanTerm] = useState<string>("3");
-  const [interestRate, setInterestRate] = useState<string>("15");
-  const [loanPurpose, setLoanPurpose] = useState<string>("working-capital");
-  const [adminFee, setAdminFee] = useState<string>("500000");
-  const [insuranceFee, setInsuranceFee] = useState<string>("300000");
+const LOAN_PURPOSE_OPTIONS = [
+  { value: "working-capital", label: "Modal Kerja" },
+  { value: "investment", label: "Investasi" },
+  { value: "consumptive", label: "Konsumtif" },
+];
+
+// --- Main Form Component ---
+export default function PeopleBusinessCreditForm({
+  onCalculate,
+}: PeopleBusinessCreditFormProps) {
+  // --- State ---
+  const [formData, setFormData] = useState<FormData>({
+    loanAmount: "50000000",
+    loanTerm: "3",
+    interestRate: "15",
+    loanPurpose: "working-capital",
+    adminFee: "500000",
+    insuranceFee: "300000",
+  });
   const [errors, setErrors] = useState<FormErrors>({});
 
-  // Derived values for display
-  const loanTermMonths: number = Number(loanTerm) * 12;
-  const monthlyInterestRate: number = Number(interestRate) / 12;
+  // --- Derived Calculations with useMemo ---
+  const { loanTermMonths, monthlyInterestRate } = useMemo(() => {
+    const term = parseFloat(formData.loanTerm) || 0;
+    const rate = parseFloat(formData.interestRate.replace(",", ".")) || 0;
+    return {
+      loanTermMonths: term * 12,
+      monthlyInterestRate: rate > 0 ? rate / 12 : 0,
+    };
+  }, [formData.loanTerm, formData.interestRate]);
 
-  /**
-   * Validate form inputs
-   * @returns boolean indicating if form is valid
-   */
+  // --- Event Handlers ---
+  const handleInputChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value as any }));
+  };
+
+  const handleCurrencyChange = (name: keyof FormData) => (value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // --- Validation & Submit ---
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
+    const { loanAmount, loanTerm, interestRate, loanPurpose } = formData;
 
-    if (!loanAmount || isNaN(Number(loanAmount)) || Number(loanAmount) <= 0) {
-      newErrors.loanAmount = "Jumlah pinjaman harus berupa angka positif";
+    const numLoanAmount = parseFloat(loanAmount);
+    if (numLoanAmount <= 0) {
+      newErrors.loanAmount = "Jumlah pinjaman harus berupa angka positif.";
+    } else if (numLoanAmount > 500000000) {
+      newErrors.loanAmount = "Jumlah pinjaman KUR maksimal Rp 500.000.000.";
     }
 
-    if (Number(loanAmount) > 500000000) {
-      newErrors.loanAmount = "Jumlah pinjaman KUR maksimal Rp 500.000.000";
+    const numLoanTerm = parseFloat(loanTerm);
+    if (!Number.isInteger(numLoanTerm) || numLoanTerm <= 0) {
+      newErrors.loanTerm = "Tenor harus berupa bilangan bulat positif.";
+    } else if (numLoanTerm > 5) {
+      newErrors.loanTerm = "Tenor KUR maksimal 5 tahun.";
     }
 
-    if (
-      !loanTerm ||
-      isNaN(Number(loanTerm)) ||
-      Number(loanTerm) <= 0 ||
-      !Number.isInteger(Number(loanTerm))
-    ) {
-      newErrors.loanTerm = "Tenor harus berupa bilangan bulat positif";
+    if (parseFloat(interestRate.replace(",", ".")) < 0) {
+      newErrors.interestRate = "Suku bunga tidak boleh negatif.";
     }
-
-    if (Number(loanTerm) > 5) {
-      newErrors.loanTerm = "Tenor KUR maksimal 5 tahun";
-    }
-
-    if (
-      !interestRate ||
-      isNaN(Number(interestRate)) ||
-      Number(interestRate) < 0
-    ) {
-      newErrors.interestRate = "Suku bunga harus berupa angka positif atau nol";
-    }
-
     if (!loanPurpose) {
-      newErrors.loanPurpose = "Tujuan pinjaman harus dipilih";
+      newErrors.loanPurpose = "Tujuan pinjaman harus dipilih.";
     }
 
-    if (!adminFee || isNaN(Number(adminFee)) || Number(adminFee) < 0) {
-      newErrors.adminFee = "Biaya administrasi harus berupa angka positif atau nol";
-    }
-
-    if (!insuranceFee || isNaN(Number(insuranceFee)) || Number(insuranceFee) < 0) {
-      newErrors.insuranceFee = "Biaya asuransi harus berupa angka positif atau nol";
-    }
+    // Validasi biaya bisa ditambahkan di sini jika perlu
+    // if (parseFloat(adminFee) < 0) ...
+    // if (parseFloat(insuranceFee) < 0) ...
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  /**
-   * Handle form submission
-   * @param e - Form event
-   */
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (validateForm()) {
-      onCalculate({
-        loanAmount: Number(loanAmount),
-        loanTerm: Number(loanTerm),
-        interestRate: Number(interestRate),
-        loanPurpose,
-        adminFee: Number(adminFee),
-        insuranceFee: Number(insuranceFee)
-      });
+      const numericData = {
+        loanAmount: parseFloat(formData.loanAmount),
+        loanTerm: parseFloat(formData.loanTerm),
+        interestRate: parseFloat(formData.interestRate.replace(",", ".")),
+        loanPurpose: formData.loanPurpose,
+        adminFee: parseFloat(formData.adminFee),
+        insuranceFee: parseFloat(formData.insuranceFee),
+      };
+      onCalculate(numericData);
     }
   };
 
-  /**
-   * Format input to remove non-numeric characters
-   * @param value - Input value
-   * @returns Formatted numeric string
-   */
-  const formatInputCurrency = (value: string): string => {
-    return value.replace(/[^\d]/g, "");
-  };
-
+  // --- JSX ---
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Loan Amount Input */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Jumlah Pinjaman:
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">Rp</span>
-          </div>
-          <input
-            type="text"
-            value={loanAmount}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-              setLoanAmount(formatInputCurrency(e.target.value))
-            }
-            className="w-full pl-12 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="50000000"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">,00</span>
-          </div>
-        </div>
-        <p className="mt-1 text-xs text-gray-600">Maksimal Rp 500.000.000</p>
-        {errors.loanAmount && (
-          <p className="mt-1 text-sm text-red-600">{errors.loanAmount}</p>
-        )}
+      <div className="text-center mb-6">
+        <h2 className="text-xl font-semibold text-gray-900">
+          Simulasi Kredit Usaha Rakyat (KUR)
+        </h2>
       </div>
 
-      {/* Loan Purpose Select */}
+      <CurrencyInput
+        id="loanAmount"
+        name="loanAmount"
+        label="Jumlah Pinjaman"
+        value={formData.loanAmount}
+        onValueChange={handleCurrencyChange("loanAmount")}
+        error={errors.loanAmount}
+        placeholder="50.000.000"
+        info="Maksimal Rp 500.000.000"
+      />
+
       <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Tujuan Pinjaman:
+        <label
+          htmlFor="loanPurpose"
+          className="block text-sm font-medium text-gray-900 mb-1"
+        >
+          Tujuan Pinjaman
         </label>
         <select
-          value={loanPurpose}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => 
-            setLoanPurpose(e.target.value)
-          }
-          className="w-full px-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          id="loanPurpose"
+          name="loanPurpose"
+          value={formData.loanPurpose}
+          onChange={handleInputChange}
+          className={`w-full pl-3 pr-3 py-2 text-gray-900 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            errors.loanPurpose ? "border-red-500" : "border-gray-300"
+          }`}
         >
           <option value="">Pilih Tujuan Pinjaman</option>
-          <option value="working-capital">Modal Kerja</option>
-          <option value="investment">Investasi</option>
-          <option value="consumptive">Konsumtif</option>
+          {LOAN_PURPOSE_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
         </select>
         {errors.loanPurpose && (
           <p className="mt-1 text-sm text-red-600">{errors.loanPurpose}</p>
         )}
       </div>
 
-      {/* Loan Term Input */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Tenor (jangka waktu):
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            value={loanTerm}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-              setLoanTerm(e.target.value)
-            }
-            className="w-full pr-14 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="3"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">tahun</span>
-          </div>
-        </div>
-        <p className="mt-1 text-xs text-gray-900">= {loanTermMonths} bulan (Maksimal 5 tahun)</p>
-        {errors.loanTerm && (
-          <p className="mt-1 text-sm text-red-600">{errors.loanTerm}</p>
-        )}
+      <YearInput
+        id="loanTerm"
+        name="loanTerm"
+        label="Tenor (jangka waktu)"
+        value={formData.loanTerm}
+        onChange={handleInputChange}
+        error={errors.loanTerm}
+        placeholder="3"
+        info={`= ${loanTermMonths} bulan (Maksimal 5 tahun)`}
+      />
+
+      <Input
+        id="interestRate"
+        name="interestRate"
+        label="Suku Bunga KUR"
+        value={formData.interestRate}
+        onChange={handleInputChange}
+        error={errors.interestRate}
+        unit="% / tahun"
+        placeholder="15"
+        inputMode="decimal"
+        info={`= ${formatPercent(monthlyInterestRate, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 3,
+        })}/bulan`}
+      />
+
+      <div className="border-t border-gray-200 pt-6 space-y-4">
+        <h3 className="text-lg font-medium leading-6 text-gray-900">
+          Biaya Lainnya
+        </h3>
+        <CurrencyInput
+          id="adminFee"
+          name="adminFee"
+          label="Biaya Administrasi"
+          value={formData.adminFee}
+          onValueChange={handleCurrencyChange("adminFee")}
+          error={errors.adminFee}
+          placeholder="500.000"
+        />
+        <CurrencyInput
+          id="insuranceFee"
+          name="insuranceFee"
+          label="Biaya Asuransi"
+          value={formData.insuranceFee}
+          onValueChange={handleCurrencyChange("insuranceFee")}
+          error={errors.insuranceFee}
+          placeholder="300.000"
+        />
       </div>
 
-      {/* Interest Rate Input */}
-      <div>
-        <label className="block text-sm font-medium text-gray-900 mb-1">
-          Suku Bunga KUR:
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            value={interestRate}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-              setInterestRate(e.target.value)
-            }
-            className="w-full pr-14 pl-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="15"
-          />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">% / tahun</span>
-          </div>
-        </div>
-        <p className="mt-1 text-xs text-gray-900">
-          = {monthlyInterestRate.toFixed(2)}% / bulan
-        </p>
-        {errors.interestRate && (
-          <p className="mt-1 text-sm text-red-600">{errors.interestRate}</p>
-        )}
-      </div>
-
-      {/* Additional Fees Section */}
-      <div className="border-t border-gray-200 pt-4">
-        <h3 className="font-medium text-gray-900 mb-3">Biaya Lain</h3>
-
-        <div className="space-y-4">
-          {/* Admin Fee Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">
-              Biaya Administrasi:
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">Rp</span>
-              </div>
-              <input
-                type="text"
-                value={adminFee}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setAdminFee(formatInputCurrency(e.target.value))
-                }
-                className="w-full pl-12 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="500000"
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">,00</span>
-              </div>
-            </div>
-            {errors.adminFee && (
-              <p className="mt-1 text-sm text-red-600">{errors.adminFee}</p>
-            )}
-          </div>
-
-          {/* Insurance Fee Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-900 mb-1">
-              Biaya Asuransi:
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">Rp</span>
-              </div>
-              <input
-                type="text"
-                value={insuranceFee}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setInsuranceFee(formatInputCurrency(e.target.value))
-                }
-                className="w-full pl-12 pr-3 py-2 text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="300000"
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">,00</span>
-              </div>
-            </div>
-            {errors.insuranceFee && (
-              <p className="mt-1 text-sm text-red-600">{errors.insuranceFee}</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Submit Button */}
-      <button
-        type="submit"
-        className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium"
-      >
+      <Button type="submit" fullWidth>
         Hitung Simulasi KUR
-      </button>
+      </Button>
     </form>
   );
 }
