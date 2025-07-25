@@ -61,8 +61,8 @@ export default function MultiPurposeLoanPage() {
       <Header />
       <main className="container mx-auto py-10 px-4 flex-grow">
         <LoanCalculatorController
-          pageTitle="Kalkulator Kredit Multi Guna Bank Mandiri"
-          pageDescription="Simulasi kredit multi guna dengan suku bunga kompetitif mulai dari 6.00% fix 3 tahun pertama. Dapatkan perhitungan angsuran yang akurat untuk perencanaan keuangan Anda."
+          pageDescription="Simulasikan cicilan kredit multi guna dengan suku bunga dan tenor pilihan Anda. Alat bantu akurat untuk rencana finansial Anda."
+          pageTitle="Kalkulator Kredit Multi Guna"
           FormComponent={MultiPurposeLoanForm}
           performCalculation={performMultiPurposeLoanCalculation}
         >

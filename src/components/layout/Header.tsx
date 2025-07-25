@@ -56,7 +56,8 @@ export default function Header() {
       label: "Kredit Personal",
       type: "dropdown",
       items: [
-        { href: "/personal-loan/budget", label: "KTA Berdasar Budget" },
+        { href: "/personal-loan/online", label: "Pinjaman Online" },
+        { href: "/personal-loan/income", label: "KTA Berdasar Pemasukan" },
         { href: "/personal-loan/amount", label: "KTA Berdasar Pinjaman" },
       ],
     },

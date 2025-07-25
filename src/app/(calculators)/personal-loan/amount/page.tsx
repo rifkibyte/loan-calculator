@@ -104,14 +104,6 @@ export default function PersonalLoanAmountPage() {
             {showResults && resultData && (
               <div className="space-y-6">
                 <PersonalLoanAmountResult resultData={resultData} />
-                <PersonalLoanAmountSchedule 
-                  schedule={schedule}
-                  loanAmount={resultData.loanAmount}
-                  monthlyInterestRate={resultData.monthlyInterestRate}
-                  calculationMethod={resultData.calculationMethod}
-                  selectedTerm={selectedTerm}
-                  onTermChange={handleTermChange}
-                />
               </div>
             )}
           </div>

@@ -22,7 +22,6 @@ interface MultiPurposeLoanResultProps {
     interestRate: number;
     variableRate: number;
     fixedRatePeriod: number;
-    applicantType: 'employee' | 'professional' | 'entrepreneur';
     monthlyPayment: number;
     monthlyPrincipal: number;
     monthlyInterest: number;
@@ -39,18 +38,6 @@ interface MultiPurposeLoanResultProps {
 export default function MultiPurposeLoanResult({
   loanDetails,
 }: MultiPurposeLoanResultProps) {
-  // Helper untuk menerjemahkan jenis pemohon
-  const getApplicantTypeLabel = (
-    type: "employee" | "professional" | "entrepreneur"
-  ): string => {
-    const labels = {
-      employee: "Pegawai",
-      professional: "Profesional",
-      entrepreneur: "Wiraswasta",
-    };
-    return labels[type] || type;
-  };
-
   // Fungsi untuk ekspor PDF, disesuaikan dengan data dan formatters baru
   const handleExportPDF = () => {
     const doc = new jsPDF();
@@ -61,10 +48,6 @@ export default function MultiPurposeLoanResult({
       startY: 25,
       head: [["Keterangan", "Nilai"]],
       body: [
-        [
-          "Jenis Pemohon",
-          getApplicantTypeLabel(loanDetails.applicantType),
-        ],
         [
           "Jumlah Pinjaman",
           formatCurrencyDisplay(loanDetails.loanAmount),
@@ -106,10 +89,6 @@ export default function MultiPurposeLoanResult({
       <LoanInfoGrid
         title="Informasi Kredit Multi Guna Anda"
         items={[
-          {
-            label: "Jenis Pemohon",
-            value: getApplicantTypeLabel(loanDetails.applicantType),
-          },
           {
             label: "Jumlah Pinjaman",
             value: formatCurrencyDisplay(loanDetails.loanAmount),

@@ -1,4 +1,4 @@
-// file: features/common/LoanSchedule.tsx
+// file: components/ui/loan/LoanSchedule.tsx
 
 "use client";
 

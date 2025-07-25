@@ -1,18 +1,8 @@
-// File: /types/multi-purpose-loan.ts
-import { AmortizationItem, CommonLoanResult } from './common';
+// src/types/multi-purpose-loan.ts
 
-// Tidak ada perubahan di sini, hanya sebagai referensi
-export interface MultiPurposeLoanResult extends CommonLoanResult {
-  monthlyPayment: number;
-  totalPayment: number;
-  totalInterest: number;
-  provisionAmount: number;
-  adminFee: number;
-  firstPayment: number;
-  applicantType: 'employee' | 'professional' | 'entrepreneur';
-  fixedRatePeriod: number;
-  variableRate: number;
-}
+// Impor tipe umum jika diperlukan
+import { AmortizationItem } from "./common";
+
 
 export interface MultiPurposeLoanFormData {
   loanAmount: number;
@@ -20,7 +10,23 @@ export interface MultiPurposeLoanFormData {
   interestRate: number;
   variableRate: number;
   fixedRatePeriod: number;
-  applicantType: 'employee' | 'professional' | 'entrepreneur';
   provisionPercent: number;
+  adminFee: number;
+}
+
+export interface MultiPurposeLoanResult {
+  monthlyPayment: number;
+  monthlyPrincipal: number;
+  monthlyInterest: number;
+  totalPayment: number;
+  totalInterest: number;
+  provisionAmount: number;
+  firstPayment: number;
+  amortizationSchedule: AmortizationItem[];
+  // Properti di bawah ini sudah ada di FormData, tapi kita pastikan ada di Result juga
+  // untuk ditampilkan di komponen hasil.
+  loanAmount: number;
+  fixedRatePeriod: number;
+  variableRate: number;
   adminFee: number;
 }
