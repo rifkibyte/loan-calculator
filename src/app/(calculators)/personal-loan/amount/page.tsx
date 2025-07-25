@@ -1,23 +1,31 @@
 "use client";
 
-import { useState } from "react";
-import { PersonalLoanAmountForm, PersonalLoanAmountResult, PersonalLoanAmountSchedule } from "@/features/personal-loan/amount";
-import { Header, Footer } from "@/components/layout/";
+// Impor untuk fitur spesifik (Personal Loan Amount)
+import {
+  PersonalLoanAmountForm,
+  PersonalLoanAmountResult,
+  PersonalLoanAmountSchedule,
+} from "@/features/personal-loan/amount";
 
-import { calculateLoanAmountTable, calculateLoanAmountSchedule } from "@/utils/calculators/personal-loan/personalLoanAmountCalculator";
-import { LoanAmountTableItem, AmortizationItem } from "@/types/personal-loan-amount";
+// Impor kalkulator dan tipe data yang relevan
+import { calculateLoanAmountTable } from "@/utils/calculators/personal-loan/personalLoanAmountCalculator";
+import { LoanAmountTableItem } from "@/types/personal-loan-amount";
 
-// Interface for form data
-interface FormData {
+// Impor untuk layout dan komponen controller reusable
+import { Header, Footer } from "@/components/layout";
+import { LoanCalculatorController } from "@/components/ui/loan";
+
+// Tipe untuk data input dari form
+interface PersonalLoanAmountFormInput {
   loanAmount: number;
   creditRatio: number;
   monthlyInterestRate: number;
   calculationMethod: string;
-  selectedTerm?: number; // Optional: for schedule calculation
 }
 
-// Interface for result data
-interface ResultData {
+// Tipe untuk hasil kalkulasi yang komprehensif
+// Ini akan menjadi "sumber kebenaran tunggal" untuk semua komponen hasil
+export interface LoanAmountCalculationResult {
   loanAmount: number;
   creditRatio: number;
   monthlyInterestRate: number;
@@ -27,89 +35,55 @@ interface ResultData {
 }
 
 export default function PersonalLoanAmountPage() {
-  const [resultData, setResultData] = useState<ResultData | null>(null);
-  const [schedule, setSchedule] = useState<AmortizationItem[]>([]);
-  const [selectedTerm, setSelectedTerm] = useState<number>(12);
-  const [showResults, setShowResults] = useState<boolean>(false);
+  // 1. Logika kalkulasi diekstrak ke dalam fungsi murni.
+  // Fungsi ini menerima data form dan mengembalikan objek hasil yang terstruktur.
+  const performAmountCalculation = (
+    formData: PersonalLoanAmountFormInput
+  ): LoanAmountCalculationResult => {
+    const { loanAmount, creditRatio, monthlyInterestRate, calculationMethod } =
+      formData;
 
-  // Handle form calculation
-  const handleCalculate = (formData: FormData): void => {
-    try {
-      // Calculate loan amount table
-      const loanTable = calculateLoanAmountTable(
-        formData.loanAmount,
-        formData.creditRatio,
-        formData.monthlyInterestRate,
-        formData.calculationMethod
-      );
-      
-      // Calculate schedule for default term (12 months)
-      const scheduleData = calculateLoanAmountSchedule(
-        formData.loanAmount,
-        formData.monthlyInterestRate,
-        selectedTerm,
-        formData.calculationMethod
-      );
-      
-      const result: ResultData = {
-        loanAmount: formData.loanAmount,
-        creditRatio: formData.creditRatio,
-        monthlyInterestRate: formData.monthlyInterestRate,
-        annualInterestRate: formData.monthlyInterestRate * 12,
-        calculationMethod: formData.calculationMethod,
-        loanTable
-      };
-      
-      setResultData(result);
-      setSchedule(scheduleData);
-      setShowResults(true);
-    } catch (error) {
-      console.error("Error in calculation:", error);
-    }
-  };
+    // Hanya kalkulasi utama (tabel limit) yang dilakukan di sini.
+    // Kalkulasi jadwal angsuran akan ditangani oleh komponennya sendiri.
+    const loanTable = calculateLoanAmountTable(
+      loanAmount,
+      creditRatio,
+      monthlyInterestRate,
+      calculationMethod
+    );
 
-  // Handle term change for schedule
-  const handleTermChange = (newTerm: number): void => {
-    if (resultData) {
-      try {
-        const newSchedule = calculateLoanAmountSchedule(
-          resultData.loanAmount,
-          resultData.monthlyInterestRate,
-          newTerm,
-          resultData.calculationMethod
-        );
-        setSchedule(newSchedule);
-        setSelectedTerm(newTerm);
-      } catch (error) {
-        console.error("Error recalculating schedule:", error);
-      }
-    }
+    // Kembalikan satu objek hasil yang berisi semua data yang diperlukan
+    // oleh komponen-komponen di bawahnya.
+    return {
+      loanAmount,
+      creditRatio,
+      monthlyInterestRate,
+      annualInterestRate: monthlyInterestRate * 12,
+      calculationMethod,
+      loanTable,
+    };
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-      
-      <div className="container mx-auto py-8 px-4 flex-grow">
-        <h1 className="text-3xl font-bold text-center text-blue-600 mb-8">
-          Simulasi KTA
-        </h1>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
-            <PersonalLoanAmountForm onCalculate={handleCalculate} />
-          </div>
-          
-          <div className="lg:col-span-2">
-            {showResults && resultData && (
-              <div className="space-y-6">
-                <PersonalLoanAmountResult resultData={resultData} />
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      
+      <main className="container mx-auto py-10 px-4 flex-grow">
+        {/* 2. Gunakan LoanCalculatorController untuk mengelola state dan layout. */}
+        <LoanCalculatorController
+          pageTitle="Kalkulator KTA Berdasarkan Jumlah Pinjaman"
+          pageDescription="Hitung estimasi angsuran bulanan untuk berbagai pilihan tenor berdasarkan jumlah pinjaman yang Anda inginkan."
+          FormComponent={PersonalLoanAmountForm}
+          performCalculation={performAmountCalculation}
+        >
+          {/* 3. Gunakan pola "render prop" untuk menampilkan hasil. */}
+          {/* Controller akan menyediakan 'result' setelah kalkulasi berhasil. */}
+          {(result) => (
+            <div className="space-y-6">
+              <PersonalLoanAmountResult resultData={result} />
+            </div>
+          )}
+        </LoanCalculatorController>
+      </main>
       <Footer />
     </div>
   );
